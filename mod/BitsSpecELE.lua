@@ -18,12 +18,8 @@ local function calcBits()
     if UnitPower("player") >= 55 then
         bits = bits + 0x2
     end
-    local name, _, _, _, fullDuration, expirationTime = AuraUtil.FindAuraByName("Flame Shock", "target", "HARMFUL")
-    if (name ~= nil) then
-        local remainingDuration = expirationTime - GetTime()
-        if remainingDuration > (fullDuration * 0.3) then
-            bits = bits + 0x4
-        end
+    if Faceroll.isDotActive("Flame Shock") >= 0.3 then
+        bits = bits + 0x4
     end
     if Faceroll.isSpellAvailable("Stormkeeper") then
         bits = bits + 0x8

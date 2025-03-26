@@ -87,6 +87,19 @@ Faceroll.isSpellAvailable = function(spellName)
     return true
 end
 
+Faceroll.isDotActive = function(spellName)
+    local name, _, _, _, fullDuration, expirationTime = AuraUtil.FindAuraByName(spellName, "target", "HARMFUL")
+    if name ~= nil and fullDuration > 0 then
+        local remainingDuration = expirationTime - GetTime()
+        local normalizedDuration = remainingDuration / fullDuration
+        if normalizedDuration < 0 then
+            normalizedDuration = 0
+        end
+        return normalizedDuration
+    end
+    return -1
+end
+
 -----------------------------------------------------------------------------------------
 -- Buff Events
 
