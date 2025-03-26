@@ -4,4 +4,11 @@
 ## Version: 1.0
 ## DefaultState: enabled
 ## Author: Joe Drago
+FacerollFrame.lua
+FacerollBase.lua
+BitsSpecSV.lua
+BitsSpecMM.lua
+BitsSpecELE.lua
+BitsSpecOUT.lua
+BitsSpecFM.lua
 Faceroll.lua

@@ -1,679 +1,209 @@
---------------------------------------------------------------------------------------
--- Duplicate this block at the top of both hammerspoon's and mod's Faceroll.lua files
-local FACEROLL_MODES = {}
-local MODE_OFF = 0 FACEROLL_MODES[ MODE_OFF ] = { ["name"]="OFF", ["color"]="333333" }
-local MODE_SV  = 1 FACEROLL_MODES[ MODE_SV  ] = { ["name"]="SV",  ["color"]="337733" }
-local MODE_MM  = 2 FACEROLL_MODES[ MODE_MM  ] = { ["name"]="MM",  ["color"]="88aa00" }
-local MODE_OUT = 3 FACEROLL_MODES[ MODE_OUT ] = { ["name"]="OUT", ["color"]="336699" }
-local MODE_FM  = 4 FACEROLL_MODES[ MODE_FM  ] = { ["name"]="FM",  ["color"]="005599" }
-local MODE_ELE = 5 FACEROLL_MODES[ MODE_ELE ] = { ["name"]="ELE", ["color"]="003399" }
-local MODE_LAST = #FACEROLL_MODES
---------------------------------------------------------------------------------------
+local addonName, Faceroll = ...
 
-local debugOverlayEnabled = false
-local debugOverlay = nil
-local debugOverlayText = nil
+-----------------------------------------------------------------------------------------
+-- Duplicate this block at the top of both hammerspoon's and mod's Faceroll.lua files
+local FACEROLL_SPECS = {}
+local SPEC_OFF = 0 FACEROLL_SPECS[ SPEC_OFF ] = { ["name"]="OFF", ["color"]="333333" }
+local SPEC_SV  = 1 FACEROLL_SPECS[ SPEC_SV  ] = { ["name"]="SV",  ["color"]="337733" }
+local SPEC_MM  = 2 FACEROLL_SPECS[ SPEC_MM  ] = { ["name"]="MM",  ["color"]="88aa00" }
+local SPEC_OUT = 3 FACEROLL_SPECS[ SPEC_OUT ] = { ["name"]="OUT", ["color"]="336699" }
+local SPEC_FM  = 4 FACEROLL_SPECS[ SPEC_FM  ] = { ["name"]="FM",  ["color"]="005599" }
+local SPEC_ELE = 5 FACEROLL_SPECS[ SPEC_ELE ] = { ["name"]="ELE", ["color"]="003399" }
+local SPEC_LAST = #FACEROLL_SPECS
+-----------------------------------------------------------------------------------------
+
+-----------------------------------------------------------------------------------------
+-- The little "OFF" / "SV" text
 
 local enabledFrame = nil
-local enabledFrameText = nil
-local enabledMode = MODE_OFF
+local enabledSpec = SPEC_OFF
 
-local backgroundFrame = nil
-local cellFrames = {}
-local buffs = {
-    -- Elemental Shaman
-    ["tempest"] = {
-        ["id"]=0,
-        ["name"]="Tempest",
-    },
-
-    -- Hunter
-    ["trickshots"] = {
-        ["id"]=0,
-        ["name"]="Trick Shots",
-    },
-    ["streamline"] = {
-        ["id"]=0,
-        ["name"]="Streamline",
-    },
-    ["preciseshots"] = {
-        ["id"]=0,
-        ["name"]="Precise Shots",
-    },
-    ["spottersmark"] = {
-        ["id"]=0,
-        ["name"]="Spotter's Mark",
-    },
-    ["movingtarget"] = {
-        ["id"]=0,
-        ["name"]="Moving Target",
-    },
-    ["lunarstorm"] = {
-        ["id"]=0,
-        ["name"]="Lunar Storm",
-        ["harmful"]=true,
-    },
-    ["strikeitrich"] = {
-        ["id"]=0,
-        ["name"]="Strike it Rich",
-    },
-    ["tipofthespear"] = {
-        ["id"]=0,
-        ["name"]="Tip of the Spear",
-    },
-
-    -- Rogue
-    ["adrenalinerush"] = {
-        ["id"]=0,
-        ["name"]="Adrenaline Rush",
-    },
-    ["bladeflurry"] = {
-        ["id"]=0,
-        ["name"]="Blade Flurry",
-    },
-    ["ruthlessprecision"] = {
-        ["id"]=0,
-        ["name"]="Ruthless Precision",
-    },
-    ["subterfuge"] = {
-        ["id"]=0,
-        ["name"]="Subterfuge",
-    },
-    ["stealth"] = {
-        ["id"]=0,
-        ["name"]="Stealth",
-    },
-    ["vanish"] = {
-        ["id"]=0,
-        ["name"]="Vanish",
-    },
-    ["opportunity"] = {
-        ["id"]=0,
-        ["name"]="Opportunity",
-    },
-    ["audacity"] = {
-        ["id"]=0,
-        ["name"]="Audacity",
-    },
-
-    -- Roll the bones buffs (the first 3 are "the good ones")
-    ["rtb1"] = {
-        ["id"]=0,
-        ["name"]="Broadside",
-        ["remain"]=false,
-        ["cto"]=false,
-    },
-    ["rtb2"] = {
-        ["id"]=0,
-        ["name"]="True Bearing",
-        ["remain"]=false,
-        ["cto"]=false,
-    },
-    ["rtb3"] = {
-        ["id"]=0,
-        ["name"]="Ruthless Precision",
-        ["remain"]=false,
-        ["cto"]=false,
-    },
-    ["rtb4"] = {
-        ["id"]=0,
-        ["name"]="Skull and Crossbones",
-        ["remain"]=false,
-        ["cto"]=false,
-    },
-    ["rtb5"] = {
-        ["id"]=0,
-        ["name"]="Buried Treasure",
-        ["remain"]=false,
-        ["cto"]=false,
-    },
-    ["rtb6"] = {
-        ["id"]=0,
-        ["name"]="Grand Melee",
-        ["remain"]=false,
-        ["cto"]=false,
-    },
-
-    -- Frost Mage
-    ["winterschill"] = {
-        ["id"]=0,
-        ["name"]="Winter's Chill",
-    },
-    ["fingersoffrost"] = {
-        ["id"]=0,
-        ["name"]="Fingers of Frost",
-    },
-    ["excessfire"] = {
-        ["id"]=0,
-        ["name"]="Excess Fire",
-    },
-    ["excessfrost"] = {
-        ["id"]=0,
-        ["name"]="Excess Frost",
-    },
-    ["glacialspike"] = {
-        ["id"]=0,
-        ["name"]="Glacial Spike!",
-    },
-}
-
-local function facerollColor(text, color)
-    return "\124cff" .. color .. text .. "\124r"
+local function enabledFrameCreate()
+    enabledFrame = Faceroll.createFrame(34, 34,                   -- size
+                                        "BOTTOMLEFT", 470, 70,    -- position
+                                        "TOOLTIP", 0.0,           -- strata/alpha
+                                        "CENTER", "firamono", 18) -- text
 end
 
 local function enabledFrameUpdate()
-    if enabledFrameText ~= nil then
-        local mode = FACEROLL_MODES[enabledMode]
-        enabledFrameText:SetText(facerollColor(mode.name, mode.color))
+    if enabledFrame ~= nil then
+        local spec = FACEROLL_SPECS[enabledSpec]
+        enabledFrame:setText(Faceroll.textColor(spec.name, spec.color))
     end
 end
 
-local function setDebugOverlayText(text)
-    if debugOverlayEnabled and debugOverlayText ~= nil then
-        debugOverlayText:SetText(text)
+function enabledFrameCycle()
+    enabledSpec = enabledSpec + 1
+    if enabledSpec > SPEC_LAST then
+        enabledSpec = SPEC_LAST
     end
+    enabledFrameUpdate()
 end
 
-local function calcBitsMarksmanship()
-    local bits = 0
-    if buffs.trickshots.id ~= 0 then
-        bits = bits + 0x1
-    end
-    if buffs.streamline.id ~= 0 then
-        bits = bits + 0x2
-    end
-    if buffs.preciseshots.id ~= 0 then
-        bits = bits + 0x4
-    end
-    if buffs.spottersmark.id ~= 0 then
-        bits = bits + 0x8
-    end
-    if buffs.movingtarget.id ~= 0 then
-        bits = bits + 0x10
-    end
-    if C_Spell.GetSpellCooldown("Aimed Shot").duration < 1.5 then
-        bits = bits + 0x20
-    end
-    if C_Spell.GetSpellCooldown("Rapid Fire").duration < 1.5 then
-        bits = bits + 0x40
-    end
-    if C_Spell.GetSpellCooldown("Explosive Shot").duration < 1.5 then
-        bits = bits + 0x80
-    end
-    if C_Spell.IsSpellUsable("Kill Shot") and C_Spell.GetSpellCooldown("Kill Shot").duration < 1.5 then
-        bits = bits + 0x100
-    end
-    if UnitPower("player") < 30 then
-        bits = bits + 0x200
-    end
-    return bits
+function enabledFrameReset()
+    enabledSpec = 0
+    enabledFrameUpdate()
 end
 
-local function calcBitsSurvival()
-    local bits = 0
-    if buffs.lunarstorm.id == 0 then
-        bits = bits + 0x1
-    end
-    if buffs.strikeitrich.id ~= 0 then
-        bits = bits + 0x2
-    end
-    if buffs.tipofthespear.id ~= 0 then
-        bits = bits + 0x4
-    end
-    if C_Spell.GetSpellCharges("Wildfire Bomb").currentCharges >= 2 then
-        bits = bits + 0x8
-    end
-    if C_Spell.GetSpellCharges("Wildfire Bomb").currentCharges >= 1 then
-        bits = bits + 0x10
-    end
-    if C_Spell.GetSpellCooldown("Butchery").duration < 1.5 then
-        bits = bits + 0x20
-    end
-    if C_Spell.GetSpellCooldown("Kill Command").duration < 1.5 then
-        bits = bits + 0x40
-    end
-    if C_Spell.GetSpellCooldown("Explosive Shot").duration < 1.5 then
-        bits = bits + 0x80
-    end
-    if C_Spell.IsSpellUsable("Kill Shot") and C_Spell.GetSpellCooldown("Kill Shot").duration < 1.5 then
-        bits = bits + 0x100
-    end
-    if C_Spell.GetSpellCooldown("Fury of the Eagle").duration < 1.5 then
-        bits = bits + 0x200
-    end
-    if UnitPower("player") > 85 then
-        bits = bits + 0x400
-    end
-    return bits
+-----------------------------------------------------------------------------------------
+-- The text in the center of the screen saying "FR AE", etc
+
+local activeFrame = nil
+local activeFrameTime = 0
+
+local function activeFrameCreate()
+    activeFrame = Faceroll.createFrame(100, 20,                      -- size
+                                       "CENTER", 0, -185,            -- position
+                                       "TOOLTIP", 0.0,               -- strata/alpha
+                                       "CENTER", "forcedsquare", 24) -- text
 end
 
-local function calcBitsElemental()
-    local bits = 0
-    if buffs.tempest.id ~= 0 then
-        bits = bits + 0x1
-    end
-    if UnitPower("player") >= 55 then
-        bits = bits + 0x2
-    end
-    local name, _, _, _, fullDuration, expirationTime = AuraUtil.FindAuraByName("Flame Shock", "target", "HARMFUL")
-    if (name ~= nil) then
-        local remainingDuration = expirationTime - GetTime()
-        if remainingDuration > (fullDuration * 0.3) then
-            bits = bits + 0x4
+function activeFrameSet(text)
+    local activeText = "FR " .. text
+    activeFrameTime = GetTime()
+    activeFrame:setText(Faceroll.textColor(activeText, "F5FF9D"))
+end
+
+-- This timer auto-resets the active frame text after ~500ms,
+-- making this behave like a keepalive/heartbeat
+C_Timer.NewTicker(0.25, function()
+    if activeFrameTime > 0 then
+        local since = GetTime() - activeFrameTime
+        if since > 0.5 then
+            activeFrameTime = 0
+            activeFrame:setText("")
         end
     end
-    if C_Spell.GetSpellCooldown("Stormkeeper").duration < 1.5 then
-        bits = bits + 0x8
-    end
-    return bits
-end
+end, nil)
 
-local rtbStart = 0
-local rtbEnd = 0
-local rtbDelay = 0.1
-local rtbNeedsAPressAfterKIR = false
+-----------------------------------------------------------------------------------------
+-- The wabits interface grid of bits!
 
-local function calcBitsOutlaw()
-    local bits = 0
+local bitsBG = nil
+local bitsCells = {}
 
-    local kirCount = 0
-    local goodRtbCount = 0
-    local rtbCount = 0
+local function createBits()
+    bitsBG = CreateFrame("Frame")
+    bitsBG:SetPoint("TOPRIGHT", -155, -5)
+    bitsBG:SetHeight(32)
+    bitsBG:SetWidth(32)
+    bitsBG:SetFrameStrata("TOOLTIP")
+    bitsBG.texture = bitsBG:CreateTexture()
+    bitsBG.texture:SetTexture("Interface/BUTTONS/WHITE8X8")
+    bitsBG.texture:SetVertexColor(0.0, 0.0, 0.0, 1.0)
+    bitsBG.texture:SetAllPoints(bitsBG)
+    bitsBG:Show()
 
-    local rtbShortest = 1000
-    for rtbIndex = 1,6 do
-        local rtbName = "rtb" .. rtbIndex
-        if buffs[rtbName].id ~= 0 then
-            if rtbIndex <= 3 then
-                goodRtbCount = goodRtbCount + 1
-            end
-            kirCount = kirCount + 1
-            if not buffs[rtbName].cto then
-                rtbCount = rtbCount + 1
-            end
-            local remaining = math.max(buffs[rtbName].expirationTime - GetTime(), 0)
-            if rtbShortest > remaining then
-                rtbShortest = remaining
-            end
-        end
+    for bitIndex = 0,15 do
+        local bitX = bitIndex % 4
+        local bitY = floor(bitIndex / 4)
+        local bitName = "bit" .. bitIndex
+        local cell = CreateFrame("Frame", bitName, bitsBG)
+        cell:SetPoint("TOPLEFT", bitX * 8, bitY * -8)
+        cell:SetHeight(8)
+        cell:SetWidth(8)
+        cell.texture = cell:CreateTexture()
+        cell.texture:SetTexture("Interface/BUTTONS/WHITE8X8")
+        cell.texture:SetVertexColor(1.0, 1.0, 1.0, 1.0)
+        cell.texture:SetAllPoints(cell)
+        cell:Hide()
+        bitsCells[bitIndex] = cell
     end
-
-    -- print("rtbCount " .. rtbCount .. " goodRtbCount " .. goodRtbCount .. " kirCount " .. kirCount)
-
-    local energy = UnitPower("player")
-    local cp = GetComboPoints("player", "target")
-    -- print("energy " .. energy .. " cp " .. cp)
-
-    if (kirCount >= 4 and rtbShortest < 2) or (kirCount >= 6) then
-        bits = bits + 0x1
-    end
-    if rtbCount <= 2 and goodRtbCount == 0 or rtbNeedsAPressAfterKIR then
-        bits = bits + 0x2
-    end
-
-    if buffs.adrenalinerush.id ~= 0 then
-        bits = bits + 0x4
-    end
-    if buffs.bladeflurry.id == 0 and C_Spell.GetSpellCooldown("Blade Flurry").duration < 1.5 then
-        -- tracking "should I blade flurry"
-        bits = bits + 0x8
-    end
-    if buffs.ruthlessprecision.id ~= 0 then
-        bits = bits + 0x10
-    end
-    if buffs.subterfuge.id ~= 0 then
-        bits = bits + 0x20
-    end
-    if buffs.stealth.id ~= 0 or buffs.vanish.id ~= 0 then
-        bits = bits + 0x40
-    end
-    if buffs.opportunity.id ~= 0 then
-        bits = bits + 0x80
-    end
-    if buffs.audacity.id ~= 0 then
-        bits = bits + 0x100
-    end
-
-    if C_Spell.GetSpellCooldown("Keep It Rolling").duration < 1.5 then
-        bits = bits + 0x200
-    end
-    if C_Spell.GetSpellCooldown("Adrenaline Rush").duration < 1.5 then
-        bits = bits + 0x400
-    end
-    if C_Spell.GetSpellCooldown("Between the Eyes").duration < 1.5 then
-        bits = bits + 0x800
-    end
-    if C_Spell.GetSpellCooldown("Vanish").duration < 1.5 then
-        bits = bits + 0x1000
-    end
-    if C_Spell.GetSpellCooldown("Roll the Bones").duration < 1.5 then
-        bits = bits + 0x2000
-    end
-
-    if cp >= 5 then
-        bits = bits + 0x4000
-    end
-    if cp >= 6 then
-        bits = bits + 0x8000
-    end
-
-    local function bt(b)
-        if b then
-            return "\124cffffff00T\124r"
-        end
-        return "\124cff777777F\124r"
-    end
-
-    if debugOverlayEnabled then
-        local rtbRem = math.max(rtbEnd - GetTime(), 0)
-        local o = ""
-        o = o .. "rtbStart: " .. rtbStart .. "\n"
-        o = o .. "rtbEnd  : " .. rtbEnd .. "\n"
-        o = o .. "rtbRem  : " .. rtbRem .. "\n"
-        o = o .. "\n"
-        o = o .. "rtbCount: " .. rtbCount .. "\n"
-        o = o .. "kirCount: " .. kirCount .. "\n"
-        o = o .. "rtbNeeds: " .. bt(rtbNeedsAPressAfterKIR) .. "\n"
-        o = o .. "\n"
-        o = o .. "rtbShort: " .. rtbShortest .. "\n"
-        o = o .. "\n"
-        o = o .. "rtb1: remain: " .. bt(buffs.rtb1.remain) .. " cto: " .. bt(buffs.rtb1.cto) .. "  [" .. buffs.rtb1.id .. "]\n"
-        o = o .. "rtb2: remain: " .. bt(buffs.rtb2.remain) .. " cto: " .. bt(buffs.rtb2.cto) .. "  [" .. buffs.rtb2.id .. "]\n"
-        o = o .. "rtb3: remain: " .. bt(buffs.rtb3.remain) .. " cto: " .. bt(buffs.rtb3.cto) .. "  [" .. buffs.rtb3.id .. "]\n"
-        o = o .. "rtb4: remain: " .. bt(buffs.rtb4.remain) .. " cto: " .. bt(buffs.rtb4.cto) .. "  [" .. buffs.rtb4.id .. "]\n"
-        o = o .. "rtb5: remain: " .. bt(buffs.rtb5.remain) .. " cto: " .. bt(buffs.rtb5.cto) .. "  [" .. buffs.rtb5.id .. "]\n"
-        o = o .. "rtb6: remain: " .. bt(buffs.rtb6.remain) .. " cto: " .. bt(buffs.rtb6.cto) .. "  [" .. buffs.rtb6.id .. "]\n"
-        setDebugOverlayText(o)
-    end
-
-    return bits
-end
-
-local function calcBitsFrostMage()
-    local bits = 0
-
-    if buffs.winterschill.id ~= 0 then
-        bits = bits + 0x1
-    end
-    if buffs.fingersoffrost.id ~= 0 then
-        bits = bits + 0x2
-    end
-    if buffs.excessfire.id ~= 0 then
-        bits = bits + 0x4
-    end
-    if buffs.excessfrost.id ~= 0 then
-        bits = bits + 0x8
-    end
-    if buffs.glacialspike.id ~= 0 then
-        bits = bits + 0x10
-    end
-
-    if C_Spell.GetSpellCooldown("Frozen Orb").duration < 1.5 then
-        bits = bits + 0x20
-    end
-    if C_Spell.GetSpellCooldown("Comet Storm").duration < 1.5 then
-        bits = bits + 0x40
-    end
-    if C_Spell.GetSpellCooldown("Flurry").duration < 1.5 then
-        bits = bits + 0x80
-    end
-    if C_Spell.GetSpellCooldown("Shifting Power").duration < 1.5 then
-        bits = bits + 0x100
-    end
-
-    return bits
 end
 
 local function showBits(bits)
-    backgroundFrame:Show()
+    bitsBG:Show()
     local b = 1
     for bitIndex = 0,15 do
         if bit.band(bits, b)==0 then
-            cellFrames[bitIndex]:Hide()
+            bitsCells[bitIndex]:Hide()
         else
-            cellFrames[bitIndex]:Show()
+            bitsCells[bitIndex]:Show()
         end
         b = b * 2
     end
 end
 
 local function hideBits()
-    backgroundFrame:Hide()
+    bitsBG:Hide()
     for bitIndex = 0,15 do
-        cellFrames[bitIndex]:Hide()
+        bitsCells[bitIndex]:Hide()
     end
-end
-
-local function resetEverything()
-    print("Faceroll: Reset.")
-    for _, buff in pairs(buffs) do
-        buff.id = 0
-        buff.remain = false
-        buff.cto = false
-        buff.expirationTime = 0
-    end
-    enabledFrameUpdate()
 end
 
 local function updateBits()
     local _, playerClass = UnitClass("player")
-    local spec = GetSpecialization()
-
-    if (playerClass == "HUNTER") and (spec == 2) then
-        showBits(calcBitsMarksmanship())
-    elseif (playerClass == "HUNTER") and (spec == 3) then
-        showBits(calcBitsSurvival())
-    elseif (playerClass == "SHAMAN") and (spec == 1) then
-        showBits(calcBitsElemental())
-    elseif (playerClass == "ROGUE") and (spec == 2) then
-        showBits(calcBitsOutlaw())
-    elseif (playerClass == "MAGE") and (spec == 3) then
-        showBits(calcBitsFrostMage())
+    local specIndex = GetSpecialization()
+    if playerClass == nil or specIndex == nil then
+        return
+    end
+    local specKey = playerClass .. "-" .. specIndex
+    local calcBitsFunc = Faceroll.registeredSpecs[specKey]
+    if calcBitsFunc ~= nil then
+        showBits(calcBitsFunc())
     else
         hideBits()
     end
 end
 
-local function onPlayerAura(info)
-    if info.addedAuras then
-        for _, aura in pairs(info.addedAuras) do
-            for _, buff in pairs(buffs) do
-                if aura.name == buff.name then
-                    -- print("Detected: " .. buff.name)
-                    if buff.harmful then
-                        if aura.isHarmful then
-                            buff.id = aura.auraInstanceID
-                        end
-                    else
-                        buff.id = aura.auraInstanceID
-                        buff.expirationTime = aura.expirationTime
-
-                        local auraRemaining = aura.expirationTime - GetTime()
-                        local rtbRemaining = math.max(rtbEnd - GetTime(), 0)
-                        buff.remain = auraRemaining > rtbRemaining + rtbDelay
-                        buff.cto = rtbRemaining > auraRemaining + rtbDelay
-                    end
-                end
-            end
-        end
-    end
-
-    -- RTB refresh checks
-    if info.updatedAuraInstanceIDs then
-		for _, v in pairs(info.updatedAuraInstanceIDs) do
-			local aura = C_UnitAuras.GetAuraDataByAuraInstanceID("player", v)
-            if aura ~= nil then
-                for _, buff in pairs(buffs) do
-                    if aura.name == buff.name then
-                        buff.id = aura.auraInstanceID
-                        buff.expirationTime = aura.expirationTime
-
-                        local auraRemaining = aura.expirationTime - GetTime()
-                        local rtbRemaining = math.max(rtbEnd - GetTime(), 0)
-                        buff.remain = auraRemaining > rtbRemaining + rtbDelay
-                        buff.cto = rtbRemaining > auraRemaining + rtbDelay
-                    end
-                end
-            end
-        end
-	end
-
-	if info.removedAuraInstanceIDs then
-		for _, id in pairs(info.removedAuraInstanceIDs) do
-            for _, buff in pairs(buffs) do
-                if buff.id == id then
-                    -- print("Lost: " .. buff.name)
-                    buff.id = 0
-                    buff.expirationTime = 0
-                    buff.remain = false
-                    buff.cto = false
-                end
-            end
-        end
-	end
-end
+-----------------------------------------------------------------------------------------
+-- init() - the entry point
 
 local function init()
-    if debugOverlayEnabled then
-        debugOverlay = CreateFrame("Frame")
-        debugOverlay:SetPoint("TOPLEFT", 0, 0)
-        debugOverlay:SetHeight(300)
-        debugOverlay:SetWidth(300)
-        debugOverlay:SetFrameStrata("TOOLTIP")
-        debugOverlay.texture = debugOverlay:CreateTexture()
-        debugOverlay.texture:SetTexture("Interface/BUTTONS/WHITE8X8")
-        debugOverlay.texture:SetVertexColor(0.0, 0.0, 0.0, 0.9)
-        debugOverlay.texture:SetAllPoints(debugOverlay)
-        debugOverlayText = debugOverlay:CreateFontString(nil, "ARTWORK")
-        debugOverlayText:SetFont("Interface\\AddOns\\Faceroll\\FiraMono-Medium.ttf", 13, "OUTLINE")
-        debugOverlayText:SetPoint("TOPLEFT",0,0)
-        debugOverlayText:SetJustifyH("LEFT")
-        debugOverlayText:SetJustifyV("TOP")
-        debugOverlayText:Show()
-        debugOverlay:Show()
-    end
+    Faceroll.debugInit()
 
-    enabledFrame = CreateFrame("Frame")
-    enabledFrame:SetPoint("BOTTOMLEFT", 470, 70)
-    enabledFrame:SetHeight(34)
-    enabledFrame:SetWidth(34)
-    enabledFrame:SetFrameStrata("TOOLTIP")
-    enabledFrame.texture = enabledFrame:CreateTexture()
-    enabledFrame.texture:SetTexture("Interface/BUTTONS/WHITE8X8")
-    enabledFrame.texture:SetVertexColor(0.0, 0.0, 0.0, 0.0)
-    enabledFrame.texture:SetAllPoints(enabledFrame)
-    enabledFrameText = enabledFrame:CreateFontString(nil, "ARTWORK")
-    enabledFrameText:SetFont("Interface\\AddOns\\Faceroll\\FiraMono-Medium.ttf", 18, "OUTLINE")
-    enabledFrameText:SetPoint("CENTER",0,0)
-    enabledFrameText:Show()
-    enabledFrame:Show()
+    enabledFrameCreate()
     enabledFrameUpdate()
+    activeFrameCreate()
 
-    backgroundFrame = CreateFrame("Frame")
-    backgroundFrame:SetPoint("TOPRIGHT", -155, -5)
-    backgroundFrame:SetHeight(32)
-    backgroundFrame:SetWidth(32)
-    backgroundFrame:SetFrameStrata("TOOLTIP")
-    backgroundFrame.texture = backgroundFrame:CreateTexture()
-    backgroundFrame.texture:SetTexture("Interface/BUTTONS/WHITE8X8")
-    backgroundFrame.texture:SetVertexColor(0.0, 0.0, 0.0, 1.0)
-    backgroundFrame.texture:SetAllPoints(backgroundFrame)
-    backgroundFrame:Show()
-
-    for bitIndex = 0,15 do
-        local bitX = bitIndex % 4
-        local bitY = floor(bitIndex / 4)
-        local bitName = "bit" .. bitIndex
-        local cellFrame = CreateFrame("Frame", bitName, backgroundFrame)
-        cellFrame:SetPoint("TOPLEFT", bitX * 8, bitY * -8)
-        cellFrame:SetHeight(8)
-        cellFrame:SetWidth(8)
-        cellFrame.texture = cellFrame:CreateTexture()
-        cellFrame.texture:SetTexture("Interface/BUTTONS/WHITE8X8")
-        cellFrame.texture:SetVertexColor(1.0, 1.0, 1.0, 1.0)
-        cellFrame.texture:SetAllPoints(cellFrame)
-        cellFrame:Hide()
-        cellFrames[bitIndex] = cellFrame
-    end
-
+    createBits()
     updateBits()
-    print("Faceroll: Initialized.")
+
+    print("Faceroll: Initialized")
 end
 
-function commandFR(rawArgs, editbox)
-    -- print("FR: " .. rawArgs)
-end
+-----------------------------------------------------------------------------------------
+-- Core event registration and handling
 
-function commandFRON()
-    enabledMode = enabledMode + 1
-    if enabledMode > MODE_LAST then
-        enabledMode = MODE_LAST
-    end
-    enabledFrameUpdate()
-end
-
-function commandFROFF()
-    enabledMode = 0
-    enabledFrameUpdate()
-end
-
-
-local name, addon = ...
-local f = CreateFrame("Frame")
-local login = true
-local function onevent(self, event, arg1, arg2, ...)
-
-    if login and ((event == "ADDON_LOADED" and name == arg1) or (event == "PLAYER_LOGIN")) then
-        login = nil
-        f:UnregisterEvent("ADDON_LOADED")
-        f:UnregisterEvent("PLAYER_LOGIN")
+local eventFrame = CreateFrame("Frame")
+local initialized = false
+local function onEvent(self, event, arg1, arg2, ...)
+    if not initialized and ((event == "ADDON_LOADED" and addonName == arg1) or (event == "PLAYER_LOGIN")) then
+        initialized = true
+        eventFrame:UnregisterEvent("ADDON_LOADED")
+        eventFrame:UnregisterEvent("PLAYER_LOGIN")
         init()
     elseif event == "PLAYER_ENTERING_WORLD" then
-        resetEverything()
+        Faceroll.resetBuffs()
     elseif event == "UNIT_SPELLCAST_SUCCEEDED" then
         updateBits()
     elseif event == "UNIT_AURA" then
         if arg1 == "player" then
-            onPlayerAura(arg2)
+            Faceroll.onPlayerAura(arg2)
         end
         updateBits()
     elseif event == "COMBAT_LOG_EVENT_UNFILTERED" then
-        local _, sub_event, _, source, _, _, _, _, _, _, _, spell_id = CombatLogGetCurrentEventInfo()
+        local _, spellEvent, _, source, _, _, _, _, _, _, _, spellID = CombatLogGetCurrentEventInfo()
         if source == UnitGUID("player") then
-            if spell_id == 381989 then -- keep it rolling
-                if sub_event == "SPELL_CAST_SUCCESS" then
-                    -- print("Keep it rolling! - " .. sub_event)
-                    rtbNeedsAPressAfterKIR = true
-                end
-            elseif spell_id == 315508 then -- roll the bones
-                if sub_event == "SPELL_CAST_SUCCESS" then
-                    -- print("Roll the bones! - " .. sub_event)
-                    rtbNeedsAPressAfterKIR = false
-                elseif sub_event == "SPELL_AURA_APPLIED" then
-                    rtbStart = GetTime()
-                    rtbEnd = rtbStart + 30
-                elseif sub_event == "SPELL_AURA_REFRESH" then
-                    rtbStart = GetTime()
-                    rtbEnd = 30 + rtbStart + math.min(rtbEnd - rtbStart, 9)
-                elseif sub_event == "SPELL_AURA_REMOVED" then
-                    rtbStart = 0
-                    rtbEnd = 0
-                end
-            end
+            Faceroll.onPlayerSpellEvent(spellEvent, spellID)
         end
     end
 end
-f:RegisterEvent("ADDON_LOADED")
-f:RegisterEvent("PLAYER_LOGIN")
-f:RegisterEvent("PLAYER_ENTERING_WORLD")
-f:RegisterEvent("UNIT_AURA")
-f:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED")
-f:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
-f:SetScript("OnEvent", onevent)
+
+eventFrame:RegisterEvent("ADDON_LOADED")
+eventFrame:RegisterEvent("PLAYER_LOGIN")
+eventFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
+eventFrame:RegisterEvent("UNIT_AURA")
+eventFrame:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED")
+eventFrame:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
+eventFrame:SetScript("OnEvent", onEvent)
+
+-----------------------------------------------------------------------------------------
+-- Slash command registration
 
 SLASH_FR1 = '/fr'
-SlashCmdList["FR"] = commandFR
+SlashCmdList["FR"] = activeFrameSet
 SLASH_FRON1 = '/fron'
-SlashCmdList["FRON"] = commandFRON
+SlashCmdList["FRON"] = enabledFrameCycle
 SLASH_FROFF1 = '/froff'
-SlashCmdList["FROFF"] = commandFROFF
+SlashCmdList["FROFF"] = enabledFrameReset
