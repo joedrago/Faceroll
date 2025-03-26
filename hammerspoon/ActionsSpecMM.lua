@@ -1,7 +1,7 @@
 -----------------------------------------------------------------------------------------
 -- Marksmanship Hunter
 
-local function nextAction(bits)
+local function nextAction(action, bits)
     local trickShots = bitand(bits, 0x1)
     local streamline = bitand(bits, 0x2)
     local preciseshots = bitand(bits, 0x4)
@@ -13,7 +13,7 @@ local function nextAction(bits)
     local killshot = bitand(bits, 0x100)
     local lowfocus = bitand(bits, 0x200)
 
-    if facerollAction == ACTION_Q then
+    if action == ACTION_Q then
         -- Single Target
 
         if (preciseshots > 0) and (killshot > 0) then
@@ -62,7 +62,7 @@ local function nextAction(bits)
             return "-" -- steady shot
         end
 
-    elseif facerollAction == ACTION_E then
+    elseif action == ACTION_E then
         -- AOE
 
         if lowfocus > 0 then

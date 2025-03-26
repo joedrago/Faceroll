@@ -1,7 +1,7 @@
 -----------------------------------------------------------------------------------------
 -- Frost Mage
 
-local function nextAction(bits)
+local function nextAction(action, bits)
     local winterschill = bitand(bits, 0x1)
     local fingersoffrost = bitand(bits, 0x2)
     local excessfire = bitand(bits, 0x4)
@@ -12,7 +12,7 @@ local function nextAction(bits)
     local flurry = bitand(bits, 0x80)
     local shiftingpower = bitand(bits, 0x100)
 
-    if facerollAction == ACTION_Q then
+    if action == ACTION_Q then
         -- Single Target
 
         if glacialspike > 0 and cometstorm == 0 then
@@ -48,7 +48,7 @@ local function nextAction(bits)
             return "7" -- frostfire bolt
         end
 
-    elseif facerollAction == ACTION_E then
+    elseif action == ACTION_E then
         -- AOE
 
         -- Frostfire Bolt

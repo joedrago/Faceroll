@@ -1,7 +1,7 @@
 -----------------------------------------------------------------------------------------
 -- Survival Hunter
 
-local function nextAction(bits)
+local function nextAction(action, bits)
     local lunarstorm = bitand(bits, 0x1)
     local strikeitrich = bitand(bits, 0x2)
     local tipofthespear = bitand(bits, 0x4)
@@ -14,7 +14,7 @@ local function nextAction(bits)
     local furyoftheeagle = bitand(bits, 0x200)
     local highfocus = bitand(bits, 0x400)
 
-    if facerollAction == ACTION_Q then
+    if action == ACTION_Q then
         -- Single Target
 
         if lunarstorm > 0 and wildfirebomb1 > 0 then
@@ -80,7 +80,7 @@ local function nextAction(bits)
             return "9" -- raptor strike
         end
 
-    elseif facerollAction == ACTION_E then
+    elseif action == ACTION_E then
         -- AOE
 
         if (lunarstorm > 0 and wildfirebomb1 > 0) or wildfirebomb2 > 0 then

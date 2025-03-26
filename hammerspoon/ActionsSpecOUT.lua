@@ -1,7 +1,7 @@
 -----------------------------------------------------------------------------------------
 -- Outlaw Rogue
 
-local function nextAction(bits)
+local function nextAction(action, bits)
     local shouldkeepitrolling = bitand(bits, 0x1)
     local shouldrollthebones = bitand(bits, 0x2)
     local adrenalinerushbuff = bitand(bits, 0x4)
@@ -19,7 +19,7 @@ local function nextAction(bits)
     local cp5 = bitand(bits, 0x4000)
     local cp6 = bitand(bits, 0x8000)
 
-    if facerollAction == ACTION_Q then
+    if action == ACTION_Q then
         -- Single Target
 
         if shouldkeepitrolling > 0 and keepitrollingcd > 0 then
@@ -71,7 +71,7 @@ local function nextAction(bits)
 
         end
 
-    elseif facerollAction == ACTION_E then
+    elseif action == ACTION_E then
         -- AOE
 
         if bladeflurry > 0 then

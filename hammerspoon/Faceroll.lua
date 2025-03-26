@@ -26,19 +26,19 @@ local SPEC_LAST = #FACEROLL_SPECS
 -----------------------------------------------------------------------------------------
 
 -----------------------------------------------------------------------------------------
--- Constants
+-- Global Constants
 
-local KEY_TOGGLE = hs.keycodes.map["F5"]
-local KEY_SPEC = hs.keycodes.map["F5"]
-local KEY_Q = hs.keycodes.map["q"]
-local KEY_E = hs.keycodes.map["e"]
-local KEY_SLASH = hs.keycodes.map["/"]
-local KEY_ENTER = hs.keycodes.map["return"]
-local KEY_DELETE = hs.keycodes.map["delete"]
+KEY_TOGGLE = hs.keycodes.map["F5"]
+KEY_SPEC = hs.keycodes.map["F5"]
+KEY_Q = hs.keycodes.map["q"]
+KEY_E = hs.keycodes.map["e"]
+KEY_SLASH = hs.keycodes.map["/"]
+KEY_ENTER = hs.keycodes.map["return"]
+KEY_DELETE = hs.keycodes.map["delete"]
 
-local ACTION_NONE = 0
-local ACTION_Q = 1
-local ACTION_E = 2
+ACTION_NONE = 0
+ACTION_Q = 1
+ACTION_E = 2
 
 -----------------------------------------------------------------------------------------
 -- Globals
@@ -126,7 +126,7 @@ local wowTick = hs.timer.new(0.02, function()
 
         local spec = FACEROLL_SPECS[facerollSpec]
         if spec ~= nil and spec.nextAction ~= nil then
-            key = spec.nextAction(facerollGameBits)
+            key = spec.nextAction(facerollAction, facerollGameBits)
         end
 
         if key ~= nil then
