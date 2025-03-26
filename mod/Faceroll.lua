@@ -1,9 +1,25 @@
-local debugOverlayEnabled = false
+--------------------------------------------------------------------------------------
+-- Duplicate this block at the top of both hammerspoon's and mod's Faceroll.lua files
+local FACEROLL_MODES = {}
+local MODE_OFF = 0 FACEROLL_MODES[ MODE_OFF ] = { ["name"]="OFF", ["color"]="333333" }
+local MODE_SV  = 1 FACEROLL_MODES[ MODE_SV  ] = { ["name"]="SV",  ["color"]="337733" }
+local MODE_MM  = 2 FACEROLL_MODES[ MODE_MM  ] = { ["name"]="MM",  ["color"]="88aa00" }
+local MODE_OUT = 3 FACEROLL_MODES[ MODE_OUT ] = { ["name"]="OUT", ["color"]="336699" }
+local MODE_FM  = 4 FACEROLL_MODES[ MODE_FM  ] = { ["name"]="FM",  ["color"]="005599" }
+local MODE_ELE = 5 FACEROLL_MODES[ MODE_ELE ] = { ["name"]="ELE", ["color"]="003399" }
+local MODE_LAST = #FACEROLL_MODES
+--------------------------------------------------------------------------------------
 
-local background = nil
+local debugOverlayEnabled = false
 local debugOverlay = nil
 local debugOverlayText = nil
-local cells = {}
+
+local enabledFrame = nil
+local enabledFrameText = nil
+local enabledMode = MODE_OFF
+
+local backgroundFrame = nil
+local cellFrames = {}
 local buffs = {
     -- Elemental Shaman
     ["tempest"] = {
@@ -141,12 +157,18 @@ local buffs = {
     },
 }
 
-local rtbStart = 0
-local rtbEnd = 0
-local rtbDelay = 0.1
-local rtbNeedsAPressAfterKIR = false
+local function facerollColor(text, color)
+    return "\124cff" .. color .. text .. "\124r"
+end
 
-local function setOverlayText(text)
+local function enabledFrameUpdate()
+    if enabledFrameText ~= nil then
+        local mode = FACEROLL_MODES[enabledMode]
+        enabledFrameText:SetText(facerollColor(mode.name, mode.color))
+    end
+end
+
+local function setDebugOverlayText(text)
     if debugOverlayEnabled and debugOverlayText ~= nil then
         debugOverlayText:SetText(text)
     end
@@ -245,6 +267,11 @@ local function calcBitsElemental()
     end
     return bits
 end
+
+local rtbStart = 0
+local rtbEnd = 0
+local rtbDelay = 0.1
+local rtbNeedsAPressAfterKIR = false
 
 local function calcBitsOutlaw()
     local bits = 0
@@ -356,7 +383,7 @@ local function calcBitsOutlaw()
         o = o .. "rtb4: remain: " .. bt(buffs.rtb4.remain) .. " cto: " .. bt(buffs.rtb4.cto) .. "  [" .. buffs.rtb4.id .. "]\n"
         o = o .. "rtb5: remain: " .. bt(buffs.rtb5.remain) .. " cto: " .. bt(buffs.rtb5.cto) .. "  [" .. buffs.rtb5.id .. "]\n"
         o = o .. "rtb6: remain: " .. bt(buffs.rtb6.remain) .. " cto: " .. bt(buffs.rtb6.cto) .. "  [" .. buffs.rtb6.id .. "]\n"
-        setOverlayText(o)
+        setDebugOverlayText(o)
     end
 
     return bits
@@ -398,33 +425,34 @@ local function calcBitsFrostMage()
 end
 
 local function showBits(bits)
-    background:Show()
+    backgroundFrame:Show()
     local b = 1
     for bitIndex = 0,15 do
         if bit.band(bits, b)==0 then
-            cells[bitIndex]:Hide()
+            cellFrames[bitIndex]:Hide()
         else
-            cells[bitIndex]:Show()
+            cellFrames[bitIndex]:Show()
         end
         b = b * 2
     end
 end
 
 local function hideBits()
-    background:Hide()
+    backgroundFrame:Hide()
     for bitIndex = 0,15 do
-        cells[bitIndex]:Hide()
+        cellFrames[bitIndex]:Hide()
     end
 end
 
 local function resetEverything()
-    print("Faceroll: resetEverything()")
+    print("Faceroll: Reset.")
     for _, buff in pairs(buffs) do
         buff.id = 0
         buff.remain = false
         buff.cto = false
         buff.expirationTime = 0
     end
+    enabledFrameUpdate()
 end
 
 local function updateBits()
@@ -517,7 +545,7 @@ local function init()
         debugOverlay.texture:SetVertexColor(0.0, 0.0, 0.0, 0.9)
         debugOverlay.texture:SetAllPoints(debugOverlay)
         debugOverlayText = debugOverlay:CreateFontString(nil, "ARTWORK")
-        debugOverlayText:SetFont("Interface\\Addons\\WeakAuras\\Media\\Fonts\\FiraMono-Medium.ttf", 13, "OUTLINE")
+        debugOverlayText:SetFont("Interface\\AddOns\\Faceroll\\FiraMono-Medium.ttf", 13, "OUTLINE")
         debugOverlayText:SetPoint("TOPLEFT",0,0)
         debugOverlayText:SetJustifyH("LEFT")
         debugOverlayText:SetJustifyV("TOP")
@@ -525,36 +553,70 @@ local function init()
         debugOverlay:Show()
     end
 
-    background = CreateFrame("Frame")
-    background:SetPoint("TOPRIGHT", -155, -5)
-    background:SetHeight(32)
-    background:SetWidth(32)
-    background:SetFrameStrata("TOOLTIP")
-    background.texture = background:CreateTexture()
-    background.texture:SetTexture("Interface/BUTTONS/WHITE8X8")
-    background.texture:SetVertexColor(0.0, 0.0, 0.0, 1.0)
-    background.texture:SetAllPoints(background)
-    background:Show()
+    enabledFrame = CreateFrame("Frame")
+    enabledFrame:SetPoint("BOTTOMLEFT", 470, 70)
+    enabledFrame:SetHeight(34)
+    enabledFrame:SetWidth(34)
+    enabledFrame:SetFrameStrata("TOOLTIP")
+    enabledFrame.texture = enabledFrame:CreateTexture()
+    enabledFrame.texture:SetTexture("Interface/BUTTONS/WHITE8X8")
+    enabledFrame.texture:SetVertexColor(0.0, 0.0, 0.0, 0.0)
+    enabledFrame.texture:SetAllPoints(enabledFrame)
+    enabledFrameText = enabledFrame:CreateFontString(nil, "ARTWORK")
+    enabledFrameText:SetFont("Interface\\AddOns\\Faceroll\\FiraMono-Medium.ttf", 18, "OUTLINE")
+    enabledFrameText:SetPoint("CENTER",0,0)
+    enabledFrameText:Show()
+    enabledFrame:Show()
+    enabledFrameUpdate()
+
+    backgroundFrame = CreateFrame("Frame")
+    backgroundFrame:SetPoint("TOPRIGHT", -155, -5)
+    backgroundFrame:SetHeight(32)
+    backgroundFrame:SetWidth(32)
+    backgroundFrame:SetFrameStrata("TOOLTIP")
+    backgroundFrame.texture = backgroundFrame:CreateTexture()
+    backgroundFrame.texture:SetTexture("Interface/BUTTONS/WHITE8X8")
+    backgroundFrame.texture:SetVertexColor(0.0, 0.0, 0.0, 1.0)
+    backgroundFrame.texture:SetAllPoints(backgroundFrame)
+    backgroundFrame:Show()
 
     for bitIndex = 0,15 do
         local bitX = bitIndex % 4
         local bitY = floor(bitIndex / 4)
         local bitName = "bit" .. bitIndex
-        local cell = CreateFrame("Frame", bitName, background)
-        cell:SetPoint("TOPLEFT", bitX * 8, bitY * -8)
-        cell:SetHeight(8)
-        cell:SetWidth(8)
-        cell.texture = cell:CreateTexture()
-        cell.texture:SetTexture("Interface/BUTTONS/WHITE8X8")
-        cell.texture:SetVertexColor(1.0, 1.0, 1.0, 1.0)
-        cell.texture:SetAllPoints(cell)
-        cell:Hide()
-        cells[bitIndex] = cell
+        local cellFrame = CreateFrame("Frame", bitName, backgroundFrame)
+        cellFrame:SetPoint("TOPLEFT", bitX * 8, bitY * -8)
+        cellFrame:SetHeight(8)
+        cellFrame:SetWidth(8)
+        cellFrame.texture = cellFrame:CreateTexture()
+        cellFrame.texture:SetTexture("Interface/BUTTONS/WHITE8X8")
+        cellFrame.texture:SetVertexColor(1.0, 1.0, 1.0, 1.0)
+        cellFrame.texture:SetAllPoints(cellFrame)
+        cellFrame:Hide()
+        cellFrames[bitIndex] = cellFrame
     end
 
     updateBits()
     print("Faceroll: Initialized.")
 end
+
+function commandFR(rawArgs, editbox)
+    -- print("FR: " .. rawArgs)
+end
+
+function commandFRON()
+    enabledMode = enabledMode + 1
+    if enabledMode > MODE_LAST then
+        enabledMode = MODE_LAST
+    end
+    enabledFrameUpdate()
+end
+
+function commandFROFF()
+    enabledMode = 0
+    enabledFrameUpdate()
+end
+
 
 local name, addon = ...
 local f = CreateFrame("Frame")
@@ -608,3 +670,10 @@ f:RegisterEvent("UNIT_AURA")
 f:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED")
 f:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
 f:SetScript("OnEvent", onevent)
+
+SLASH_FR1 = '/fr'
+SlashCmdList["FR"] = commandFR
+SLASH_FRON1 = '/fron'
+SlashCmdList["FRON"] = commandFRON
+SLASH_FROFF1 = '/froff'
+SlashCmdList["FROFF"] = commandFROFF

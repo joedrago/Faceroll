@@ -19,6 +19,43 @@
 -- Q, E, F5, /, enter, del  - automatic (see below)
 
 -----------------------------------------------------------------------------------------
+-- Constants
+
+--------------------------------------------------------------------------------------
+-- Duplicate this block at the top of both hammerspoon's and mod's Faceroll.lua files
+local FACEROLL_MODES = {}
+local MODE_OFF = 0 FACEROLL_MODES[ MODE_OFF ] = { ["name"]="OFF", ["color"]="333333" }
+local MODE_SV  = 1 FACEROLL_MODES[ MODE_SV  ] = { ["name"]="SV",  ["color"]="337733" }
+local MODE_MM  = 2 FACEROLL_MODES[ MODE_MM  ] = { ["name"]="MM",  ["color"]="88aa00" }
+local MODE_OUT = 3 FACEROLL_MODES[ MODE_OUT ] = { ["name"]="OUT", ["color"]="336699" }
+local MODE_FM  = 4 FACEROLL_MODES[ MODE_FM  ] = { ["name"]="FM",  ["color"]="005599" }
+local MODE_ELE = 5 FACEROLL_MODES[ MODE_ELE ] = { ["name"]="ELE", ["color"]="003399" }
+local MODE_LAST = #FACEROLL_MODES
+--------------------------------------------------------------------------------------
+
+local KEY_TOGGLE = hs.keycodes.map["F5"]
+local KEY_MODE = hs.keycodes.map["F5"]
+local KEY_Q = hs.keycodes.map["q"]
+local KEY_E = hs.keycodes.map["e"]
+local KEY_SLASH = hs.keycodes.map["/"]
+local KEY_ENTER = hs.keycodes.map["return"]
+local KEY_DELETE = hs.keycodes.map["delete"]
+
+local ACTION_NONE = 0
+local ACTION_Q = 1
+local ACTION_E = 2
+
+-----------------------------------------------------------------------------------------
+-- Globals
+
+local facerollMode = MODE_OFF       -- Which spec are we trying to be right now?
+local facerollActive = true         -- An additional way to temporarily behave like MODE_OFF when people hit enter/slash/delete
+local facerollAction = ACTION_NONE  -- Which faceroll key action is running? (the "paradigm")
+local facerollModeSendRemaining = 0 -- Where are with our rotary-phone-sending of the mode number
+local facerollNextActionIndex = 0   -- When invoking nextAction(), where are we in the cycle?
+local facerollGameBits = 0          -- The current game state!
+
+-----------------------------------------------------------------------------------------
 -- Basic debug/helper stuff
 
 function FRDEBUG(text)
@@ -39,52 +76,6 @@ function bitand(a, b)
     return result
 end
 
-
------------------------------------------------------------------------------------------
--- Constants
-
-local KEY_TOGGLE = hs.keycodes.map["F5"]
-local KEY_MODE = hs.keycodes.map["F5"]
-local KEY_Q = hs.keycodes.map["q"]
-local KEY_E = hs.keycodes.map["e"]
-local KEY_SLASH = hs.keycodes.map["/"]
-local KEY_ENTER = hs.keycodes.map["return"]
-local KEY_DELETE = hs.keycodes.map["delete"]
-
-local MODE_OFF = 0
-local MODE_SV = 1
-local MODE_MM = 2
-local MODE_OUT = 3
-local MODE_FM = 4
-local MODE_ELE = 5
-local MODE_BM = 6
-local MODE_ON = 7
-local MODE_LAST = 7
-
-local MODE_NAMES = {}
-MODE_NAMES[MODE_BM] = "BM"
-MODE_NAMES[MODE_ELE] = "Ele"
-MODE_NAMES[MODE_OUT] = "Out"
-MODE_NAMES[MODE_FM] = "FM"
-MODE_NAMES[MODE_MM] = "MM"
-MODE_NAMES[MODE_OFF] = "Off"
-MODE_NAMES[MODE_ON] = "On"
-MODE_NAMES[MODE_SV] = "SV"
-
-local ACTION_NONE = 0
-local ACTION_Q = 1
-local ACTION_E = 2
-
------------------------------------------------------------------------------------------
--- Globals
-
-local facerollMode = MODE_OFF       -- Which spec are we trying to be right now?
-local facerollActive = true         -- An additional way to temporarily behave like MODE_OFF when people hit enter/slash/delete
-local facerollAction = ACTION_NONE  -- Which faceroll key action is running? (the "paradigm")
-local facerollModeSendRemaining = 0 -- Where are with our rotary-phone-sending of the mode number
-local facerollNextActionIndex = 0   -- When invoking nextAction(), where are we in the cycle?
-local facerollGameBits = 0          -- The current game state!
-
 -----------------------------------------------------------------------------------------
 -- UDP socket listening for game bits
 
@@ -104,94 +95,6 @@ local function sendKeyToWow(keyName)
     -- end
     if wowApplication ~= nil then
         hs.eventtap.keyStroke({}, keyName, 20000, wowApplication)
-    end
-end
-
------------------------------------------------------------------------------------------
--- nextAction system
-
-local ACTIONS = {
-    [MODE_ON] = {
-        [ACTION_Q] = {
-            "7", "8", "9", "0", "-", "=", "pad7", "pad8", "pad9",          -- send keys
-            0,0,0,0,0,0,0,0,0,0,0,0,0,                                     -- wait
-        },
-        [ACTION_E] = {
-            "F7", "F8", "F9", "F10", "F11", "F12", "pad4", "pad5", "pad6", -- send keys
-            0,0,0,0,0,0,0,0,0,0,0,0,0,                                     -- wait
-        },
-    },
-
-    [MODE_BM] = {
-        [ACTION_Q] = {
-            "7", "8", "9", "0", "-", "=", "pad7", "pad8", "pad9",          -- send keys
-            0,0,0,0,0,0,0,0,0,0,0,0,0,                                     -- wait
-            -- 0,0,0,0,
-            0,0,0,                                                 -- wait
-        },
-        [ACTION_E] = { -- BM AoE (presses F7 a bit every 6 seconds)
-            "F7", "F7", "F7", "F7", "F7", "F7", "F7", "F7", "F7",
-            "F7", "F7", "F7", "F7", "F7", "F7", "F7", "F7", "F7",
-            "F7", "F7", "F7", "F7", "F7", "F7", "F7", "F7", "F7",
-            0,0,0,0,0,0,0,0,0,0,0,0,0,                                     -- wait
-            -- 0,0,0,0,
-            0,0,0,                                                 -- wait
-
-            "F8", "F9", "F10", "F11", "F12", "pad4", "pad5", "pad6", -- send keys
-            0,0,0,0,0,0,0,0,0,0,0,0,0,                                     -- wait
-            -- 0,0,0,0,
-            0,0,0,                                                 -- wait
-
-            "F8", "F9", "F10", "F11", "F12", "pad4", "pad5", "pad6", -- send keys
-            0,0,0,0,0,0,0,0,0,0,0,0,0,                                     -- wait
-            -- 0,0,0,0,
-            0,0,0,                                                 -- wait
-
-            "F8", "F9", "F10", "F11", "F12", "pad4", "pad5", "pad6", -- send keys
-            0,0,0,0,0,0,0,0,0,0,0,0,0,                                     -- wait
-            -- 0,0,0,0,
-            0,0,0,                                                 -- wait
-
-            "F8", "F9", "F10", "F11", "F12", "pad4", "pad5", "pad6", -- send keys
-            0,0,0,0,0,0,0,0,0,0,0,0,0,                                     -- wait
-            -- 0,0,0,0,
-            0,0,0,                                                 -- wait
-
-            "F8", "F9", "F10", "F11", "F12", "pad4", "pad5", "pad6", -- send keys
-            0,0,0,0,0,0,0,0,0,0,0,0,0,                                     -- wait
-            -- 0,0,0,0,
-            0,0,0,                                                 -- wait
-
-            "F8", "F9", "F10", "F11", "F12", "pad4", "pad5", "pad6", -- send keys
-            0,0,0,0,0,0,0,0,0,0,0,0,0,                                     -- wait
-            -- "F8", "F9", "F10", "F11", "F12", "pad4", "pad5", "pad6", -- send keys
-            -- 0,0,0,0,0,0,0,0,0,0,0,0,0,                                     -- wait
-            -- "F8", "F9", "F10", "F11", "F12", "pad4", "pad5", "pad6", -- send keys
-            -- 0,0,0,0,0,0,0,0,0,0,0,0,0,                                     -- wait
-        },
-    },
-}
-
-local function nextAction(actions)
-    if actions == nil then
-        -- FRDEBUG("BAIL 2")
-        return
-    end
-
-    local actionCount = #actions
-    if facerollNextActionIndex >= actionCount then
-        facerollNextActionIndex = 0
-    end
-
-    local key = actions[facerollNextActionIndex + 1]
-    if key ~= 0 then
-        -- FRDEBUG("FACEROLL KEY: " .. key)
-        sendKeyToWow(key)
-    end
-
-    facerollNextActionIndex = facerollNextActionIndex + 1
-    if facerollNextActionIndex >= actionCount then
-        facerollNextActionIndex = 0
     end
 end
 
@@ -747,11 +650,7 @@ local wowTick = hs.timer.new(0.02, function()
         return
     end
 
-    if facerollMode == MODE_ON
-    or facerollMode == MODE_BM
-    then
-        nextAction(ACTIONS[facerollMode][facerollAction])
-    elseif facerollMode == MODE_OUT then
+    if facerollMode == MODE_OUT then
         nextOutlaw()
     elseif facerollMode == MODE_FM then
         nextFrostMage()
@@ -786,7 +685,7 @@ local function updateMode()
         wowSendModeTick:start()
     end
 
-    print("Faceroll: " .. MODE_NAMES[facerollMode])
+    print("Faceroll: " .. FACEROLL_MODES[facerollMode].name)
 end
 
 -----------------------------------------------------------------------------------------
