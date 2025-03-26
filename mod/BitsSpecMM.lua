@@ -4,26 +4,11 @@
 local _, Faceroll = ...
 
 Faceroll.trackBuffs({
-    ["trickshots"] = {
-        ["id"]=0,
-        ["name"]="Trick Shots",
-    },
-    ["streamline"] = {
-        ["id"]=0,
-        ["name"]="Streamline",
-    },
-    ["preciseshots"] = {
-        ["id"]=0,
-        ["name"]="Precise Shots",
-    },
-    ["spottersmark"] = {
-        ["id"]=0,
-        ["name"]="Spotter's Mark",
-    },
-    ["movingtarget"] = {
-        ["id"]=0,
-        ["name"]="Moving Target",
-    },
+    ["trickshots"] = { ["name"]="Trick Shots" },
+    ["streamline"] = { ["name"]="Streamline" },
+    ["preciseshots"] = { ["name"]="Precise Shots" },
+    ["spottersmark"] = { ["name"]="Spotter's Mark" },
+    ["movingtarget"] = { ["name"]="Moving Target" },
 })
 
 local function calcBits()

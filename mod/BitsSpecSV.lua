@@ -4,19 +4,9 @@
 local _, Faceroll = ...
 
 Faceroll.trackBuffs({
-    ["lunarstorm"] = {
-        ["id"]=0,
-        ["name"]="Lunar Storm",
-        ["harmful"]=true,
-    },
-    ["strikeitrich"] = {
-        ["id"]=0,
-        ["name"]="Strike it Rich",
-    },
-    ["tipofthespear"] = {
-        ["id"]=0,
-        ["name"]="Tip of the Spear",
-    },
+    ["lunarstorm"] = { ["name"]="Lunar Storm", ["harmful"]=true },
+    ["strikeitrich"] = { ["name"]="Strike it Rich" },
+    ["tipofthespear"] = { ["name"]="Tip of the Spear" },
 })
 
 local function calcBits()

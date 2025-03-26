@@ -45,6 +45,10 @@ local buffs = {}
 Faceroll.trackBuffs = function(newBuffs)
     for k, v in pairs(newBuffs) do
         buffs[k] = v
+        buffs[k].id = 0
+        buffs[k].remain = false
+        buffs[k].cto = false
+        buffs[k].expirationTime = 0
     end
 end
 

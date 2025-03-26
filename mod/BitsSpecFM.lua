@@ -4,26 +4,11 @@
 local _, Faceroll = ...
 
 Faceroll.trackBuffs({
-    ["winterschill"] = {
-        ["id"]=0,
-        ["name"]="Winter's Chill",
-    },
-    ["fingersoffrost"] = {
-        ["id"]=0,
-        ["name"]="Fingers of Frost",
-    },
-    ["excessfire"] = {
-        ["id"]=0,
-        ["name"]="Excess Fire",
-    },
-    ["excessfrost"] = {
-        ["id"]=0,
-        ["name"]="Excess Frost",
-    },
-    ["glacialspike"] = {
-        ["id"]=0,
-        ["name"]="Glacial Spike!",
-    },
+    ["winterschill"] = { ["name"]="Winter's Chill" },
+    ["fingersoffrost"] = { ["name"]="Fingers of Frost" },
+    ["excessfire"] = { ["name"]="Excess Fire" },
+    ["excessfrost"] = { ["name"]="Excess Frost" },
+    ["glacialspike"] = { ["name"]="Glacial Spike!" },
 })
 
 local function calcBits()

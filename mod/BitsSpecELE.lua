@@ -4,10 +4,7 @@
 local _, Faceroll = ...
 
 Faceroll.trackBuffs({
-    ["tempest"] = {
-        ["id"]=0,
-        ["name"]="Tempest",
-    },
+    ["tempest"] = { ["name"]="Tempest" },
 })
 
 local function calcBits()

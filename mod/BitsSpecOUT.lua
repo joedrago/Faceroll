@@ -5,76 +5,22 @@ local _, Faceroll = ...
 
 Faceroll.trackBuffs({
     -- Rogue
-    ["adrenalinerush"] = {
-        ["id"]=0,
-        ["name"]="Adrenaline Rush",
-    },
-    ["bladeflurry"] = {
-        ["id"]=0,
-        ["name"]="Blade Flurry",
-    },
-    ["ruthlessprecision"] = {
-        ["id"]=0,
-        ["name"]="Ruthless Precision",
-    },
-    ["subterfuge"] = {
-        ["id"]=0,
-        ["name"]="Subterfuge",
-    },
-    ["stealth"] = {
-        ["id"]=0,
-        ["name"]="Stealth",
-    },
-    ["vanish"] = {
-        ["id"]=0,
-        ["name"]="Vanish",
-    },
-    ["opportunity"] = {
-        ["id"]=0,
-        ["name"]="Opportunity",
-    },
-    ["audacity"] = {
-        ["id"]=0,
-        ["name"]="Audacity",
-    },
+    ["adrenalinerush"] = { ["name"]="Adrenaline Rush" },
+    ["bladeflurry"] = { ["name"]="Blade Flurry" },
+    ["ruthlessprecision"] = { ["name"]="Ruthless Precision" },
+    ["subterfuge"] = { ["name"]="Subterfuge" },
+    ["stealth"] = { ["name"]="Stealth" },
+    ["vanish"] = { ["name"]="Vanish" },
+    ["opportunity"] = { ["name"]="Opportunity" },
+    ["audacity"] = { ["name"]="Audacity" },
 
     -- Roll the bones buffs (the first 3 are "the good ones")
-    ["rtb1"] = {
-        ["id"]=0,
-        ["name"]="Broadside",
-        ["remain"]=false,
-        ["cto"]=false,
-    },
-    ["rtb2"] = {
-        ["id"]=0,
-        ["name"]="True Bearing",
-        ["remain"]=false,
-        ["cto"]=false,
-    },
-    ["rtb3"] = {
-        ["id"]=0,
-        ["name"]="Ruthless Precision",
-        ["remain"]=false,
-        ["cto"]=false,
-    },
-    ["rtb4"] = {
-        ["id"]=0,
-        ["name"]="Skull and Crossbones",
-        ["remain"]=false,
-        ["cto"]=false,
-    },
-    ["rtb5"] = {
-        ["id"]=0,
-        ["name"]="Buried Treasure",
-        ["remain"]=false,
-        ["cto"]=false,
-    },
-    ["rtb6"] = {
-        ["id"]=0,
-        ["name"]="Grand Melee",
-        ["remain"]=false,
-        ["cto"]=false,
-    },
+    ["rtb1"] = { ["name"]="Broadside" },
+    ["rtb2"] = { ["name"]="True Bearing" },
+    ["rtb3"] = { ["name"]="Ruthless Precision" },
+    ["rtb4"] = { ["name"]="Skull and Crossbones" },
+    ["rtb5"] = { ["name"]="Buried Treasure" },
+    ["rtb6"] = { ["name"]="Grand Melee" },
 })
 
 local function calcBits()
