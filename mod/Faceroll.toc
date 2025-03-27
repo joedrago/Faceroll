@@ -11,4 +11,5 @@ BitsSpecMM.lua
 BitsSpecELE.lua
 BitsSpecOUT.lua
 BitsSpecFM.lua
+BitsSpecHDH.lua
 Faceroll.lua
