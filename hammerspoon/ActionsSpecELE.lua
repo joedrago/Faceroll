@@ -23,7 +23,7 @@ local function nextAction(action, bits)
             -- to sync with Ascendance.
             return "=" -- stormkeeper
 
-        elseif flameshock_on_target == 0 then
+        elseif flameshock == 0 then
             -- Use Flame Shock to maintain the DoT on your target. Delay it, if
             -- Ascendance comes up before the DoT runs out.
             return "-" -- flame shock
