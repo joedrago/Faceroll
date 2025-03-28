@@ -19,10 +19,11 @@ local FACEROLL_SPECS = {}
 local SPEC_OFF = 0 FACEROLL_SPECS[ SPEC_OFF ] = { ["name"]="OFF", ["color"]="333333" }
 local SPEC_SV  = 1 FACEROLL_SPECS[ SPEC_SV  ] = { ["name"]="SV",  ["color"]="337733" }
 local SPEC_MM  = 2 FACEROLL_SPECS[ SPEC_MM  ] = { ["name"]="MM",  ["color"]="88aa00" }
-local SPEC_OUT = 3 FACEROLL_SPECS[ SPEC_OUT ] = { ["name"]="OUT", ["color"]="336699" }
-local SPEC_FM  = 4 FACEROLL_SPECS[ SPEC_FM  ] = { ["name"]="FM",  ["color"]="005599" }
-local SPEC_ELE = 5 FACEROLL_SPECS[ SPEC_ELE ] = { ["name"]="ELE", ["color"]="003399" }
-local SPEC_HDH = 6 FACEROLL_SPECS[ SPEC_HDH ] = { ["name"]="HDH", ["color"]="993300" }
+local SPEC_BM  = 3 FACEROLL_SPECS[ SPEC_BM  ] = { ["name"]="BM",  ["color"]="448833" }
+local SPEC_OUT = 4 FACEROLL_SPECS[ SPEC_OUT ] = { ["name"]="OUT", ["color"]="336699" }
+local SPEC_FM  = 5 FACEROLL_SPECS[ SPEC_FM  ] = { ["name"]="FM",  ["color"]="005599" }
+local SPEC_ELE = 6 FACEROLL_SPECS[ SPEC_ELE ] = { ["name"]="ELE", ["color"]="003399" }
+local SPEC_HDH = 7 FACEROLL_SPECS[ SPEC_HDH ] = { ["name"]="HDH", ["color"]="993300" }
 local SPEC_LAST = #FACEROLL_SPECS
 -----------------------------------------------------------------------------------------
 

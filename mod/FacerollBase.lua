@@ -49,6 +49,7 @@ Faceroll.trackBuffs = function(newBuffs)
         buffs[k].remain = false
         buffs[k].cto = false
         buffs[k].expirationTime = 0
+        buffs[k].stacks = 0
     end
 end
 
@@ -59,6 +60,7 @@ Faceroll.resetBuffs = function()
         buff.remain = false
         buff.cto = false
         buff.expirationTime = 0
+        buff.stacks = 0
     end
 end
 
@@ -73,12 +75,45 @@ Faceroll.isBuffActive = function(buffName)
     return false
 end
 
+Faceroll.getBuffStacks = function(buffName)
+    if buffs[buffName].id ~= 0 then
+        return buffs[buffName].stacks
+    end
+    return 0
+end
+
+Faceroll.getBuffRemaining = function(buffName)
+    if buffs[buffName].id ~= 0 then
+        local remaining = math.max(buffs[buffName].expirationTime - GetTime(), 0)
+        return remaining
+    end
+    return 0
+end
+
 Faceroll.spellCharges = function(spellName)
     local chargeInfo = C_Spell.GetSpellCharges(spellName)
     if chargeInfo == nil then
         return 0
     end
     return chargeInfo.currentCharges
+end
+
+Faceroll.spellCooldown = function(spellName)
+    return C_Spell.GetSpellCooldown(spellName).duration
+end
+
+Faceroll.spellChargesSoon = function(spellName, count, seconds)
+    local chargeInfo = C_Spell.GetSpellCharges(spellName)
+    if chargeInfo == nil then
+        return false
+    end
+    if chargeInfo.currentCharges < count - 1 then
+        return false
+    end
+    if C_Spell.GetSpellCooldown(spellName).duration > seconds then
+        return false
+    end
+    return true
 end
 
 Faceroll.isSpellAvailable = function(spellName)
@@ -128,6 +163,7 @@ Faceroll.onPlayerAura = function(info)
                     else
                         buff.id = aura.auraInstanceID
                         buff.expirationTime = aura.expirationTime
+                        buff.stacks = aura.applications
 
                         local auraRemaining = aura.expirationTime - GetTime()
                         local rtbRemaining = math.max(Faceroll.rtbEnd - GetTime(), 0)
@@ -147,6 +183,7 @@ Faceroll.onPlayerAura = function(info)
                     if aura.name == buff.name then
                         buff.id = aura.auraInstanceID
                         buff.expirationTime = aura.expirationTime
+                        buff.stacks = aura.applications
 
                         local auraRemaining = aura.expirationTime - GetTime()
                         local rtbRemaining = math.max(Faceroll.rtbEnd - GetTime(), 0)
@@ -165,6 +202,7 @@ Faceroll.onPlayerAura = function(info)
                     -- print("Lost: " .. buff.name)
                     buff.id = 0
                     buff.expirationTime = 0
+                    buff.stacks = 0
                     buff.remain = false
                     buff.cto = false
                 end

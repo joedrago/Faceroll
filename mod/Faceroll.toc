@@ -8,6 +8,7 @@ FacerollFrame.lua
 FacerollBase.lua
 BitsSpecSV.lua
 BitsSpecMM.lua
+BitsSpecBM.lua
 BitsSpecELE.lua
 BitsSpecOUT.lua
 BitsSpecFM.lua
