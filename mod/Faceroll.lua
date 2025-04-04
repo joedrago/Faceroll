@@ -3,14 +3,17 @@ local addonName, Faceroll = ...
 -----------------------------------------------------------------------------------------
 -- Duplicate this block at the top of both hammerspoon's and mod's Faceroll.lua files
 local FACEROLL_SPECS = {}
-local SPEC_OFF = 0 FACEROLL_SPECS[ SPEC_OFF ] = { ["name"]="OFF", ["color"]="333333" }
-local SPEC_SV  = 1 FACEROLL_SPECS[ SPEC_SV  ] = { ["name"]="SV",  ["color"]="337733" }
-local SPEC_MM  = 2 FACEROLL_SPECS[ SPEC_MM  ] = { ["name"]="MM",  ["color"]="88aa00" }
-local SPEC_BM  = 3 FACEROLL_SPECS[ SPEC_BM  ] = { ["name"]="BM",  ["color"]="448833" }
-local SPEC_OUT = 4 FACEROLL_SPECS[ SPEC_OUT ] = { ["name"]="OUT", ["color"]="336699" }
-local SPEC_FM  = 5 FACEROLL_SPECS[ SPEC_FM  ] = { ["name"]="FM",  ["color"]="005599" }
-local SPEC_ELE = 6 FACEROLL_SPECS[ SPEC_ELE ] = { ["name"]="ELE", ["color"]="003399" }
-local SPEC_HDH = 7 FACEROLL_SPECS[ SPEC_HDH ] = { ["name"]="HDH", ["color"]="993300" }
+local SPEC_OFF = 0  FACEROLL_SPECS[ SPEC_OFF ] = { ["name"]="OFF", ["color"]="333333" }
+local SPEC_SV  = 1  FACEROLL_SPECS[ SPEC_SV  ] = { ["name"]="SV",  ["color"]="337733" }
+local SPEC_MM  = 2  FACEROLL_SPECS[ SPEC_MM  ] = { ["name"]="MM",  ["color"]="88aa00" }
+local SPEC_BM  = 3  FACEROLL_SPECS[ SPEC_BM  ] = { ["name"]="BM",  ["color"]="448833" }
+local SPEC_OUT = 4  FACEROLL_SPECS[ SPEC_OUT ] = { ["name"]="OUT", ["color"]="336699" }
+local SPEC_DP  = 5  FACEROLL_SPECS[ SPEC_DP  ] = { ["name"]="DP",  ["color"]="999933" }
+local SPEC_SP  = 6  FACEROLL_SPECS[ SPEC_SP  ] = { ["name"]="SP",  ["color"]="7a208c" }
+local SPEC_DB  = 7  FACEROLL_SPECS[ SPEC_DB  ] = { ["name"]="DB",  ["color"]="559955" }
+local SPEC_FM  = 8  FACEROLL_SPECS[ SPEC_FM  ] = { ["name"]="FM",  ["color"]="005599" }
+local SPEC_ELE = 9  FACEROLL_SPECS[ SPEC_ELE ] = { ["name"]="ELE", ["color"]="003399" }
+local SPEC_HDH = 10 FACEROLL_SPECS[ SPEC_HDH ] = { ["name"]="HDH", ["color"]="993300" }
 local SPEC_LAST = #FACEROLL_SPECS
 -----------------------------------------------------------------------------------------
 
@@ -148,6 +151,23 @@ local function updateBits()
     end
 end
 
+local remainingTicks = 0
+local function tick()
+    -- print("tick! " .. remainingTicks)
+    updateBits()
+
+    remainingTicks = remainingTicks - 1
+    if remainingTicks > 0 then
+        C_Timer.After(0.1, tick)
+    end
+end
+local function tickReset()
+    if remainingTicks == 0 then
+        C_Timer.After(0.1, tick)
+    end
+    remainingTicks = 10
+end
+
 -----------------------------------------------------------------------------------------
 -- init() - the entry point
 
@@ -179,6 +199,8 @@ local function onEvent(self, event, arg1, arg2, ...)
         Faceroll.resetBuffs()
     elseif event == "UNIT_SPELLCAST_SUCCEEDED" then
         updateBits()
+    elseif event == "PLAYER_TARGET_CHANGED" then
+        updateBits()
     elseif event == "UNIT_AURA" then
         if arg1 == "player" then
             Faceroll.onPlayerAura(arg2)
@@ -196,6 +218,7 @@ eventFrame:RegisterEvent("ADDON_LOADED")
 eventFrame:RegisterEvent("PLAYER_LOGIN")
 eventFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
 eventFrame:RegisterEvent("UNIT_AURA")
+eventFrame:RegisterEvent("PLAYER_TARGET_CHANGED")
 eventFrame:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED")
 eventFrame:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
 eventFrame:SetScript("OnEvent", onEvent)
@@ -209,3 +232,5 @@ SLASH_FRON1 = '/fron'
 SlashCmdList["FRON"] = enabledFrameCycle
 SLASH_FROFF1 = '/froff'
 SlashCmdList["FROFF"] = enabledFrameReset
+SLASH_FRTICK1 = '/frtick'
+SlashCmdList["FRTICK"] = tickReset

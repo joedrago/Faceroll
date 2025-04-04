@@ -99,7 +99,13 @@ Faceroll.spellCharges = function(spellName)
 end
 
 Faceroll.spellCooldown = function(spellName)
-    return C_Spell.GetSpellCooldown(spellName).duration
+    local cd = C_Spell.GetSpellCooldown(spellName)
+    local duration = cd.duration
+    if duration > 0 then
+        local since = GetTime() - cd.startTime
+        return duration - since
+    end
+    return 0
 end
 
 Faceroll.spellChargesSoon = function(spellName, count, seconds)
@@ -110,7 +116,7 @@ Faceroll.spellChargesSoon = function(spellName, count, seconds)
     if chargeInfo.currentCharges < count - 1 then
         return false
     end
-    if C_Spell.GetSpellCooldown(spellName).duration > seconds then
+    if Faceroll.spellCooldown(spellName) > seconds then
         return false
     end
     return true
@@ -128,6 +134,19 @@ end
 
 Faceroll.isDotActive = function(spellName)
     local name, _, _, _, fullDuration, expirationTime = AuraUtil.FindAuraByName(spellName, "target", "HARMFUL")
+    if name ~= nil and fullDuration > 0 then
+        local remainingDuration = expirationTime - GetTime()
+        local normalizedDuration = remainingDuration / fullDuration
+        if normalizedDuration < 0 then
+            normalizedDuration = 0
+        end
+        return normalizedDuration
+    end
+    return -1
+end
+
+Faceroll.isHotActive = function(spellName, target)
+    local name, _, _, _, fullDuration, expirationTime = AuraUtil.FindAuraByName(spellName, target, "HELPFUL")
     if name ~= nil and fullDuration > 0 then
         local remainingDuration = expirationTime - GetTime()
         local normalizedDuration = remainingDuration / fullDuration

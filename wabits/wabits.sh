@@ -13,5 +13,5 @@ if [ ! -z "$2" ]; then
     exit
 fi
 
-ffmpeg ${PIPELINE} -f yuv4mpegpipe -r 5 - | /Users/joe/work/wabits/build/wabits
+ffmpeg ${PIPELINE} -f yuv4mpegpipe -r 10 - | /Users/joe/work/wabits/build/wabits
 
