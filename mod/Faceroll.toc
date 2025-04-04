@@ -15,5 +15,6 @@ BitsSpecDB.lua
 BitsSpecELE.lua
 BitsSpecOUT.lua
 BitsSpecFM.lua
+BitsSpecVDH.lua
 BitsSpecHDH.lua
 Faceroll.lua

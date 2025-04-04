@@ -1,5 +1,5 @@
 -----------------------------------------------------------------------------------------
--- Havoc Demon Hunter
+-- Shadow Priest
 
 local function press(button, name)
     -- print("Press: " .. name)
