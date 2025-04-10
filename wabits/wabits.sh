@@ -1,6 +1,6 @@
 #!/bin/bash
 
-PIPELINE="-y -f avfoundation -i $1 -vf crop=60:60:2209:9"
+PIPELINE="-y -f avfoundation -i $1 -vf crop=30:60:2221:9"
 
 if [ -z "$1" ]; then
     ffmpeg -f avfoundation -list_devices true -i ""
@@ -13,5 +13,5 @@ if [ ! -z "$2" ]; then
     exit
 fi
 
-ffmpeg ${PIPELINE} -f yuv4mpegpipe -r 10 - | /Users/joe/work/wabits/build/wabits
+ffmpeg ${PIPELINE} -f yuv4mpegpipe -r 10 - | /Users/joe/work/faceroll/wabits/build/wabits
 

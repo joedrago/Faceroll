@@ -32,8 +32,7 @@ end
 -- Spec Registration
 
 Faceroll.registeredSpecs = {}
-Faceroll.registerSpec = function(className, specIndex, calcBitsFunc)
-    local specKey = className .. "-" .. specIndex
+Faceroll.registerSpec = function(specKey, calcBitsFunc)
     Faceroll.registeredSpecs[specKey] = calcBitsFunc
 end
 

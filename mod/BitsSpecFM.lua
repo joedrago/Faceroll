@@ -46,4 +46,4 @@ local function calcBits()
     return bits
 end
 
-Faceroll.registerSpec("MAGE", 3, calcBits)
+Faceroll.registerSpec("MAGE-3", calcBits)

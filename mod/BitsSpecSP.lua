@@ -72,4 +72,4 @@ local function calcBits()
     return bits
 end
 
-Faceroll.registerSpec("PRIEST", 3, calcBits)
+Faceroll.registerSpec("PRIEST-3", calcBits)

@@ -2,21 +2,29 @@ local addonName, Faceroll = ...
 
 -----------------------------------------------------------------------------------------
 -- Duplicate this block at the top of both hammerspoon's and mod's Faceroll.lua files
-local FACEROLL_SPECS = {}
-local SPEC_OFF = 0  FACEROLL_SPECS[ SPEC_OFF ] = { ["name"]="OFF", ["color"]="333333" }
-local SPEC_SV  = 1  FACEROLL_SPECS[ SPEC_SV  ] = { ["name"]="SV",  ["color"]="337733" }
-local SPEC_MM  = 2  FACEROLL_SPECS[ SPEC_MM  ] = { ["name"]="MM",  ["color"]="88aa00" }
-local SPEC_BM  = 3  FACEROLL_SPECS[ SPEC_BM  ] = { ["name"]="BM",  ["color"]="448833" }
-local SPEC_VDH = 4  FACEROLL_SPECS[ SPEC_VDH ] = { ["name"]="VDH", ["color"]="993399" }
-local SPEC_HDH = 5  FACEROLL_SPECS[ SPEC_HDH ] = { ["name"]="HDH", ["color"]="993300" }
--- local SPEC_OUT = 6  FACEROLL_SPECS[ SPEC_OUT ] = { ["name"]="OUT", ["color"]="336699" }
--- local SPEC_DP  = 7  FACEROLL_SPECS[ SPEC_DP  ] = { ["name"]="DP",  ["color"]="999933" }
--- local SPEC_SP  = 8  FACEROLL_SPECS[ SPEC_SP  ] = { ["name"]="SP",  ["color"]="7a208c" }
--- local SPEC_DB  = 9  FACEROLL_SPECS[ SPEC_DB  ] = { ["name"]="DB",  ["color"]="559955" }
--- local SPEC_FM  = 10 FACEROLL_SPECS[ SPEC_FM  ] = { ["name"]="FM",  ["color"]="005599" }
--- local SPEC_ELE = 11 FACEROLL_SPECS[ SPEC_ELE ] = { ["name"]="ELE", ["color"]="003399" }
-local SPEC_LAST = #FACEROLL_SPECS
+local FR_SPECS = {}
+local SPEC_OFF = 0  FR_SPECS[ SPEC_OFF ] = { ["name"]="OFF", ["color"]="333333", ["key"]=""              }
+local SPEC_SV  = 1  FR_SPECS[ SPEC_SV  ] = { ["name"]="SV",  ["color"]="337733", ["key"]="HUNTER-3"      }
+local SPEC_MM  = 2  FR_SPECS[ SPEC_MM  ] = { ["name"]="MM",  ["color"]="88aa00", ["key"]="HUNTER-2"      }
+local SPEC_BM  = 3  FR_SPECS[ SPEC_BM  ] = { ["name"]="BM",  ["color"]="448833", ["key"]="HUNTER-1"      }
+local SPEC_VDH = 4  FR_SPECS[ SPEC_VDH ] = { ["name"]="VDH", ["color"]="993399", ["key"]="DEMONHUNTER-2" }
+local SPEC_HDH = 5  FR_SPECS[ SPEC_HDH ] = { ["name"]="HDH", ["color"]="993300", ["key"]="DEMONHUNTER-1" }
+local SPEC_OUT = 6  FR_SPECS[ SPEC_OUT ] = { ["name"]="OUT", ["color"]="336699", ["key"]="ROGUE-2"       }
+local SPEC_DP  = 7  FR_SPECS[ SPEC_DP  ] = { ["name"]="DP",  ["color"]="999933", ["key"]="PRIEST-1"      }
+local SPEC_SP  = 8  FR_SPECS[ SPEC_SP  ] = { ["name"]="SP",  ["color"]="7a208c", ["key"]="PRIEST-3"      }
+local SPEC_DB  = 9  FR_SPECS[ SPEC_DB  ] = { ["name"]="DB",  ["color"]="559955", ["key"]="DRUID-3"       }
+local SPEC_FM  = 10 FR_SPECS[ SPEC_FM  ] = { ["name"]="FM",  ["color"]="005599", ["key"]="MAGE-3"        }
+local SPEC_ELE = 11 FR_SPECS[ SPEC_ELE ] = { ["name"]="ELE", ["color"]="003399", ["key"]="SHAMAN-1"      }
+local SPEC_LAST = #FR_SPECS
 -----------------------------------------------------------------------------------------
+
+-----------------------------------------------------------------------------------------
+-- Spec Key Lookup
+
+local FR_KEYLOOKUP = {}
+for specIndex, spec in pairs(FR_SPECS) do
+    FR_KEYLOOKUP[spec.key] = specIndex
+end
 
 -----------------------------------------------------------------------------------------
 -- The little "OFF" / "SV" text
@@ -33,7 +41,7 @@ end
 
 local function enabledFrameUpdate()
     if enabledFrame ~= nil then
-        local spec = FACEROLL_SPECS[enabledSpec]
+        local spec = FR_SPECS[enabledSpec]
         enabledFrame:setText(Faceroll.textColor(spec.name, spec.color))
     end
 end
@@ -90,9 +98,9 @@ local bitsCells = {}
 
 local function createBits()
     bitsBG = CreateFrame("Frame")
-    bitsBG:SetPoint("TOPRIGHT", -155, -5)
+    bitsBG:SetPoint("TOPRIGHT", -165, -5)
     bitsBG:SetHeight(32)
-    bitsBG:SetWidth(32)
+    bitsBG:SetWidth(16)
     bitsBG:SetFrameStrata("TOOLTIP")
     bitsBG.texture = bitsBG:CreateTexture()
     bitsBG.texture:SetTexture("Interface/BUTTONS/WHITE8X8")
@@ -100,14 +108,14 @@ local function createBits()
     bitsBG.texture:SetAllPoints(bitsBG)
     bitsBG:Show()
 
-    for bitIndex = 0,15 do
+    for bitIndex = 0,31 do
         local bitX = bitIndex % 4
         local bitY = floor(bitIndex / 4)
         local bitName = "bit" .. bitIndex
         local cell = CreateFrame("Frame", bitName, bitsBG)
-        cell:SetPoint("TOPLEFT", bitX * 8, bitY * -8)
-        cell:SetHeight(8)
-        cell:SetWidth(8)
+        cell:SetPoint("TOPLEFT", bitX * 4, bitY * -4)
+        cell:SetHeight(4)
+        cell:SetWidth(4)
         cell.texture = cell:CreateTexture()
         cell.texture:SetTexture("Interface/BUTTONS/WHITE8X8")
         cell.texture:SetVertexColor(1.0, 1.0, 1.0, 1.0)
@@ -118,9 +126,10 @@ local function createBits()
 end
 
 local function showBits(bits)
+    -- print("showBits: " .. bits)
     bitsBG:Show()
     local b = 1
-    for bitIndex = 0,15 do
+    for bitIndex = 0,31 do
         if bit.band(bits, b)==0 then
             bitsCells[bitIndex]:Hide()
         else
@@ -132,7 +141,7 @@ end
 
 local function hideBits()
     bitsBG:Hide()
-    for bitIndex = 0,15 do
+    for bitIndex = 0,31 do
         bitsCells[bitIndex]:Hide()
     end
 end
@@ -146,7 +155,15 @@ local function updateBits()
     local specKey = playerClass .. "-" .. specIndex
     local calcBitsFunc = Faceroll.registeredSpecs[specKey]
     if calcBitsFunc ~= nil then
-        showBits(calcBitsFunc())
+        local bits = calcBitsFunc()
+        local specIndex = FR_KEYLOOKUP[specKey]
+        if specIndex ~= nil then
+            -- use the last 4 bits for the current specIndex
+            -- print("specIndex: " .. specIndex .. " oldBits: " .. bits)
+            bits = bits + (0x10000000 * specIndex)
+            -- print("specIndex: " .. specIndex .. " newBits: " .. bits)
+        end
+        showBits(bits)
     else
         hideBits()
     end

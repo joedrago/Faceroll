@@ -57,4 +57,4 @@ local function calcBits()
     return bits
 end
 
-Faceroll.registerSpec("DEMONHUNTER", 1, calcBits)
+Faceroll.registerSpec("DEMONHUNTER-1", calcBits)

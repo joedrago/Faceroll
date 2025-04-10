@@ -473,13 +473,13 @@ int main(int argc, char * argv[])
 
         int bits = 0;
         uint8_t * yPlane = image.planes[0];
-        for (int bitIndex = 0; bitIndex < 16; ++bitIndex) {
+        for (int bitIndex = 0; bitIndex < 32; ++bitIndex) {
             int bitX = bitIndex % 4;
             int bitY = bitIndex / 4;
-            int pixelX = 6 + bitX * (image.width / 4);
-            int pixelY = 6 + bitY * (image.height / 4);
+            int pixelX = 2 + bitX * ((float)image.width / 4);
+            int pixelY = 2 + bitY * ((float)image.height / 8);
             uint8_t pixel = yPlane[pixelX + (pixelY * image.width)];
-            // printf("bit[%u]: (%u, %u) (%u, %u): %u\n", bitIndex, bitX, bitY, pixelX, pixelY, pixel);
+            // printf("[%dx%d] bit[%u]: (%u, %u) (%u, %u): %u\n", image.width, image.height, bitIndex, bitX, bitY, pixelX, pixelY, pixel);
             if (pixel > 127) {
                 bits += (1 << bitIndex);
             }

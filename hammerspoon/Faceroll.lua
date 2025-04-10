@@ -15,20 +15,20 @@
 
 -----------------------------------------------------------------------------------------
 -- Duplicate this block at the top of both hammerspoon's and mod's Faceroll.lua files
-local FACEROLL_SPECS = {}
-local SPEC_OFF = 0  FACEROLL_SPECS[ SPEC_OFF ] = { ["name"]="OFF", ["color"]="333333" }
-local SPEC_SV  = 1  FACEROLL_SPECS[ SPEC_SV  ] = { ["name"]="SV",  ["color"]="337733" }
-local SPEC_MM  = 2  FACEROLL_SPECS[ SPEC_MM  ] = { ["name"]="MM",  ["color"]="88aa00" }
-local SPEC_BM  = 3  FACEROLL_SPECS[ SPEC_BM  ] = { ["name"]="BM",  ["color"]="448833" }
-local SPEC_VDH = 4  FACEROLL_SPECS[ SPEC_VDH ] = { ["name"]="VDH", ["color"]="993399" }
-local SPEC_HDH = 5  FACEROLL_SPECS[ SPEC_HDH ] = { ["name"]="HDH", ["color"]="993300" }
--- local SPEC_OUT = 6  FACEROLL_SPECS[ SPEC_OUT ] = { ["name"]="OUT", ["color"]="336699" }
--- local SPEC_DP  = 7  FACEROLL_SPECS[ SPEC_DP  ] = { ["name"]="DP",  ["color"]="999933" }
--- local SPEC_SP  = 8  FACEROLL_SPECS[ SPEC_SP  ] = { ["name"]="SP",  ["color"]="7a208c" }
--- local SPEC_DB  = 9  FACEROLL_SPECS[ SPEC_DB  ] = { ["name"]="DB",  ["color"]="559955" }
--- local SPEC_FM  = 10 FACEROLL_SPECS[ SPEC_FM  ] = { ["name"]="FM",  ["color"]="005599" }
--- local SPEC_ELE = 11 FACEROLL_SPECS[ SPEC_ELE ] = { ["name"]="ELE", ["color"]="003399" }
-local SPEC_LAST = #FACEROLL_SPECS
+local FR_SPECS = {}
+local SPEC_OFF = 0  FR_SPECS[ SPEC_OFF ] = { ["name"]="OFF", ["color"]="333333", ["key"]="OFF"           }
+local SPEC_SV  = 1  FR_SPECS[ SPEC_SV  ] = { ["name"]="SV",  ["color"]="337733", ["key"]="HUNTER-3"      }
+local SPEC_MM  = 2  FR_SPECS[ SPEC_MM  ] = { ["name"]="MM",  ["color"]="88aa00", ["key"]="HUNTER-2"      }
+local SPEC_BM  = 3  FR_SPECS[ SPEC_BM  ] = { ["name"]="BM",  ["color"]="448833", ["key"]="HUNTER-1"      }
+local SPEC_VDH = 4  FR_SPECS[ SPEC_VDH ] = { ["name"]="VDH", ["color"]="993399", ["key"]="DEMONHUNTER-2" }
+local SPEC_HDH = 5  FR_SPECS[ SPEC_HDH ] = { ["name"]="HDH", ["color"]="993300", ["key"]="DEMONHUNTER-1" }
+local SPEC_OUT = 6  FR_SPECS[ SPEC_OUT ] = { ["name"]="OUT", ["color"]="336699", ["key"]="ROGUE-2"       }
+local SPEC_DP  = 7  FR_SPECS[ SPEC_DP  ] = { ["name"]="DP",  ["color"]="999933", ["key"]="PRIEST-1"      }
+local SPEC_SP  = 8  FR_SPECS[ SPEC_SP  ] = { ["name"]="SP",  ["color"]="7a208c", ["key"]="PRIEST-3"      }
+local SPEC_DB  = 9  FR_SPECS[ SPEC_DB  ] = { ["name"]="DB",  ["color"]="559955", ["key"]="DRUID-3"       }
+local SPEC_FM  = 10 FR_SPECS[ SPEC_FM  ] = { ["name"]="FM",  ["color"]="005599", ["key"]="MAGE-3"        }
+local SPEC_ELE = 11 FR_SPECS[ SPEC_ELE ] = { ["name"]="ELE", ["color"]="003399", ["key"]="SHAMAN-1"      }
+local SPEC_LAST = #FR_SPECS
 -----------------------------------------------------------------------------------------
 
 -----------------------------------------------------------------------------------------
@@ -81,8 +81,9 @@ end
 -- UDP socket listening for game bits
 
 function onGameBits(newBits, addr)
-    -- print("onGameBits: " .. newBits)
     facerollGameBits = tonumber(newBits)
+    -- print("onGameBits[a]: " .. facerollGameBits)
+    -- print("onGameBits[g]: " .. bitand(facerollGameBits, 0xffff))
 end
 server = hs.socket.udp.server(9001, onGameBits):receive()
 
@@ -102,7 +103,7 @@ end
 -----------------------------------------------------------------------------------------
 -- The heart of action ticks
 
-for _, spec in pairs(FACEROLL_SPECS) do
+for _, spec in pairs(FR_SPECS) do
     if spec.name ~= "OFF" then
         print("Loading Spec: " .. spec.name)
         local requirePath = "Faceroll/ActionsSpec" .. spec.name
@@ -130,7 +131,7 @@ local wowTick = hs.timer.new(0.02, function()
     elseif facerollSlowDown == 1 then
         local key = nil
 
-        local spec = FACEROLL_SPECS[facerollSpec]
+        local spec = FR_SPECS[facerollSpec]
         if spec ~= nil and spec.nextAction ~= nil then
             key = spec.nextAction(facerollAction, facerollGameBits)
         end
@@ -163,7 +164,7 @@ local function updateSpec()
         wowSendSpecTick:start()
     end
 
-    print("Faceroll: " .. FACEROLL_SPECS[facerollSpec].name)
+    print("Faceroll: " .. FR_SPECS[facerollSpec].name)
 end
 
 -----------------------------------------------------------------------------------------
@@ -176,16 +177,12 @@ local wowTapKey = hs.eventtap.new({hs.eventtap.event.types.keyDown}, function(ev
 
     if keyCode == KEY_SPEC then
         if facerollActive then
-            facerollSpec = facerollSpec + 1
-            if facerollSpec > SPEC_LAST then
-                facerollSpec = SPEC_OFF
-                facerollActive = false
-            end
+            facerollActive = false
+            facerollSpec = SPEC_OFF
         else
+            local specIndex = math.floor(bitand(facerollGameBits, 0xf0000000) / 0x10000000)
             facerollActive = true
-            if facerollSpec == SPEC_OFF then
-                facerollSpec = facerollSpec + 1
-            end
+            facerollSpec = specIndex
         end
         facerollSlowDown = 0
         updateSpec()

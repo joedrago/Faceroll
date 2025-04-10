@@ -31,4 +31,4 @@ local function calcBits()
     return bits
 end
 
-Faceroll.registerSpec("DRUID", 3, calcBits)
+Faceroll.registerSpec("DRUID-3", calcBits)
