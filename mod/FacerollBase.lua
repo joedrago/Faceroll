@@ -99,6 +99,9 @@ end
 
 Faceroll.spellCooldown = function(spellName)
     local cd = C_Spell.GetSpellCooldown(spellName)
+    if cd == nil then
+        return 0
+    end
     local duration = cd.duration
     if duration > 0 then
         local since = GetTime() - cd.startTime
