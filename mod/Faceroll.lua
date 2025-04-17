@@ -183,7 +183,7 @@ local function tickReset()
     if remainingTicks == 0 then
         C_Timer.After(0.1, tick)
     end
-    remainingTicks = 10
+    remainingTicks = 20
 end
 
 -----------------------------------------------------------------------------------------
@@ -240,6 +240,11 @@ eventFrame:RegisterEvent("PLAYER_TARGET_CHANGED")
 eventFrame:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED")
 eventFrame:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
 eventFrame:SetScript("OnEvent", onEvent)
+
+DEFAULT_CHAT_FRAME.editBox:HookScript("OnShow", function()
+    -- If this fires, someone is trying to type in chat!
+    enabledFrameReset()
+end)
 
 -----------------------------------------------------------------------------------------
 -- Slash command registration
