@@ -147,6 +147,14 @@ Faceroll.isDotActive = function(spellName)
     return -1
 end
 
+Faceroll.dotStacks = function(spellName)
+    local name, _, stacks, _, fullDuration, expirationTime = AuraUtil.FindAuraByName(spellName, "target", "HARMFUL")
+    if name ~= nil and fullDuration > 0 then
+        return stacks
+    end
+    return 0
+end
+
 Faceroll.isHotActive = function(spellName, target)
     local name, _, _, _, fullDuration, expirationTime = AuraUtil.FindAuraByName(spellName, target, "HELPFUL")
     if name ~= nil and fullDuration > 0 then

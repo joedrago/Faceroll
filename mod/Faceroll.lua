@@ -9,12 +9,13 @@ local SPEC_MM  = 2  FR_SPECS[ SPEC_MM  ] = { ["name"]="MM",  ["color"]="88aa00",
 local SPEC_BM  = 3  FR_SPECS[ SPEC_BM  ] = { ["name"]="BM",  ["color"]="448833", ["key"]="HUNTER-1"      }
 local SPEC_VDH = 4  FR_SPECS[ SPEC_VDH ] = { ["name"]="VDH", ["color"]="993399", ["key"]="DEMONHUNTER-2" }
 local SPEC_HDH = 5  FR_SPECS[ SPEC_HDH ] = { ["name"]="HDH", ["color"]="993300", ["key"]="DEMONHUNTER-1" }
-local SPEC_OUT = 6  FR_SPECS[ SPEC_OUT ] = { ["name"]="OUT", ["color"]="336699", ["key"]="ROGUE-2"       }
-local SPEC_DP  = 7  FR_SPECS[ SPEC_DP  ] = { ["name"]="DP",  ["color"]="999933", ["key"]="PRIEST-1"      }
-local SPEC_SP  = 8  FR_SPECS[ SPEC_SP  ] = { ["name"]="SP",  ["color"]="7a208c", ["key"]="PRIEST-3"      }
-local SPEC_DB  = 9  FR_SPECS[ SPEC_DB  ] = { ["name"]="DB",  ["color"]="559955", ["key"]="DRUID-3"       }
-local SPEC_FM  = 10 FR_SPECS[ SPEC_FM  ] = { ["name"]="FM",  ["color"]="005599", ["key"]="MAGE-3"        }
-local SPEC_ELE = 11 FR_SPECS[ SPEC_ELE ] = { ["name"]="ELE", ["color"]="003399", ["key"]="SHAMAN-1"      }
+local SPEC_UDK = 6  FR_SPECS[ SPEC_UDK ] = { ["name"]="UDK", ["color"]="996699", ["key"]="DEATHKNIGHT-3" }
+local SPEC_OUT = 7  FR_SPECS[ SPEC_OUT ] = { ["name"]="OUT", ["color"]="336699", ["key"]="ROGUE-2"       }
+local SPEC_DP  = 8  FR_SPECS[ SPEC_DP  ] = { ["name"]="DP",  ["color"]="999933", ["key"]="PRIEST-1"      }
+local SPEC_SP  = 9  FR_SPECS[ SPEC_SP  ] = { ["name"]="SP",  ["color"]="7a208c", ["key"]="PRIEST-3"      }
+local SPEC_DB  = 10 FR_SPECS[ SPEC_DB  ] = { ["name"]="DB",  ["color"]="559955", ["key"]="DRUID-3"       }
+local SPEC_FM  = 11 FR_SPECS[ SPEC_FM  ] = { ["name"]="FM",  ["color"]="005599", ["key"]="MAGE-3"        }
+local SPEC_ELE = 12 FR_SPECS[ SPEC_ELE ] = { ["name"]="ELE", ["color"]="003399", ["key"]="SHAMAN-1"      }
 local SPEC_LAST = #FR_SPECS
 -----------------------------------------------------------------------------------------
 
@@ -217,6 +218,8 @@ local function onEvent(self, event, arg1, arg2, ...)
         Faceroll.resetBuffs()
     elseif event == "UNIT_SPELLCAST_SUCCEEDED" then
         updateBits()
+    elseif event == "UNIT_PET" then
+        updateBits()
     elseif event == "PLAYER_TARGET_CHANGED" then
         updateBits()
     elseif event == "UNIT_AURA" then
@@ -236,6 +239,7 @@ eventFrame:RegisterEvent("ADDON_LOADED")
 eventFrame:RegisterEvent("PLAYER_LOGIN")
 eventFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
 eventFrame:RegisterEvent("UNIT_AURA")
+eventFrame:RegisterEvent("UNIT_PET")
 eventFrame:RegisterEvent("PLAYER_TARGET_CHANGED")
 eventFrame:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED")
 eventFrame:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
