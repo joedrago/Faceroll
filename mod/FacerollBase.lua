@@ -240,7 +240,29 @@ Faceroll.onPlayerAura = function(info)
 	end
 end
 
+-- HACK: Hammer of Light tracking. I really should move this and RtB to their
+-- proper places. This is ugly.
+Faceroll.holExpirationTime = 0
+
 Faceroll.onPlayerSpellEvent = function(spellEvent, spellID)
+    if spellEvent == "SPELL_AURA_REMOVED" and spellID == 433674 then
+        -- free cast from Light's Deliverance
+        Faceroll.holExpirationTime = GetTime() + 20
+    elseif spellEvent == "SPELL_CAST_SUCCESS" then
+        if spellID == 255937 then
+            -- regular cast from wake of the ashes
+            Faceroll.holExpirationTime = GetTime() + 20
+        elseif spellEvent == "SPELL_CAST_SUCCESS" then
+            if spellID == 387174 then
+                -- regular cast from wake of the ashes
+                Faceroll.holExpirationTime = GetTime() + 20
+            elseif spellID == 429826 or spellID == 427453 then
+                -- hide on Hammer of Light cast
+                Faceroll.holExpirationTime = 0
+            end
+        end
+    end
+
     if spellID == 381989 then -- keep it rolling
         if spellEvent == "SPELL_CAST_SUCCESS" then
             -- print("Keep it rolling! - " .. spellEvent)

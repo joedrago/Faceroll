@@ -13,6 +13,7 @@ BitsSpecDP.lua
 BitsSpecSP.lua
 BitsSpecDB.lua
 BitsSpecELE.lua
+BitsSpecRET.lua
 BitsSpecFDK.lua
 BitsSpecUDK.lua
 BitsSpecOUT.lua
