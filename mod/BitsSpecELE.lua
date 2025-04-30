@@ -33,7 +33,7 @@ local function calcBits()
         bits = bits + 0x20
     end
 
-    if Faceroll.isDotActive("Flame Shock") >= 0.3 then
+    if Faceroll.isDotActive("Flame Shock") >= 0.3 or not Faceroll.isSpellAvailable("Flame Shock") then
         bits = bits + 0x40
     end
 
