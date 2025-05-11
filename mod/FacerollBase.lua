@@ -168,6 +168,39 @@ Faceroll.isHotActive = function(spellName, target)
     return -1
 end
 
+-- Spellcasting "dead zones", aka windows of time where we should consider this spell unavailable/dead
+-- This is useful for when we don't want to cast a spell *twice* but we don't know we shouldn't
+-- press it until some dot appears or travel time finishes, etc.
+-- WARNING: be sure to use /frkick in the macro for the spell you're trying to put in a deadzone!
+Faceroll.deadzoneCreate = function(spellName, normalizedCastTimeRemaining, deadzoneDuration)
+    return {
+        ["spellName"]=spellName,
+        ["castTimeRemaining"]=normalizedCastTimeRemaining,
+        ["duration"]=deadzoneDuration,
+        ["endTime"]=0,
+    }
+end
+
+-- Safe to call any time
+Faceroll.deadzoneActive = function(deadzone)
+    return (deadzone.endTime > GetTime())
+end
+
+-- Only call this when all other state means you're interested in *starting* the deadzone,
+-- e.g. you're trying to only cast Wrath twice to proc Eclipse and the wrath count has 1 left
+Faceroll.deadzoneUpdate = function(deadzone)
+    local castingSpell, _, _, _, castingSpellEndTime = UnitCastingInfo("player")
+    local castingSpellDone = 0
+    if castingSpell then
+        castingSpellDone = castingSpellEndTime / 1000 - GetTime()
+        -- print("castingSpell " .. castingSpell .. " castingSpellDone " .. castingSpellDone)
+    end
+    if castingSpell == deadzone.spellName and castingSpellDone < deadzone.castTimeRemaining then
+        deadzone.endTime = GetTime() + deadzone.duration
+    end
+    return Faceroll.deadzoneActive(deadzone)
+end
+
 -----------------------------------------------------------------------------------------
 -- Buff Events
 

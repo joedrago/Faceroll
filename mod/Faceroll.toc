@@ -9,6 +9,7 @@ FacerollBase.lua
 BitsSpecSV.lua
 BitsSpecMM.lua
 BitsSpecBM.lua
+BitsSpecOWL.lua
 BitsSpecDP.lua
 BitsSpecSP.lua
 BitsSpecDB.lua
