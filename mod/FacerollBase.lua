@@ -135,7 +135,7 @@ Faceroll.isSpellAvailable = function(spellName)
 end
 
 Faceroll.isDotActive = function(spellName)
-    local name, _, _, _, fullDuration, expirationTime = AuraUtil.FindAuraByName(spellName, "target", "HARMFUL")
+    local name, _, _, _, fullDuration, expirationTime = AuraUtil.FindAuraByName(spellName, "target", "HARMFUL|PLAYER")
     if name ~= nil and fullDuration > 0 then
         local remainingDuration = expirationTime - GetTime()
         local normalizedDuration = remainingDuration / fullDuration
@@ -148,7 +148,7 @@ Faceroll.isDotActive = function(spellName)
 end
 
 Faceroll.dotStacks = function(spellName)
-    local name, _, stacks, _, fullDuration, expirationTime = AuraUtil.FindAuraByName(spellName, "target", "HARMFUL")
+    local name, _, stacks, _, fullDuration, expirationTime = AuraUtil.FindAuraByName(spellName, "target", "HARMFUL|PLAYER")
     if name ~= nil and fullDuration > 0 then
         return stacks
     end
