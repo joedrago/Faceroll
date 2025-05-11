@@ -16,6 +16,7 @@ local function nextAction(action, bits)
     local ap36 = bitand(bits, 0x40)
     local ap45 = bitand(bits, 0x80)
     local eclipsewrathdeadzone = bitand(bits, 0x100)
+    local incarnationready = bitand(bits, 0x200)
 
     if action == ACTION_Q then
         -- Single Target
@@ -28,6 +29,9 @@ local function nextAction(action, bits)
 
         elseif furyofeluneready > 0 then
             return press("pad7", "Cast Fury of Elune to get the cooldown rolling and to generate passive Astral Power")
+
+        elseif incarnationready > 0 and lunareclipseactive == 0 then
+            return press("f7", "Use Incarnation")
 
         elseif warriorofeluneready > 0 and dreamstateactive == 0 then
             return press("pad8", "use Warrior of Elune charges when you don't have stacks of Dreamstate")

@@ -53,6 +53,10 @@ local function calcBits()
         bits = bits + 0x100
     end
 
+    if Faceroll.isSpellAvailable("Incarnation: Chosen of Elune") then
+        bits = bits + 0x200
+    end
+
     if Faceroll.debug then
         local o = ""
         local dztext = "F"
