@@ -21,11 +21,10 @@ local function nextAction(action, bits)
     if action == ACTION_Q then
         -- Single Target
 
-        if moonfireneeded > 0 then
-            return press("7", "DoT all eligible targets with Moonfire and Sunfire")
-
-        elseif sunfireneeded > 0 then
+        if sunfireneeded > 0 then
             return press("8", "DoT all eligible targets with Moonfire and Sunfire")
+        elseif moonfireneeded > 0 then
+            return press("7", "DoT all eligible targets with Moonfire and Sunfire")
 
         elseif furyofeluneready > 0 then
             return press("pad7", "Cast Fury of Elune to get the cooldown rolling and to generate passive Astral Power")
@@ -50,11 +49,11 @@ local function nextAction(action, bits)
     elseif action == ACTION_E then
         -- AOE
 
-        if moonfireneeded > 0 then
-            return press("7", "DoT all eligible targets with Moonfire and Sunfire")
-
-        elseif sunfireneeded > 0 then
+        if sunfireneeded > 0 then
             return press("8", "DoT all eligible targets with Moonfire and Sunfire")
+
+        elseif moonfireneeded > 0 then
+            return press("7", "DoT all eligible targets with Moonfire and Sunfire")
 
         elseif furyofeluneready > 0 then
             return press("pad7", "Cast Fury of Elune to get the cooldown rolling and to generate passive Astral Power")

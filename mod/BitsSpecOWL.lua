@@ -3,6 +3,11 @@
 
 local _, Faceroll = ...
 
+-- /dump C_Spell.GetSpellInfo("Incarnation: Chosen of Elune").spellID
+-- -> 102560: Whirling Stars
+-- -> 390414: Orbital Strike
+
+
 local eclipseWrathDeadzone = Faceroll.deadzoneCreate("Wrath", 0.3, 2)
 
 Faceroll.trackBuffs({
@@ -12,6 +17,11 @@ Faceroll.trackBuffs({
 
 local function calcBits()
     local bits = 0
+
+    local hasOrbitalStrike = false
+    if C_Spell.GetSpellInfo("Incarnation: Chosen of Elune").spellID == 390414 then
+        hasOrbitalStrike = true
+    end
 
     local wrathCastCount = C_Spell.GetSpellCastCount("Wrath")
     if wrathCastCount == 1 then
@@ -53,7 +63,7 @@ local function calcBits()
         bits = bits + 0x100
     end
 
-    if Faceroll.isSpellAvailable("Incarnation: Chosen of Elune") then
+    if Faceroll.isSpellAvailable("Incarnation: Chosen of Elune") and not hasOrbitalStrike then
         bits = bits + 0x200
     end
 
