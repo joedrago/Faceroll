@@ -15,8 +15,9 @@ local function nextAction(action, bits)
     local dreamstateactive = bitand(bits, 0x20)
     local ap36 = bitand(bits, 0x40)
     local ap45 = bitand(bits, 0x80)
-    local eclipsewrathdeadzone = bitand(bits, 0x100)
-    local incarnationready = bitand(bits, 0x200)
+    local ap80 = bitand(bits, 0x100)
+    local eclipsewrathdeadzone = bitand(bits, 0x200)
+    local incarnationready = bitand(bits, 0x400)
 
     if action == ACTION_Q then
         -- Single Target
@@ -52,7 +53,7 @@ local function nextAction(action, bits)
         if sunfireneeded > 0 then
             return press("8", "DoT all eligible targets with Moonfire and Sunfire")
 
-        elseif moonfireneeded > 0 then
+        elseif moonfireneeded > 0 and ap80 == 0 then
             return press("7", "DoT all eligible targets with Moonfire and Sunfire")
 
         elseif furyofeluneready > 0 then

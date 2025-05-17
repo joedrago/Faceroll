@@ -58,13 +58,16 @@ local function calcBits()
     if ap >= 45 then
         bits = bits + 0x80
     end
-
-    if Faceroll.deadzoneActive(eclipseWrathDeadzone) then
+    if ap >= 80 then
         bits = bits + 0x100
     end
 
-    if Faceroll.isSpellAvailable("Incarnation: Chosen of Elune") and not hasOrbitalStrike then
+    if Faceroll.deadzoneActive(eclipseWrathDeadzone) then
         bits = bits + 0x200
+    end
+
+    if Faceroll.isSpellAvailable("Incarnation: Chosen of Elune") and not hasOrbitalStrike then
+        bits = bits + 0x400
     end
 
     if Faceroll.debug then
