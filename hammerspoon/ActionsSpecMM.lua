@@ -12,6 +12,7 @@ local function nextAction(action, bits)
     local explosiveshot = bitand(bits, 0x80)
     local killshot = bitand(bits, 0x100)
     local lowfocus = bitand(bits, 0x200)
+    local streamlinedeadzone = bitand(bits, 0x400)
 
     if action == ACTION_Q then
         -- Single Target
@@ -44,7 +45,7 @@ local function nextAction(action, bits)
             -- Storm the moment it becomes available.
             return "8" -- rapid fire
 
-        elseif aimedshot > 0 and streamline > 0 then
+        elseif aimedshot > 0 and streamline > 0 and streamlinedeadzone == 0 then
             -- Use Aimed Shot as often as you can. Most of the time, we want to
             -- get rid of our Precise Shots stacks first, but if you have both a
             -- Spotter's Mark proc and  Moving Target up, you should just cast
@@ -91,7 +92,7 @@ local function nextAction(action, bits)
             -- Use Explosive Shot whenever possible.
             return "0" -- explosive shot
 
-        elseif aimedshot > 0 and streamline > 0 then
+        elseif aimedshot > 0 and streamline > 0 and streamlinedeadzone == 0 then
             -- Use Aimed Shot as often as you can. Most of the time, we want to
             -- get rid of our Precise Shots stacks first, but if you have both a
             -- Spotter's Mark proc and  Moving Target up, you should just cast
