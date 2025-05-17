@@ -15,9 +15,10 @@ local function nextAction(action, bits)
     local dreamstateactive = bitand(bits, 0x20)
     local ap36 = bitand(bits, 0x40)
     local ap45 = bitand(bits, 0x80)
-    local ap80 = bitand(bits, 0x100)
+    local ap75 = bitand(bits, 0x100)
     local eclipsewrathdeadzone = bitand(bits, 0x200)
     local incarnationready = bitand(bits, 0x400)
+    local moving = bitand(bits, 0x800)
 
     if action == ACTION_Q then
         -- Single Target
@@ -39,7 +40,7 @@ local function nextAction(action, bits)
         elseif lunareclipseactive == 0 and eclipsewrathdeadzone == 0 then
             return press("0", "Cast Wrath twice to enter Eclipse (Lunar) if you are not in an Eclipse (or cooldowns)")
 
-        elseif ap36 > 0 then
+        elseif ap75 > 0 or (moving > 0 and ap36 > 0) then
             return press("=", "Spend Astral Power on Starsurge")
 
         else
@@ -53,7 +54,7 @@ local function nextAction(action, bits)
         if sunfireneeded > 0 then
             return press("8", "DoT all eligible targets with Moonfire and Sunfire")
 
-        elseif moonfireneeded > 0 and ap80 == 0 then
+        elseif moonfireneeded > 0 and ap75 == 0 then
             return press("7", "DoT all eligible targets with Moonfire and Sunfire")
 
         elseif furyofeluneready > 0 then
@@ -65,7 +66,7 @@ local function nextAction(action, bits)
         elseif lunareclipseactive == 0 and eclipsewrathdeadzone == 0 then
             return press("0", "Cast Wrath twice to enter Eclipse (Lunar) if you are not in an Eclipse (or cooldowns)")
 
-        elseif ap45 > 0 then
+        elseif ap75 > 0 or (moving > 0 and ap45 > 0) then
             return press("-", "Spend Astral Power on Starfall")
 
         else

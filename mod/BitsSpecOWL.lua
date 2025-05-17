@@ -8,7 +8,7 @@ local _, Faceroll = ...
 -- -> 390414: Orbital Strike
 
 
-local eclipseWrathDeadzone = Faceroll.deadzoneCreate("Wrath", 0.3, 2)
+local eclipseWrathDeadzone = Faceroll.deadzoneCreate("Wrath", 0.3, 1)
 
 Faceroll.trackBuffs({
     ["lunareclipse"] = { ["name"]="Eclipse (Lunar)" },
@@ -58,7 +58,7 @@ local function calcBits()
     if ap >= 45 then
         bits = bits + 0x80
     end
-    if ap >= 80 then
+    if ap >= 75 then
         bits = bits + 0x100
     end
 
@@ -68,6 +68,13 @@ local function calcBits()
 
     if Faceroll.isSpellAvailable("Incarnation: Chosen of Elune") and not hasOrbitalStrike then
         bits = bits + 0x400
+    end
+
+    local isGliding, canGlide, forwardSpeed = C_PlayerInfo.GetGlidingInfo()
+    local base = isGliding and forwardSpeed or GetUnitSpeed("player")
+    local movespeed = Round(base / 7 * 100)
+    if movespeed > 0 then
+        bits = bits + 0x800
     end
 
     if Faceroll.debug then
