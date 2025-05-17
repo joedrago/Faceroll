@@ -58,6 +58,23 @@ local function calcBits()
     if energy >= 85 then
         bits = bits + 0x400
     end
+
+    if UnitExists("pet") then
+        local hasSpiritMend = false
+        for i=1,10 do
+            if GetPetActionInfo(i) == "Spirit Mend" then
+                hasSpiritMend = true
+                break
+            end
+        end
+        if hasSpiritMend then
+            local petHealth = UnitHealth("pet") / UnitHealthMax("pet")
+            if petHealth < 0.90 and Faceroll.isSpellAvailable("Mend Pet") then
+                bits = bits + 0x800
+            end
+        end
+    end
+
     return bits
 end
 

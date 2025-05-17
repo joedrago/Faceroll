@@ -18,11 +18,15 @@ local function nextAction(action, bits)
     local beastcleave = bitand(bits, 0x100)
     local beastcleaveending = bitand(bits, 0x200)
     local energyG85 = bitand(bits, 0x400)
+    local shouldmendpet = bitand(bits, 0x800)
 
     if action == ACTION_Q then
         -- Single Target
 
-        if bestialwrath > 0 then
+        if shouldmendpet > 0 then
+            return press("f8", "mend pet")
+
+        elseif bestialwrath > 0 then
             -- Use Bestial Wrath.
             return press("pad7", "bestial wrath")
 
@@ -55,7 +59,10 @@ local function nextAction(action, bits)
     elseif action == ACTION_E then
         -- AOE
 
-        if bestialwrath > 0 then
+        if shouldmendpet > 0 then
+            return press("f8", "mend pet")
+
+        elseif bestialwrath > 0 then
             -- Use Bestial Wrath. Prioritize targets without Barbed Shot.
             return press("pad7", "bestial wrath")
 
