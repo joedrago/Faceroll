@@ -36,15 +36,7 @@ local SPEC_LAST = #FR_SPECS
 -----------------------------------------------------------------------------------------
 
 -----------------------------------------------------------------------------------------
--- Global Constants
-
-KEY_TOGGLE = hs.keycodes.map["F5"]
-KEY_SPEC = hs.keycodes.map["F5"]
-KEY_Q = hs.keycodes.map["q"]
-KEY_E = hs.keycodes.map["e"]
-KEY_SLASH = hs.keycodes.map["/"]
-KEY_ENTER = hs.keycodes.map["return"]
-KEY_DELETE = hs.keycodes.map["delete"]
+-- Global Constants (check init_*.lua for platform specific constants)
 
 ACTION_NONE = 0
 ACTION_Q = 1
@@ -54,7 +46,7 @@ ACTION_E = 2
 -- Globals
 
 local facerollSpec = SPEC_OFF       -- Which spec are we trying to be right now?
-local facerollActive = true         -- An additional way to temporarily behave like SPEC_OFF when people hit enter/slash/delete
+local facerollActive = false        -- An additional way to temporarily behave like SPEC_OFF when people hit enter/slash/delete
 local facerollAction = ACTION_NONE  -- Which faceroll key action is running? (the "paradigm")
 local facerollSpecSendRemaining = 0 -- Where are with our rotary-phone-sending of the spec number
 local facerollSlowDown = 0          -- Offer a means to only act every so many ticks
@@ -82,25 +74,59 @@ function bitand(a, b)
 end
 
 -----------------------------------------------------------------------------------------
--- UDP socket listening for game bits
+-- The mechanism used to tell the game which spec we're in (like a rotary phone would)
 
-function onGameBits(newBits, addr)
-    facerollGameBits = tonumber(newBits)
-    -- print("onGameBits[a]: " .. facerollGameBits)
-    -- print("onGameBits[g]: " .. bitand(facerollGameBits, 0xffff))
+local function updateSpec()
+    facerollSpecSendRemaining = 0
+    sendKeyToWow("]")
+    facerollSpecSendRemaining = facerollSpec
+
+    print("Faceroll: " .. FR_SPECS[facerollSpec].name)
 end
-server = hs.socket.udp.server(9001, onGameBits):receive()
 
 -----------------------------------------------------------------------------------------
--- App interation
+-- Key handlers
 
-local wowApplication = nil
-local function sendKeyToWow(keyName)
-    -- if wowApplication == nil then
-        wowApplication = hs.application.applicationsForBundleID('com.blizzard.worldofwarcraft')[1]
-    -- end
-    if wowApplication ~= nil then
-        hs.eventtap.keyStroke({}, keyName, 20000, wowApplication)
+function onKeyCode(keyCode)
+    -- FRDEBUG("lole key " .. keyCode)
+
+    if keyCode == KEY_SPEC then
+        if facerollActive then
+            facerollActive = false
+            facerollSpec = SPEC_OFF
+        else
+            local specIndex = math.floor(bitand(facerollGameBits, 0xf0000000) / 0x10000000)
+            facerollActive = true
+            facerollSpec = specIndex
+        end
+        facerollSlowDown = 0
+        facerollSpecSendRemaining = 0
+        sendKeyToWow("]")
+        facerollSpecSendRemaining = facerollSpec
+        print("Faceroll: " .. FR_SPECS[facerollSpec].name)
+
+    elseif keyCode == KEY_SLASH or keyCode == KEY_ENTER or keyCode == KEY_DELETE then
+        facerollActive = false
+
+    elseif facerollActive then
+        if keyCode == KEY_Q then
+            FRDEBUG("Faceroll: Q")
+            facerollAction = ACTION_Q
+            return true
+        elseif keyCode == KEY_E then
+            FRDEBUG("Faceroll: E")
+            facerollAction = ACTION_E
+            return true
+        end
+
+    end
+    return false
+end
+
+function onReset()
+    if facerollSpec ~= nil then
+        FRDEBUG("Faceroll: Reset")
+        facerollAction = ACTION_NONE
     end
 end
 
@@ -115,14 +141,23 @@ for _, spec in pairs(FR_SPECS) do
     end
 end
 
-local wowTick = hs.timer.new(0.02, function()
-    -- FRDEBUG("wowTick")
+function onUpdate(bits)
+    -- FRDEBUG("onUpdate("..bits..")")
+
+    facerollGameBits = bits
+
+    if facerollSpecSendRemaining > 0 then
+        facerollSpecSendRemaining = facerollSpecSendRemaining - 1
+        sendKeyToWow("[")
+        return
+    end
+
     if not facerollActive or facerollAction == ACTION_NONE then
         return
     end
 
     facerollSlowDown = facerollSlowDown + 1
-    if facerollSlowDown > 10 then
+    if facerollSlowDown > 2 then
         facerollSlowDown = 0
         if facerollSpec ~= SPEC_OFF then
             if facerollAction == ACTION_Q then
@@ -146,112 +181,7 @@ local wowTick = hs.timer.new(0.02, function()
     end
 
     return
-end, true)
-
------------------------------------------------------------------------------------------
--- The mechanism used to tell the game which spec we're in (like a rotary phone would)
-
-local wowSendSpecTick = hs.timer.new(0.05, function()
-    -- FRDEBUG("wowSendSpecTick")
-    if facerollSpecSendRemaining > 0 then
-        facerollSpecSendRemaining = facerollSpecSendRemaining - 1
-        sendKeyToWow("[")
-    end
-    return
-end, true)
-
-local function updateSpec()
-    facerollSpecSendRemaining = 0
-    sendKeyToWow("]")
-    facerollSpecSendRemaining = facerollSpec
-    if not wowSendSpecTick:running() then
-        wowSendSpecTick:start()
-    end
-
-    print("Faceroll: " .. FR_SPECS[facerollSpec].name)
 end
-
------------------------------------------------------------------------------------------
--- Key handlers
-
-local wowTapKey = hs.eventtap.new({hs.eventtap.event.types.keyDown}, function(event)
-    -- local flags = event:getFlags()
-    local keyCode = event:getKeyCode()
-    -- FRDEBUG("lole key " .. keyCode)
-
-    if keyCode == KEY_SPEC then
-        if facerollActive then
-            facerollActive = false
-            facerollSpec = SPEC_OFF
-        else
-            local specIndex = math.floor(bitand(facerollGameBits, 0xf0000000) / 0x10000000)
-            facerollActive = true
-            facerollSpec = specIndex
-        end
-        facerollSlowDown = 0
-        updateSpec()
-
-    elseif keyCode == KEY_SLASH or keyCode == KEY_ENTER or keyCode == KEY_DELETE then
-        facerollActive = false
-    elseif facerollActive then
-        if keyCode == KEY_Q then
-            FRDEBUG("Faceroll: Q")
-            facerollAction = ACTION_Q
-            if not wowTick:running() then
-                wowTick:start()
-            end
-            return true
-        elseif keyCode == KEY_E then
-            FRDEBUG("Faceroll: E")
-            facerollAction = ACTION_E
-            if not wowTick:running() then
-                wowTick:start()
-            end
-            return true
-        end
-    end
-end)
-
-local wowTapFlags = hs.eventtap.new({hs.eventtap.event.types.flagsChanged}, function(event)
-    if facerollSpec ~= nil then
-        FRDEBUG("Faceroll: Reset")
-        facerollAction = ACTION_NONE
-    end
-end)
-
------------------------------------------------------------------------------------------
--- Window listener stuff
-
-local function facerollListenStart()
-    print("facerollListenStart()")
-    wowTapKey:start()
-    wowTapFlags:start()
-end
-local function facerollListenStop()
-    print("facerollListenStop()")
-    wowTapKey:stop()
-    wowTapFlags:stop()
-end
-
-local WoWFilter = hs.window.filter.new(true)--"Wow")
-WoWFilter:subscribe(hs.window.filter.windowFocused, function(w)
-    if w == nil then
-        FRDEBUG("Focus: w is nil")
-    else
-        FRDEBUG("Focus: " .. w:title())
-        if w:title() == "World of Warcraft" then
-            facerollListenStart()
-        end
-    end
-end)
-WoWFilter:subscribe(hs.window.filter.windowUnfocused, function(w)
-    if w ~= nil then
-        FRDEBUG("Unfocus: " .. w:title())
-        if w:title() == "World of Warcraft" then
-            facerollListenStop()
-        end
-    end
-end)
 
 -----------------------------------------------------------------------------------------
 
