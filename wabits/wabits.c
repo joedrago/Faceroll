@@ -1,5 +1,7 @@
 #ifdef _WIN32
 #define _CRT_SECURE_NO_WARNINGS 1
+#include <fcntl.h>
+#include <io.h>
 #include <winsock.h>
 #else
 #include <arpa/inet.h>
@@ -449,6 +451,9 @@ cleanup:
 int main(int argc, char * argv[])
 {
 #ifdef _WIN32
+    // freopen(NULL, "rb", stdin);
+    _setmode(_fileno(stdin), _O_BINARY);
+
     WSADATA wsaData;
     int iResult = WSAStartup(MAKEWORD(2, 2), &wsaData);
     if (iResult != 0) {
@@ -501,7 +506,7 @@ int main(int argc, char * argv[])
             }
         }
 
-        printf("Frame bits: %u\r", bits);
+        // printf("Frame bits: %u\r", bits);
         sprintf(udpBuffer, "%u", bits);
         if (sendto(sockfd, udpBuffer, (int)strlen(udpBuffer), 0, (const struct sockaddr *)&server, sizeof(server)) < 0) {
             fprintf(stderr, "Error in sendto()\n");
