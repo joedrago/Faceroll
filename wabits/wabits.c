@@ -1,11 +1,18 @@
+#ifdef _WIN32
+#define _CRT_SECURE_NO_WARNINGS 1
+#include <winsock.h>
+#else
 #include <arpa/inet.h>
+#include <sys/socket.h>
+typedef int SOCKET;
+#endif
+
 #include <assert.h>
 #include <limits.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/socket.h>
 
 // Most of the wabits*() functions and constants are repurposed from my libavif
 // y4m.c implementation. Anything bugfixes in there are still under the same
@@ -441,7 +448,16 @@ cleanup:
 
 int main(int argc, char * argv[])
 {
-    int sockfd = socket(AF_INET, SOCK_DGRAM, 0);
+#ifdef _WIN32
+    WSADATA wsaData;
+    int iResult = WSAStartup(MAKEWORD(2, 2), &wsaData);
+    if (iResult != 0) {
+        printf("WSAStartup failed: %d\n", iResult);
+        return 1;
+    }
+#endif
+
+    SOCKET sockfd = socket(AF_INET, SOCK_DGRAM, 0);
     if (sockfd < 0) {
         fprintf(stderr, "Error opening socket");
         return EXIT_FAILURE;
@@ -476,8 +492,8 @@ int main(int argc, char * argv[])
         for (int bitIndex = 0; bitIndex < 32; ++bitIndex) {
             int bitX = bitIndex % 4;
             int bitY = bitIndex / 4;
-            int pixelX = 2 + bitX * ((float)image.width / 4);
-            int pixelY = 2 + bitY * ((float)image.height / 8);
+            int pixelX = (int)(2 + bitX * ((float)image.width / 4));
+            int pixelY = (int)(2 + bitY * ((float)image.height / 8));
             uint8_t pixel = yPlane[pixelX + (pixelY * image.width)];
             // printf("[%dx%d] bit[%u]: (%u, %u) (%u, %u): %u\n", image.width, image.height, bitIndex, bitX, bitY, pixelX, pixelY, pixel);
             if (pixel > 127) {
@@ -487,7 +503,7 @@ int main(int argc, char * argv[])
 
         printf("Frame bits: %u\r", bits);
         sprintf(udpBuffer, "%u", bits);
-        if (sendto(sockfd, udpBuffer, strlen(udpBuffer), 0, (const struct sockaddr *)&server, sizeof(server)) < 0) {
+        if (sendto(sockfd, udpBuffer, (int)strlen(udpBuffer), 0, (const struct sockaddr *)&server, sizeof(server)) < 0) {
             fprintf(stderr, "Error in sendto()\n");
             return -1;
         }
