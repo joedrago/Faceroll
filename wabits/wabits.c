@@ -1,9 +1,16 @@
 #ifdef _WIN32
+// Windows
 #define _CRT_SECURE_NO_WARNINGS 1
 #include <fcntl.h>
 #include <io.h>
-#include <winsock.h>
+#ifdef WABITS_LUA
+#include "wabits_lua.h"
 #else
+#include <winsock.h>
+#endif
+
+#else
+// MacOS
 #include <arpa/inet.h>
 #include <sys/socket.h>
 typedef int SOCKET;
@@ -451,9 +458,9 @@ cleanup:
 int main(int argc, char * argv[])
 {
 #ifdef _WIN32
-    // freopen(NULL, "rb", stdin);
     _setmode(_fileno(stdin), _O_BINARY);
 
+#ifndef WABITS_LUA
     WSADATA wsaData;
     int iResult = WSAStartup(MAKEWORD(2, 2), &wsaData);
     if (iResult != 0) {
@@ -461,6 +468,14 @@ int main(int argc, char * argv[])
         return 1;
     }
 #endif
+#endif
+
+#ifdef WABITS_LUA
+    if (!wlStartup()) {
+        return 1;
+    }
+#else
+    char udpBuffer[32];
 
     SOCKET sockfd = socket(AF_INET, SOCK_DGRAM, 0);
     if (sockfd < 0) {
@@ -473,6 +488,7 @@ int main(int argc, char * argv[])
     server.sin_family = AF_INET;
     server.sin_addr.s_addr = inet_addr(SERVERADDRESS);
     server.sin_port = htons(9001);
+#endif
 
     struct Image image;
     image.planes[0] = malloc(64 * 64);
@@ -480,8 +496,6 @@ int main(int argc, char * argv[])
     image.planes[2] = malloc(64 * 64);
 
     struct y4mFrameIterator * frameIter = NULL;
-
-    char udpBuffer[32];
 
     for (;;) {
         if (feof(stdin)) {
@@ -506,12 +520,20 @@ int main(int argc, char * argv[])
             }
         }
 
+#ifdef WABITS_LUA
+        wlUpdate(bits);
+#else
         // printf("Frame bits: %u\r", bits);
         sprintf(udpBuffer, "%u", bits);
         if (sendto(sockfd, udpBuffer, (int)strlen(udpBuffer), 0, (const struct sockaddr *)&server, sizeof(server)) < 0) {
             fprintf(stderr, "Error in sendto()\n");
             return -1;
         }
+#endif
     }
+
+#ifdef WABITS_LUA
+    wlShutdown();
+#endif
     return 0;
 }

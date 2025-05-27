@@ -74,17 +74,6 @@ function bitand(a, b)
 end
 
 -----------------------------------------------------------------------------------------
--- The mechanism used to tell the game which spec we're in (like a rotary phone would)
-
-local function updateSpec()
-    facerollSpecSendRemaining = 0
-    sendKeyToWow("]")
-    facerollSpecSendRemaining = facerollSpec
-
-    print("Faceroll: " .. FR_SPECS[facerollSpec].name)
-end
-
------------------------------------------------------------------------------------------
 -- Key handlers
 
 function onKeyCode(keyCode)
@@ -136,10 +125,11 @@ end
 for _, spec in pairs(FR_SPECS) do
     if spec.name ~= "OFF" then
         print("Loading Spec: " .. spec.name)
-        local requirePath = "Faceroll/ActionsSpec" .. spec.name
+        local requirePath = "actor/ActionsSpec" .. spec.name
         spec.nextAction = require(requirePath)
     end
 end
+
 
 function onUpdate(bits)
     -- FRDEBUG("onUpdate("..bits..")")
