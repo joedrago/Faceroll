@@ -54,7 +54,7 @@ local function nextAction(action, bits)
         if sunfireneeded > 0 then
             return press("8", "DoT all eligible targets with Moonfire and Sunfire")
 
-        elseif moonfireneeded > 0 and ap75 == 0 then
+        elseif moonfireneeded > 0 and (ap75 == 0 or moving > 0) then
             return press("7", "DoT all eligible targets with Moonfire and Sunfire")
 
         elseif furyofeluneready > 0 then
