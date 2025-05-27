@@ -63,7 +63,7 @@ static int wlIsWowInForeground()
 
 static void wlQueueNativeKeyPress(int vkCode)
 {
-    printf("wlQueueNativeKeyPress(native): %d\n", vkCode);
+    // printf("wlQueueNativeKeyPress(native): %d\n", vkCode);
 
     if (lastWowWindow != INVALID_HANDLE_VALUE) {
         PostMessage(lastWowWindow, WM_KEYDOWN, (WPARAM)vkCode, 0);
@@ -153,7 +153,7 @@ static LRESULT CALLBACK keyHandler(int nCode, WPARAM wParam, LPARAM lParam)
 {
     if (nCode == HC_ACTION && wParam == WM_KEYDOWN) {
         KBDLLHOOKSTRUCT * kb = (KBDLLHOOKSTRUCT *)lParam;
-        printf("kb->vkCode: %u\n", kb->vkCode);
+        // printf("kb->vkCode: %u\n", kb->vkCode);
         if (wlIsWowInForeground()) {
             if (kb->vkCode == VK_LSHIFT || kb->vkCode == VK_LCONTROL) {
                 wlOnReset(L);
@@ -208,7 +208,7 @@ int wlStartup()
     lua_pushcfunction(L, sendKeyToWowNative);
     lua_setglobal(L, "sendKeyToWowNative");
 
-    if (luaL_dofile(L, "wabits.lua") == LUA_OK) {
+    if (luaL_dofile(L, "wabits/wabits.lua") == LUA_OK) {
         lua_pop(L, lua_gettop(L));
     } else {
         printf("Lua Error: %s", lua_tostring(L, -1));
