@@ -87,13 +87,13 @@ int sendKeyToWowNative(lua_State * L)
     return 0;
 }
 
-void wlOnUpdate(lua_State * L, int bits)
+void wlOnUpdate(lua_State * L, uint32_t bits)
 {
     wlMutexLock(luaMutex);
 
     lua_getglobal(L, "onUpdate");
     if (lua_isfunction(L, -1)) {
-        lua_pushinteger(L, bits);
+        lua_pushnumber(L, (double)bits);
         if (lua_pcall(L, 1, 0, 0) == LUA_OK) {
             lua_pop(L, lua_gettop(L));
         } else {
@@ -223,7 +223,7 @@ void wlShutdown()
     printf("wlShutdown()\n");
 }
 
-void wlUpdate(int bits)
+void wlUpdate(uint32_t bits)
 {
     // printf("wlUpdate(0x%x)\n", bits);
     wlOnUpdate(L, bits);

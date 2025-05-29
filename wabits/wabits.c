@@ -506,7 +506,7 @@ int main(int argc, char * argv[])
             break;
         }
 
-        int bits = 0;
+        uint32_t bits = 0;
         uint8_t * yPlane = image.planes[0];
         for (int bitIndex = 0; bitIndex < 32; ++bitIndex) {
             int bitX = bitIndex % 4;
