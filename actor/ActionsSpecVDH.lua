@@ -2,7 +2,7 @@
 -- Vengeance Demon Hunter
 
 local function press(button, name)
-    -- print("Press: " .. name)
+    -- print("Press[" .. button .. "]: " .. name)
     return button
 end
 
