@@ -7,91 +7,46 @@ local function press(button, name)
 end
 
 local function nextAction(action, bits)
-    local ggending = bitand(bits, 0x1)
-    local needsif = bitand(bits, 0x2)
-    local needsfr = bitand(bits, 0x4)
+    local bearform = bitand(bits, 0x1)
+    local galacticguardian = bitand(bits, 0x2)
+    local thrash = bitand(bits, 0x4)
+    local mangle = bitand(bits, 0x8)
+    local lunarbeam = bitand(bits, 0x10)
+    local needsironfur = bitand(bits, 0x20)
+    local toothandclaw = bitand(bits, 0x40)
+    local rage40 = bitand(bits, 0x80)
+    local needsfr = bitand(bits, 0x100)
 
-    if action == ACTION_Q then
-        -- Single Target
+    if action == ACTION_Q or action == ACTION_E then
 
-        -- if essencebreakbuff > 0 and bladedance > 0 then
-        --     -- Cast Death Sweep during Essence Break.
-        --     return press("-", "death sweep EB (blade dance during meta)")
-
-        -- elseif essencebreakbuff > 0 and furyG40 > 0 then
-        --     -- Cast Annihilation during Essence Break.
-        --     return press("9", "annihilation EB (chaos strike during meta)")
-
-        -- elseif thehunt > 0 then
-        --     -- Cast The Hunt.
-        --     return press("f7", "the hunt")
-
-        -- elseif metamorphosisbuff > 0 and sigilofflame > 0 then
-        --     -- Cast Sigil of Doom in Metamorphosis.
-        --     return press("pad7", "sigil of doom (sigil of flame in meta)")
-
-        -- elseif metamorphosisbuff > 0 and essencebreak > 0 then
-        --     -- Cast Essence Break while in Metamorphosis.
-        --     return press("f8", "essence break")
-
-        -- elseif metamorphosisbuff > 0 and bladedance > 0 then
-        --     -- Cast Death Sweep.
-        --     return press("-", "death sweep (blade dance during meta)")
-
-        -- elseif metamorphosis > 0 and eyebeam == 0 then
-        --     -- Cast Metamorphosis if Eye Beam is on cooldown.
-        --     return press("pad8", "meta")
-
-        -- elseif sigilofflame > 0 then
-        --     -- Cast Sigil of Flame before an Eye Beam, should always sync these up.
-        --     return press("pad7", "sigil of flame")
-
-        -- elseif eyebeam > 0 then
-        --     -- Cast Eye Beam or (Abyssal Gaze in Metamorphosis).
-        --     return press("=", "eye beam")
-
-        -- elseif bladedance > 0 then
-        --     -- Cast Blade Dance.
-        --     return press("-", "blade dance")
-
-        -- elseif metamorphosis > 0 and furyG40 > 1 then
-        --     -- Cast Annihilation.
-        --     return press("9", "annihilation (chaos strike during meta)")
-
-        -- elseif furyL130 > 1 and felblade > 1 then
-        --     -- Cast Felblade if under 130 Fury.
-        --     return press("0", "felblade")
-
-        -- elseif furyG40 > 1 then
-        --     -- Cast Chaos Strike.
-        --     return press("9", "chaos strike")
-
-        -- elseif immolationaura > 0 then
-        --     -- Cast Immolation Aura or ( Consuming Fire in Metamorphosis).
-        --     return press("8", "immolation aura")
-
-        -- else
-        --     -- Cast Throw Glaive if no other buttons are available.
-        --     return press("7", "throw glaive")
-        -- end
-
-    elseif action == ACTION_E then
-        -- AOE
-
-        if needsif > 0 then
-            return press("9", "ironfur")
+        if bearform == 0 then
+            return press("f7", "Bear Form")
 
         elseif needsfr > 0 then
-            return press("9", "frenzied regeneration")
+            return press("f9", "Frenzied Regeneration")
 
-        elseif ggending > 0 then
-            -- Only use your Galactic Guardian procs if the buff is about to expire.
-            return press("8", "moonfire")
+        elseif needsironfur > 0 and rage40 > 0 then
+            return press("f8", "Ironfur")
+
+        elseif lunarbeam > 0 then
+            return press("9", "Lunar Beam")
+
+        elseif thrash > 0 then
+            return press("7", "Thrash")
+
+        elseif mangle > 0 then
+            return press("8", "Mangle")
+
+        elseif rage40 > 0 or toothandclaw > 0 then
+            return press("=", "Raze")
+
+        elseif galacticguardian > 0 then
+            return press("0", "Moonfire")
 
         else
-            -- Cast Swipe or Moonfire if you have empty GCDs.
-            return press("7", "swipe")
+            return press("-", "Swipe")
         end
+
     end
 
     return nil
