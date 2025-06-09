@@ -1,5 +1,7 @@
 local _, Faceroll = ...
 
+Faceroll.hold = false
+
 -----------------------------------------------------------------------------------------
 -- Debug Overlay Shenanigans
 

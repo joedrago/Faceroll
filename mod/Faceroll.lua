@@ -5,20 +5,21 @@ local addonName, Faceroll = ...
 local FR_SPECS = {}
 local SPEC_OFF = 0  FR_SPECS[ SPEC_OFF ] = { ["name"]="OFF", ["color"]="333333", ["key"]=""              }
 local SPEC_BM  = 1  FR_SPECS[ SPEC_BM  ] = { ["name"]="BM",  ["color"]="448833", ["key"]="HUNTER-1"      }
-local SPEC_VDH = 2  FR_SPECS[ SPEC_VDH ] = { ["name"]="VDH", ["color"]="993399", ["key"]="DEMONHUNTER-2" }
-local SPEC_HDH = 3  FR_SPECS[ SPEC_HDH ] = { ["name"]="HDH", ["color"]="993300", ["key"]="DEMONHUNTER-1" }
-local SPEC_SV  = 4  FR_SPECS[ SPEC_SV  ] = { ["name"]="SV",  ["color"]="337733", ["key"]="HUNTER-3"      }
-local SPEC_MM  = 5  FR_SPECS[ SPEC_MM  ] = { ["name"]="MM",  ["color"]="88aa00", ["key"]="HUNTER-2"      }
-local SPEC_OWL = 6  FR_SPECS[ SPEC_OWL ] = { ["name"]="OWL", ["color"]="ff8800", ["key"]="DRUID-1"       }
-local SPEC_DB  = 7  FR_SPECS[ SPEC_DB  ] = { ["name"]="DB",  ["color"]="559955", ["key"]="DRUID-3"       }
-local SPEC_ELE = 8  FR_SPECS[ SPEC_ELE ] = { ["name"]="ELE", ["color"]="003399", ["key"]="SHAMAN-1"      }
-local SPEC_RET = 9  FR_SPECS[ SPEC_RET ] = { ["name"]="RET", ["color"]="999933", ["key"]="PALADIN-3"     }
-local SPEC_FDK = 10 FR_SPECS[ SPEC_FDK ] = { ["name"]="FDK", ["color"]="333399", ["key"]="DEATHKNIGHT-2" }
-local SPEC_UDK = 11 FR_SPECS[ SPEC_UDK ] = { ["name"]="UDK", ["color"]="996699", ["key"]="DEATHKNIGHT-3" }
-local SPEC_OUT = 12 FR_SPECS[ SPEC_OUT ] = { ["name"]="OUT", ["color"]="336699", ["key"]="ROGUE-2"       }
-local SPEC_DP  = 13 FR_SPECS[ SPEC_DP  ] = { ["name"]="DP",  ["color"]="999933", ["key"]="PRIEST-1"      }
-local SPEC_SP  = 14 FR_SPECS[ SPEC_SP  ] = { ["name"]="SP",  ["color"]="7a208c", ["key"]="PRIEST-3"      }
-local SPEC_FM  = 15 FR_SPECS[ SPEC_FM  ] = { ["name"]="FM",  ["color"]="005599", ["key"]="MAGE-3"        }
+local SPEC_AM  = 2  FR_SPECS[ SPEC_AM  ] = { ["name"]="AM",  ["color"]="995599", ["key"]="MAGE-1"       }
+local SPEC_VDH = 3  FR_SPECS[ SPEC_VDH ] = { ["name"]="VDH", ["color"]="993399", ["key"]="DEMONHUNTER-2" }
+local SPEC_HDH = 4  FR_SPECS[ SPEC_HDH ] = { ["name"]="HDH", ["color"]="993300", ["key"]="DEMONHUNTER-1" }
+local SPEC_SV  = 5  FR_SPECS[ SPEC_SV  ] = { ["name"]="SV",  ["color"]="337733", ["key"]="HUNTER-3"      }
+local SPEC_MM  = 6  FR_SPECS[ SPEC_MM  ] = { ["name"]="MM",  ["color"]="88aa00", ["key"]="HUNTER-2"      }
+local SPEC_OWL = 7  FR_SPECS[ SPEC_OWL ] = { ["name"]="OWL", ["color"]="ff8800", ["key"]="DRUID-1"       }
+-- local SPEC_DB  = 7  FR_SPECS[ SPEC_DB  ] = { ["name"]="DB",  ["color"]="559955", ["key"]="DRUID-3"       }
+-- local SPEC_ELE = 8  FR_SPECS[ SPEC_ELE ] = { ["name"]="ELE", ["color"]="003399", ["key"]="SHAMAN-1"      }
+-- local SPEC_RET = 9  FR_SPECS[ SPEC_RET ] = { ["name"]="RET", ["color"]="999933", ["key"]="PALADIN-3"     }
+-- local SPEC_FDK = 10 FR_SPECS[ SPEC_FDK ] = { ["name"]="FDK", ["color"]="333399", ["key"]="DEATHKNIGHT-2" }
+-- local SPEC_UDK = 11 FR_SPECS[ SPEC_UDK ] = { ["name"]="UDK", ["color"]="996699", ["key"]="DEATHKNIGHT-3" }
+-- local SPEC_OUT = 12 FR_SPECS[ SPEC_OUT ] = { ["name"]="OUT", ["color"]="336699", ["key"]="ROGUE-2"       }
+-- local SPEC_DP  = 13 FR_SPECS[ SPEC_DP  ] = { ["name"]="DP",  ["color"]="999933", ["key"]="PRIEST-1"      }
+-- local SPEC_SP  = 14 FR_SPECS[ SPEC_SP  ] = { ["name"]="SP",  ["color"]="7a208c", ["key"]="PRIEST-3"      }
+-- local SPEC_FM  = 15 FR_SPECS[ SPEC_FM  ] = { ["name"]="FM",  ["color"]="005599", ["key"]="MAGE-3"        }
 local SPEC_LAST = #FR_SPECS
 -----------------------------------------------------------------------------------------
 
@@ -46,7 +47,11 @@ end
 local function enabledFrameUpdate()
     if enabledFrame ~= nil then
         local spec = FR_SPECS[enabledSpec]
-        enabledFrame:setText(Faceroll.textColor(spec.name, spec.color))
+        local color = spec.color
+        if Faceroll.hold and enabledSpec > 0 then
+            color = "cccccc"
+        end
+        enabledFrame:setText(Faceroll.textColor(spec.name, color))
     end
 end
 
@@ -78,6 +83,9 @@ end
 
 function activeFrameSet(text)
     local activeText = "FR " .. text
+    if Faceroll.hold then
+        activeText = "HOLD " .. text
+    end
     activeFrameTime = GetTime()
     activeFrame:setText(Faceroll.textColor(activeText, "F5FF9D"))
 end
@@ -189,6 +197,14 @@ local function tickReset()
     end
     remainingTicks = 20
 end
+local function toggleHold()
+    if Faceroll.hold then
+        Faceroll.hold = false
+    else
+        Faceroll.hold = true
+    end
+    enabledFrameUpdate()
+end
 
 -----------------------------------------------------------------------------------------
 -- init() - the entry point
@@ -264,3 +280,5 @@ SLASH_FROFF1 = '/froff'
 SlashCmdList["FROFF"] = enabledFrameReset
 SLASH_FRTICK1 = '/frtick'
 SlashCmdList["FRTICK"] = tickReset
+SLASH_FRHOLD1 = '/frhold'
+SlashCmdList["FRHOLD"] = toggleHold
