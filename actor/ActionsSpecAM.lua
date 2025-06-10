@@ -29,22 +29,22 @@ local function nextAction(action, bits)
         -- Single Target
 
         if holding == 0 and evocation > 0 then
-            return press("f11", "evocation")
+            return press("f7", "evocation")
 
         elseif holding == 0 and arcanesurge > 0 then
-            return press("f10", "arcane surge")
+            return press("f8", "arcane surge")
 
         elseif holding == 0 and touchofthemagi > 0 then
-            return press("f8", "touch of the magi")
+            return press("f9", "touch of the magi")
 
         elseif holding == 0 and arcanesurgebuff == 0 and shiftingpower > 0 and evocation == 0 and arcanesurge == 0 and touchofthemagi == 0 then
-            return press("f7", "shifting power")
+            return press("f11", "shifting power")
 
         elseif clearcasting > 0 then
             return press("9", "arcane missiles")
 
         elseif arcaneorb > 0 and ac2 == 0 then
-            return press("f9", "arcane orb")
+            return press("f10", "arcane orb")
 
         elseif intuition > 0 or arcaneharmony18 > 0 or arcaneorb > 0 or lowmana > 0 then
             return press("0", "arcane barrage")
@@ -58,22 +58,22 @@ local function nextAction(action, bits)
         -- AOE
 
         if holding == 0 and evocation > 0 then
-            return press("f11", "evocation")
+            return press("f7", "evocation")
 
         elseif holding == 0 and arcanesurge > 0 then
-            return press("f10", "arcane surge")
+            return press("f8", "arcane surge")
 
         elseif holding == 0 and touchofthemagi > 0 then
-            return press("f8", "touch of the magi")
+            return press("f9", "touch of the magi")
 
         elseif holding == 0 and arcanesurgebuff == 0 and shiftingpower > 0 and evocation == 0 and arcanesurge == 0 and touchofthemagi == 0 then
-            return press("f7", "shifting power")
+            return press("f11", "shifting power")
 
         elseif clearcasting > 0 then
             return press("9", "arcane missiles")
 
         elseif arcaneorb > 0 and ac3 == 0 then
-            return press("f9", "arcane orb")
+            return press("f10", "arcane orb")
 
         elseif ac4 > 0 or intuition > 0 or arcaneharmony12 > 0 or arcaneorb > 0 or lowmana > 0 then
             return press("0", "arcane barrage")
