@@ -21,6 +21,7 @@ local function nextAction(action, bits)
     local avengersshield = bitand(bits, 0x800)
     local hammerofwrath = bitand(bits, 0x1000)
     local consecration = bitand(bits, 0x2000)
+    local holding = bitand(bits, 0x4000)
 
     if action == ACTION_Q then
         -- Single Target
@@ -49,7 +50,7 @@ local function nextAction(action, bits)
         elseif judgment > 0 then
             return press("8", "Judgment")
 
-        elseif avengersshield > 0 then
+        elseif holding == 0 and avengersshield > 0 then
             return press("f8", "Avenger's Shield")
 
         elseif blessedhammer > 0 then
@@ -78,7 +79,7 @@ local function nextAction(action, bits)
         elseif holypower3 > 0 then
             return press("f7", "Shield of the Righteous")
 
-        elseif avengersshield > 0 then
+        elseif holding == 0 and avengersshield > 0 then
             return press("f8", "Avenger's Shield")
 
         elseif hammerofwrath > 0 then
