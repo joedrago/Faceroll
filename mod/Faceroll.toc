@@ -15,6 +15,7 @@ BitsSpecFDK.lua
 BitsSpecFM.lua
 BitsSpecHDH.lua
 BitsSpecMM.lua
+BitsSpecPP.lua
 BitsSpecOUT.lua
 BitsSpecOWL.lua
 BitsSpecRET.lua

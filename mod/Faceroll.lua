@@ -6,20 +6,21 @@ local FR_SPECS = {}
 local SPEC_OFF = 0  FR_SPECS[ SPEC_OFF ] = { ["name"]="OFF", ["color"]="333333", ["key"]=""              }
 local SPEC_BM  = 1  FR_SPECS[ SPEC_BM  ] = { ["name"]="BM",  ["color"]="448833", ["key"]="HUNTER-1"      }
 local SPEC_AM  = 2  FR_SPECS[ SPEC_AM  ] = { ["name"]="AM",  ["color"]="995599", ["key"]="MAGE-1"       }
-local SPEC_VDH = 3  FR_SPECS[ SPEC_VDH ] = { ["name"]="VDH", ["color"]="993399", ["key"]="DEMONHUNTER-2" }
-local SPEC_HDH = 4  FR_SPECS[ SPEC_HDH ] = { ["name"]="HDH", ["color"]="993300", ["key"]="DEMONHUNTER-1" }
-local SPEC_SV  = 5  FR_SPECS[ SPEC_SV  ] = { ["name"]="SV",  ["color"]="337733", ["key"]="HUNTER-3"      }
-local SPEC_MM  = 6  FR_SPECS[ SPEC_MM  ] = { ["name"]="MM",  ["color"]="88aa00", ["key"]="HUNTER-2"      }
-local SPEC_OWL = 7  FR_SPECS[ SPEC_OWL ] = { ["name"]="OWL", ["color"]="ff8800", ["key"]="DRUID-1"       }
--- local SPEC_DB  = 7  FR_SPECS[ SPEC_DB  ] = { ["name"]="DB",  ["color"]="559955", ["key"]="DRUID-3"       }
--- local SPEC_ELE = 8  FR_SPECS[ SPEC_ELE ] = { ["name"]="ELE", ["color"]="003399", ["key"]="SHAMAN-1"      }
--- local SPEC_RET = 9  FR_SPECS[ SPEC_RET ] = { ["name"]="RET", ["color"]="999933", ["key"]="PALADIN-3"     }
--- local SPEC_FDK = 10 FR_SPECS[ SPEC_FDK ] = { ["name"]="FDK", ["color"]="333399", ["key"]="DEATHKNIGHT-2" }
--- local SPEC_UDK = 11 FR_SPECS[ SPEC_UDK ] = { ["name"]="UDK", ["color"]="996699", ["key"]="DEATHKNIGHT-3" }
--- local SPEC_OUT = 12 FR_SPECS[ SPEC_OUT ] = { ["name"]="OUT", ["color"]="336699", ["key"]="ROGUE-2"       }
--- local SPEC_DP  = 13 FR_SPECS[ SPEC_DP  ] = { ["name"]="DP",  ["color"]="999933", ["key"]="PRIEST-1"      }
--- local SPEC_SP  = 14 FR_SPECS[ SPEC_SP  ] = { ["name"]="SP",  ["color"]="7a208c", ["key"]="PRIEST-3"      }
--- local SPEC_FM  = 15 FR_SPECS[ SPEC_FM  ] = { ["name"]="FM",  ["color"]="005599", ["key"]="MAGE-3"        }
+local SPEC_RET = 3  FR_SPECS[ SPEC_RET ] = { ["name"]="RET", ["color"]="999933", ["key"]="PALADIN-3"     }
+local SPEC_PP  = 4  FR_SPECS[ SPEC_PP  ] = { ["name"]="PP",  ["color"]="996600", ["key"]="PALADIN-2" }
+local SPEC_VDH = 5  FR_SPECS[ SPEC_VDH ] = { ["name"]="VDH", ["color"]="993399", ["key"]="DEMONHUNTER-2" }
+local SPEC_HDH = 6  FR_SPECS[ SPEC_HDH ] = { ["name"]="HDH", ["color"]="993300", ["key"]="DEMONHUNTER-1" }
+-- local SPEC_SV  = 0  FR_SPECS[ SPEC_SV  ] = { ["name"]="SV",  ["color"]="337733", ["key"]="HUNTER-3"      }
+-- local SPEC_MM  = 0  FR_SPECS[ SPEC_MM  ] = { ["name"]="MM",  ["color"]="88aa00", ["key"]="HUNTER-2"      }
+-- local SPEC_OWL = 0  FR_SPECS[ SPEC_OWL ] = { ["name"]="OWL", ["color"]="ff8800", ["key"]="DRUID-1"       }
+-- local SPEC_DB  = 0  FR_SPECS[ SPEC_DB  ] = { ["name"]="DB",  ["color"]="559955", ["key"]="DRUID-3"       }
+-- local SPEC_ELE = 0  FR_SPECS[ SPEC_ELE ] = { ["name"]="ELE", ["color"]="003399", ["key"]="SHAMAN-1"      }
+-- local SPEC_FDK = 0  FR_SPECS[ SPEC_FDK ] = { ["name"]="FDK", ["color"]="333399", ["key"]="DEATHKNIGHT-2" }
+-- local SPEC_UDK = 0  FR_SPECS[ SPEC_UDK ] = { ["name"]="UDK", ["color"]="996699", ["key"]="DEATHKNIGHT-3" }
+-- local SPEC_OUT = 0  FR_SPECS[ SPEC_OUT ] = { ["name"]="OUT", ["color"]="336699", ["key"]="ROGUE-2"       }
+-- local SPEC_DP  = 0  FR_SPECS[ SPEC_DP  ] = { ["name"]="DP",  ["color"]="999933", ["key"]="PRIEST-1"      }
+-- local SPEC_SP  = 0  FR_SPECS[ SPEC_SP  ] = { ["name"]="SP",  ["color"]="7a208c", ["key"]="PRIEST-3"      }
+-- local SPEC_FM  = 0  FR_SPECS[ SPEC_FM  ] = { ["name"]="FM",  ["color"]="005599", ["key"]="MAGE-3"        }
 local SPEC_LAST = #FR_SPECS
 -----------------------------------------------------------------------------------------
 
