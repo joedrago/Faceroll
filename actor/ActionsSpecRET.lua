@@ -21,26 +21,27 @@ local function nextAction(action, bits)
     local bladeofjusticeavailable = bitand(bits, 0x800)
     local hammerofwrathavailable = bitand(bits, 0x1000)
     local hammeroflightavailable = bitand(bits, 0x2000)
+    local holding = bitand(bits, 0x4000)
 
     if action == ACTION_Q then
         -- Single Target
 
-        if divinehammeravailable > 0 and holypower3 > 0 then
+        if holding == 0 and divinehammeravailable > 0 and holypower3 > 0 then
             return press("7", "Divine Hammer (with enough Holy Power to extend it)")
 
-        elseif executionsentenceavailable > 0 then
+        elseif holding == 0 and executionsentenceavailable > 0 then
             return press("8", "Execution Sentence")
 
-        elseif hammeroflightavailable > 0 and holypower5 > 0 then
+        elseif holding == 0 and hammeroflightavailable > 0 and holypower5 > 0 then
             return press("9", "Hammer of Light (regular cast)")
 
-        elseif allinbuff > 0 and holypower3 > 0 then
+        elseif holding == 0 and allinbuff > 0 and holypower3 > 0 then
             return press("0", "Final Verdict (with an All in! proc)")
 
         -- elseif hammeroflightavailable > 0 and holypower5 > 0 and lightsdeliverancebuff > 0 then
         --     return press("9", "Hammer of Light (with a Light's Deliverance proc)")
 
-        elseif holypower5 > 0 then
+        elseif holding == 0 and holypower5 > 0 then
             return press("0", "Final Verdict (with 5 Holy Power)")
 
         elseif bladeofjusticeavailable > 0 and expurgationdot == 0 then
@@ -74,22 +75,22 @@ local function nextAction(action, bits)
     elseif action == ACTION_E then
         -- AOE
 
-        if divinehammeravailable > 0 and holypower3 > 0 then
+        if holding == 0 and divinehammeravailable > 0 and holypower3 > 0 then
             return press("7", "Divine Hammer (with enough Holy Power to extend it)")
 
-        elseif executionsentenceavailable > 0 then
+        elseif holding == 0 and executionsentenceavailable > 0 then
             return press("8", "Execution Sentence")
 
-        elseif hammeroflightavailable > 0 and holypower5 > 0 then
+        elseif holding == 0 and hammeroflightavailable > 0 and holypower5 > 0 then
             return press("9", "Hammer of Light (regular cast)")
 
-        elseif (holypower3 > 0 and allinbuff > 0) or empyreanpowerbuff > 0 then
+        elseif holding == 0 and ((holypower3 > 0 and allinbuff > 0) or empyreanpowerbuff > 0) then
             return press("-", "Divine Storm (with an All in! or Empyrean Power proc)")
 
         -- elseif hammeroflightavailable > 0 and lightsdeliverancebuff > 0 then
         --     return press("9", "Hammer of Light (with a Light's Deliverance proc)")
 
-        elseif holypower5 > 0 then
+        elseif holding == 0 and holypower5 > 0 then
             return press("-", "Divine Storm (with 5 Holy Power)")
 
         elseif wakeofashesavailable > 0 then
@@ -98,7 +99,7 @@ local function nextAction(action, bits)
         elseif divinetollavailable > 0 then
             return press("pad7", "Divine Toll")
 
-        elseif hammeroflightavailable == 0 and holypower3 > 0 then
+        elseif holding == 0 and hammeroflightavailable == 0 and holypower3 > 0 then
             return press("-", "Divine Storm")
 
         elseif judgmentavailable > 0 then

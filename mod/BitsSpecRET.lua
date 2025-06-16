@@ -65,6 +65,10 @@ local function calcBits()
         bits = bits + 0x2000
     end
 
+    if Faceroll.hold then
+        bits = bits + 0x4000
+    end
+
     if Faceroll.debug then
         local o = ""
         local hol = "N"
