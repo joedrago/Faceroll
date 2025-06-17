@@ -22,11 +22,15 @@ local function nextAction(action, bits)
     local hammerofwrath = bitand(bits, 0x1000)
     local consecration = bitand(bits, 0x2000)
     local holding = bitand(bits, 0x4000)
+    local incombat = bitand(bits, 0x8000)
 
     if action == ACTION_Q then
         -- Single Target
 
-        if needsheal > 0 then
+        if incombat == 0 and holypower3 == 0 and blessedhammer > 0 then
+            return press("7", "Blessed Hammer")
+
+        elseif needsheal > 0 then
             return press("f11", "Word of Glory")
 
         elseif holypower3 == 0 and eyeoftyr > 0 then
@@ -64,7 +68,10 @@ local function nextAction(action, bits)
     elseif action == ACTION_E then
         -- AOE
 
-        if needsheal > 0 then
+        if incombat == 0 and holypower3 == 0 and blessedhammer > 0 then
+            return press("7", "Blessed Hammer")
+
+        elseif needsheal > 0 then
             return press("f11", "Word of Glory")
 
         elseif holypower3 == 0 and eyeoftyr > 0 then

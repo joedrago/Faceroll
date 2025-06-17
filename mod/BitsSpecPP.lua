@@ -74,6 +74,10 @@ local function calcBits()
         bits = bits + 0x4000
     end
 
+    if UnitAffectingCombat("player") then
+        bits = bits + 0x8000
+    end
+
     return bits
 end
 
