@@ -17,8 +17,7 @@ local function nextAction(action, bits)
     local rage40 = bitand(bits, 0x80)
     local needsfr = bitand(bits, 0x100)
 
-    if action == ACTION_Q or action == ACTION_E then
-
+    if action == ACTION_ST or action == ACTION_AOE then
         if bearform == 0 then
             return press("f7", "Bear Form")
 

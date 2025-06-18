@@ -14,7 +14,7 @@ local function nextAction(action, bits)
     local furyoftheeagle = bitand(bits, 0x200)
     local highfocus = bitand(bits, 0x400)
 
-    if action == ACTION_Q then
+    if action == ACTION_ST then
         -- Single Target
 
         if lunarstorm > 0 and wildfirebomb1 > 0 then
@@ -80,7 +80,7 @@ local function nextAction(action, bits)
             return "9" -- raptor strike
         end
 
-    elseif action == ACTION_E then
+    elseif action == ACTION_AOE then
         -- AOE
 
         if (lunarstorm > 0 and wildfirebomb1 > 0) or wildfirebomb2 > 0 then

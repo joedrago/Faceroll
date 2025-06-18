@@ -5,10 +5,10 @@ print("init_hammerspoon")
 
 KEY_TOGGLE = hs.keycodes.map["F5"]
 KEY_SPEC = hs.keycodes.map["F5"]
-KEY_Q = hs.keycodes.map["q"]
-KEY_E = hs.keycodes.map["e"]
+KEY_ST = hs.keycodes.map["q"]
+KEY_AOE = hs.keycodes.map["e"]
 KEY_SLASH = hs.keycodes.map["/"]
-KEY_ENTER = hs.keycodes.map["return"]
+KEY_AOENTER = hs.keycodes.map["return"]
 KEY_DELETE = hs.keycodes.map["delete"]
 
 -----------------------------------------------------------------------------------------

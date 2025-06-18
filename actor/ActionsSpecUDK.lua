@@ -28,7 +28,7 @@ local function nextAction(action, bits)
     local haswounds = bitand(bits, 0x40000)
     local outbreakvp = bitand(bits, 0x80000)
 
-    if action == ACTION_Q then
+    if action == ACTION_ST then
         -- Single Target
 
         if needspet > 0 then
@@ -75,7 +75,7 @@ local function nextAction(action, bits)
 
         end
 
-    elseif action == ACTION_E then
+    elseif action == ACTION_AOE then
         -- AOE
 
         if deathanddecaybuff > 0 then

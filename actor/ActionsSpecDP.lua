@@ -16,7 +16,7 @@ local function nextAction(action, bits)
     local mindbender = bitand(bits, 0x40)
     local needspain = bitand(bits, 0x80)
 
-    if action == ACTION_Q then
+    if action == ACTION_ST then
         -- Single Target
 
         if helpfultarget > 0 then
@@ -47,7 +47,7 @@ local function nextAction(action, bits)
             end
         end
 
-    elseif action == ACTION_E then
+    elseif action == ACTION_AOE then
         -- AOE
 
         if helpfultarget > 0 then

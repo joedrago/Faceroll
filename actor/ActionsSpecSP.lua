@@ -19,7 +19,7 @@ local function nextAction(action, bits)
     local devouringplagueactive = bitand(bits, 0x200)
     local mindblastcapped = bitand(bits, 0x400)
 
-    if action == ACTION_Q then
+    if action == ACTION_ST then
         -- Hold
 
         if vampirictouch > 0 then
@@ -39,7 +39,7 @@ local function nextAction(action, bits)
 
         end
 
-    elseif action == ACTION_E then
+    elseif action == ACTION_AOE then
         -- On
 
         if shadowcrash > 0 then

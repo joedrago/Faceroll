@@ -2,16 +2,23 @@ print("init_wabits.lua startup")
 
 KEY_TOGGLE = 116 -- F5
 KEY_SPEC = 116 -- F5
-KEY_Q = 81 -- q
-KEY_E = 69 -- e
+KEY_ST = 81 -- q
+KEY_AOE = 69 -- e
 KEY_SLASH = 191 -- /
-KEY_ENTER = 13 -- enter
+KEY_AOENTER = 13 -- enter
 KEY_DELETE = 8 -- backspace
 
 local sendKeyVKCodes = {
+    ["`"]=192,
     ["["]=219,
     ["]"]=221,
 
+    ["1"]=49,
+    ["2"]=50,
+    ["3"]=51,
+    ["4"]=52,
+    ["5"]=53,
+    ["6"]=54,
     ["7"]=55,
     ["8"]=56,
     ["9"]=57,
@@ -19,6 +26,15 @@ local sendKeyVKCodes = {
     ["-"]=189,
     ["="]=187,
 
+    ["c"]=67,
+    ["f"]=70,
+    ["q"]=81,
+    ["v"]=86,
+    ["x"]=88,
+    ["z"]=90,
+
+    ["f5"]=116,
+    ["f6"]=117,
     ["f7"]=118,
     ["f8"]=119,
     ["f9"]=120,

@@ -21,7 +21,7 @@ local function nextAction(action, bits)
     local furyL130 = bitand(bits, 0x800)
     local furyL140 = bitand(bits, 0x1000)
 
-    if action == ACTION_Q then
+    if action == ACTION_ST then
         -- Single Target
 
         if essencebreakbuff > 0 and bladedance > 0 then
@@ -85,7 +85,7 @@ local function nextAction(action, bits)
             return press("7", "throw glaive")
         end
 
-    elseif action == ACTION_E then
+    elseif action == ACTION_AOE then
         -- AOE
 
 

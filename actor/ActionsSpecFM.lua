@@ -25,7 +25,7 @@ local function nextAction(action, bits)
     local coneofcoldlong = bitand(bits, 0x8000)
     local justcastcometstorm = bitand(bits, 0x10000)
 
-    if action == ACTION_Q then
+    if action == ACTION_ST then
         -- Single Target
 
         if icyveins > 0 then
@@ -64,7 +64,7 @@ local function nextAction(action, bits)
             return "7" -- frostfire bolt
         end
 
-    elseif action == ACTION_E then
+    elseif action == ACTION_AOE then
         -- AOE
 
         if icyveins > 0 then
