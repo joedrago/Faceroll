@@ -27,7 +27,7 @@ local function nextAction(action, bits)
     local fierybrand = bitand(bits, 0x4000)
     local sigilofspite = bitand(bits, 0x8000)
 
-    if action == ACTION_Q then
+    if action == ACTION_ST then
         -- Single Target
 
         if fierybrand > 0 then
@@ -79,7 +79,7 @@ local function nextAction(action, bits)
             return press("7", "throw glaive")
         end
 
-    elseif action == ACTION_E then
+    elseif action == ACTION_AOE then
         -- AOE
 
         if fierybrand > 0 then

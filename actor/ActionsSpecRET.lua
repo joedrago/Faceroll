@@ -22,7 +22,7 @@ local function nextAction(action, bits)
     local hammerofwrathavailable = bitand(bits, 0x1000)
     local hammeroflightavailable = bitand(bits, 0x2000)
 
-    if action == ACTION_Q then
+    if action == ACTION_ST then
         -- Single Target
 
         if divinehammeravailable > 0 and holypower3 > 0 then
@@ -71,7 +71,7 @@ local function nextAction(action, bits)
             return press(nil, "NOTHING")
         end
 
-    elseif action == ACTION_E then
+    elseif action == ACTION_AOE then
         -- AOE
 
         if divinehammeravailable > 0 and holypower3 > 0 then

@@ -15,7 +15,7 @@ local function nextAction(action, bits)
     local enough_maelstrom_eb = bitand(bits, 0x400)
     local too_much_maelstrom = bitand(bits, 0x800)
 
-    if action == ACTION_Q then
+    if action == ACTION_ST then
         -- Single Target
 
         if stormkeeper > 0 then
@@ -66,7 +66,7 @@ local function nextAction(action, bits)
             return "7" -- lightning bolt
         end
 
-    elseif action == ACTION_E then
+    elseif action == ACTION_AOE then
         -- AOE
 
         if stormkeeper > 0 then

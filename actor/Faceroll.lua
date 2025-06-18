@@ -17,21 +17,22 @@
 -- Duplicate this block at the top of both hammerspoon's and mod's Faceroll.lua files
 local FR_SPECS = {}
 local SPEC_OFF = 0  FR_SPECS[ SPEC_OFF ] = { ["name"]="OFF", ["color"]="333333", ["key"]=""              }
-local SPEC_BM  = 1  FR_SPECS[ SPEC_BM  ] = { ["name"]="BM",  ["color"]="448833", ["key"]="HUNTER-1"      }
-local SPEC_SV  = 2  FR_SPECS[ SPEC_SV  ] = { ["name"]="SV",  ["color"]="337733", ["key"]="HUNTER-3"      }
-local SPEC_MM  = 3  FR_SPECS[ SPEC_MM  ] = { ["name"]="MM",  ["color"]="88aa00", ["key"]="HUNTER-2"      }
-local SPEC_OWL = 4  FR_SPECS[ SPEC_OWL ] = { ["name"]="OWL", ["color"]="ff8800", ["key"]="DRUID-1"       }
-local SPEC_ELE = 5  FR_SPECS[ SPEC_ELE ] = { ["name"]="ELE", ["color"]="003399", ["key"]="SHAMAN-1"      }
-local SPEC_VDH = 6  FR_SPECS[ SPEC_VDH ] = { ["name"]="VDH", ["color"]="993399", ["key"]="DEMONHUNTER-2" }
-local SPEC_HDH = 7  FR_SPECS[ SPEC_HDH ] = { ["name"]="HDH", ["color"]="993300", ["key"]="DEMONHUNTER-1" }
-local SPEC_RET = 8  FR_SPECS[ SPEC_RET ] = { ["name"]="RET", ["color"]="999933", ["key"]="PALADIN-3"     }
-local SPEC_FDK = 9  FR_SPECS[ SPEC_FDK ] = { ["name"]="FDK", ["color"]="333399", ["key"]="DEATHKNIGHT-2" }
-local SPEC_UDK = 10 FR_SPECS[ SPEC_UDK ] = { ["name"]="UDK", ["color"]="996699", ["key"]="DEATHKNIGHT-3" }
-local SPEC_OUT = 11 FR_SPECS[ SPEC_OUT ] = { ["name"]="OUT", ["color"]="336699", ["key"]="ROGUE-2"       }
-local SPEC_DP  = 12 FR_SPECS[ SPEC_DP  ] = { ["name"]="DP",  ["color"]="999933", ["key"]="PRIEST-1"      }
-local SPEC_SP  = 13 FR_SPECS[ SPEC_SP  ] = { ["name"]="SP",  ["color"]="7a208c", ["key"]="PRIEST-3"      }
-local SPEC_DB  = 14 FR_SPECS[ SPEC_DB  ] = { ["name"]="DB",  ["color"]="559955", ["key"]="DRUID-3"       }
-local SPEC_FM  = 15 FR_SPECS[ SPEC_FM  ] = { ["name"]="FM",  ["color"]="005599", ["key"]="MAGE-3"        }
+-- local SPEC_BM  = 1  FR_SPECS[ SPEC_BM  ] = { ["name"]="BM",  ["color"]="448833", ["key"]="HUNTER-1"      }
+-- local SPEC_SV  = 2  FR_SPECS[ SPEC_SV  ] = { ["name"]="SV",  ["color"]="337733", ["key"]="HUNTER-3"      }
+-- local SPEC_MM  = 3  FR_SPECS[ SPEC_MM  ] = { ["name"]="MM",  ["color"]="88aa00", ["key"]="HUNTER-2"      }
+-- local SPEC_OWL = 4  FR_SPECS[ SPEC_OWL ] = { ["name"]="OWL", ["color"]="ff8800", ["key"]="DRUID-1"       }
+-- local SPEC_ELE = 5  FR_SPECS[ SPEC_ELE ] = { ["name"]="ELE", ["color"]="003399", ["key"]="SHAMAN-1"      }
+-- local SPEC_VDH = 6  FR_SPECS[ SPEC_VDH ] = { ["name"]="VDH", ["color"]="993399", ["key"]="DEMONHUNTER-2" }
+-- local SPEC_HDH = 7  FR_SPECS[ SPEC_HDH ] = { ["name"]="HDH", ["color"]="993300", ["key"]="DEMONHUNTER-1" }
+-- local SPEC_RET = 8  FR_SPECS[ SPEC_RET ] = { ["name"]="RET", ["color"]="999933", ["key"]="PALADIN-3"     }
+-- local SPEC_FDK = 9  FR_SPECS[ SPEC_FDK ] = { ["name"]="FDK", ["color"]="333399", ["key"]="DEATHKNIGHT-2" }
+-- local SPEC_UDK = 10 FR_SPECS[ SPEC_UDK ] = { ["name"]="UDK", ["color"]="996699", ["key"]="DEATHKNIGHT-3" }
+local SPEC_OUT = 1 FR_SPECS[ SPEC_OUT ] = { ["name"]="OUT", ["color"]="336699", ["key"]="ROGUE-2"       }
+local SPEC_SUB = 2 FR_SPECS[ SPEC_SUB ] = { ["name"]="SUB", ["color"]="481d8a", ["key"]="ROGUE-3"       }
+-- local SPEC_DP  = 13 FR_SPECS[ SPEC_DP  ] = { ["name"]="DP",  ["color"]="999933", ["key"]="PRIEST-1"      }
+-- local SPEC_SP  = 14 FR_SPECS[ SPEC_SP  ] = { ["name"]="SP",  ["color"]="7a208c", ["key"]="PRIEST-3"      }
+-- local SPEC_DB  = 15 FR_SPECS[ SPEC_DB  ] = { ["name"]="DB",  ["color"]="559955", ["key"]="DRUID-3"       }
+-- local SPEC_FM  = 16 FR_SPECS[ SPEC_FM  ] = { ["name"]="FM",  ["color"]="005599", ["key"]="MAGE-3"        }
 local SPEC_LAST = #FR_SPECS
 -----------------------------------------------------------------------------------------
 
@@ -39,8 +40,8 @@ local SPEC_LAST = #FR_SPECS
 -- Global Constants (check init_*.lua for platform specific constants)
 
 ACTION_NONE = 0
-ACTION_Q = 1
-ACTION_E = 2
+ACTION_ST = 1 -- Single Target
+ACTION_AOE = 2 -- AoE
 
 -----------------------------------------------------------------------------------------
 -- Globals
@@ -56,7 +57,7 @@ local facerollGameBits = 0          -- The current game state!
 -- Basic debug/helper stuff
 
 function FRDEBUG(text)
-    -- print("Faceroll: " .. text)
+    --print("Faceroll: " .. text)
 end
 
 function bitand(a, b)
@@ -77,7 +78,7 @@ end
 -- Key handlers
 
 function onKeyCode(keyCode)
-    -- FRDEBUG("lole key " .. keyCode)
+    FRDEBUG("lole key " .. keyCode)
 
     if keyCode == KEY_SPEC then
         if facerollActive then
@@ -94,17 +95,17 @@ function onKeyCode(keyCode)
         facerollSpecSendRemaining = facerollSpec
         print("Faceroll: " .. FR_SPECS[facerollSpec].name)
 
-    elseif keyCode == KEY_SLASH or keyCode == KEY_ENTER or keyCode == KEY_DELETE then
+    elseif keyCode == KEY_SLASH or keyCode == KEY_AOENTER or keyCode == KEY_DELETE then
         facerollActive = false
 
     elseif facerollActive then
-        if keyCode == KEY_Q then
-            FRDEBUG("Faceroll: Q")
-            facerollAction = ACTION_Q
+        if keyCode == KEY_ST then
+            FRDEBUG("Faceroll: ST")
+            facerollAction = ACTION_ST
             return true
-        elseif keyCode == KEY_E then
-            FRDEBUG("Faceroll: E")
-            facerollAction = ACTION_E
+        elseif keyCode == KEY_AOE then
+            FRDEBUG("Faceroll: AOE")
+            facerollAction = ACTION_AOE
             return true
         end
 
@@ -132,7 +133,7 @@ end
 
 
 function onUpdate(bits)
-    -- FRDEBUG("onUpdate("..bits..")")
+    FRDEBUG("onUpdate("..bits..")")
 
     facerollGameBits = bits
 
@@ -150,10 +151,10 @@ function onUpdate(bits)
     if facerollSlowDown > 2 then
         facerollSlowDown = 0
         if facerollSpec ~= SPEC_OFF then
-            if facerollAction == ACTION_Q then
-                sendKeyToWow("pad9") -- signal we're in Q
-            elseif facerollAction == ACTION_E then
-                sendKeyToWow("pad6") -- signal we're in E
+            if facerollAction == ACTION_ST then
+                sendKeyToWow("pad9") -- signal we're in ST
+            elseif facerollAction == ACTION_AOE then
+                sendKeyToWow("pad6") -- signal we're in AOE
             end
         end
         return

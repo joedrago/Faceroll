@@ -11,7 +11,7 @@ local function nextAction(action, bits)
     local needsif = bitand(bits, 0x2)
     local needsfr = bitand(bits, 0x4)
 
-    if action == ACTION_Q then
+    if action == ACTION_ST then
         -- Single Target
 
         -- if essencebreakbuff > 0 and bladedance > 0 then
@@ -75,7 +75,7 @@ local function nextAction(action, bits)
         --     return press("7", "throw glaive")
         -- end
 
-    elseif action == ACTION_E then
+    elseif action == ACTION_AOE then
         -- AOE
 
         if needsif > 0 then

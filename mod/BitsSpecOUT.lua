@@ -99,12 +99,18 @@ local function calcBits()
     if Faceroll.isSpellAvailable("Roll the Bones") then
         bits = bits + 0x2000
     end
-
-    if cp >= 5 then
+    if Faceroll.isSpellAvailable("Ghostly Strike") then
         bits = bits + 0x4000
     end
-    if cp >= 6 then
+    if Faceroll.isSpellAvailable("Killing Spree") and (Faceroll.getBuffRemaining("adrenalinerush") > 5 or not Faceroll.isBuffActive("adrenalinerush")) then
         bits = bits + 0x8000
+    end
+
+    if cp >= 5 then
+        bits = bits + 0x10000
+    end
+    if cp >= 6 then
+        bits = bits + 0x20000
     end
 
     local function bt(b)
