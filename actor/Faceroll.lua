@@ -42,8 +42,8 @@ local SPEC_LAST = #FR_SPECS
 -- Global Constants (check init_*.lua for platform specific constants)
 
 ACTION_NONE = 0
-ACTION_Q = 1
-ACTION_E = 2
+ACTION_ST = 1 -- Single Target
+ACTION_AOE = 2 -- AoE
 
 -----------------------------------------------------------------------------------------
 -- Globals
@@ -59,7 +59,7 @@ local facerollGameBits = 0          -- The current game state!
 -- Basic debug/helper stuff
 
 function FRDEBUG(text)
-    -- print("Faceroll: " .. text)
+    --print("Faceroll: " .. text)
 end
 
 function bitand(a, b)
@@ -80,7 +80,7 @@ end
 -- Key handlers
 
 function onKeyCode(keyCode)
-    -- FRDEBUG("lole key " .. keyCode)
+    FRDEBUG("lole key " .. keyCode)
 
     if keyCode == KEY_SPEC then
         if facerollActive then
@@ -97,17 +97,17 @@ function onKeyCode(keyCode)
         facerollSpecSendRemaining = facerollSpec
         print("Faceroll: " .. FR_SPECS[facerollSpec].name)
 
-    elseif keyCode == KEY_SLASH or keyCode == KEY_ENTER or keyCode == KEY_DELETE then
+    elseif keyCode == KEY_SLASH or keyCode == KEY_AOENTER or keyCode == KEY_DELETE then
         facerollActive = false
 
     elseif facerollActive then
-        if keyCode == KEY_Q then
-            FRDEBUG("Faceroll: Q")
-            facerollAction = ACTION_Q
+        if keyCode == KEY_ST then
+            FRDEBUG("Faceroll: ST")
+            facerollAction = ACTION_ST
             return true
-        elseif keyCode == KEY_E then
-            FRDEBUG("Faceroll: E")
-            facerollAction = ACTION_E
+        elseif keyCode == KEY_AOE then
+            FRDEBUG("Faceroll: AOE")
+            facerollAction = ACTION_AOE
             return true
         end
 
@@ -135,7 +135,7 @@ end
 
 
 function onUpdate(bits)
-    -- FRDEBUG("onUpdate("..bits..")")
+    FRDEBUG("onUpdate("..bits..")")
 
     facerollGameBits = bits
 
@@ -153,10 +153,10 @@ function onUpdate(bits)
     if facerollSlowDown > 2 then
         facerollSlowDown = 0
         if facerollSpec ~= SPEC_OFF then
-            if facerollAction == ACTION_Q then
-                sendKeyToWow("pad9") -- signal we're in Q
-            elseif facerollAction == ACTION_E then
-                sendKeyToWow("pad6") -- signal we're in E
+            if facerollAction == ACTION_ST then
+                sendKeyToWow("pad9") -- signal we're in ST
+            elseif facerollAction == ACTION_AOE then
+                sendKeyToWow("pad6") -- signal we're in AOE
             end
         end
         return

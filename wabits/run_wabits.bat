@@ -1,6 +1,6 @@
 @echo off
 
-set PIPELINE=-y -f gdigrab -i desktop -vf crop=30:60:2221:9
+set PIPELINE=-y -f gdigrab -i desktop -vf crop=30:60:4593:1449
 
 if /%1==/ goto run
 

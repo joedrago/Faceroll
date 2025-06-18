@@ -20,7 +20,7 @@ local function nextAction(action, bits)
     local energyG85 = bitand(bits, 0x400)
     local shouldmendpet = bitand(bits, 0x800)
 
-    if action == ACTION_Q then
+    if action == ACTION_ST then
         -- Single Target
 
         if shouldmendpet > 0 then
@@ -56,7 +56,7 @@ local function nextAction(action, bits)
             return press("8", "cobra shot")
         end
 
-    elseif action == ACTION_E then
+    elseif action == ACTION_AOE then
         -- AOE
 
         if shouldmendpet > 0 then

@@ -20,7 +20,7 @@ local function nextAction(action, bits)
     local incarnationready = bitand(bits, 0x400)
     local moving = bitand(bits, 0x800)
 
-    if action == ACTION_Q then
+    if action == ACTION_ST then
         -- Single Target
 
         if sunfireneeded > 0 then
@@ -48,7 +48,7 @@ local function nextAction(action, bits)
 
         end
 
-    elseif action == ACTION_E then
+    elseif action == ACTION_AOE then
         -- AOE
 
         if sunfireneeded > 0 then

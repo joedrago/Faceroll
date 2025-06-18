@@ -14,7 +14,7 @@ local function nextAction(action, bits)
     local lowfocus = bitand(bits, 0x200)
     local streamlinedeadzone = bitand(bits, 0x400)
 
-    if action == ACTION_Q then
+    if action == ACTION_ST then
         -- Single Target
 
         if (preciseshots > 0) and (killshot > 0) then
@@ -63,7 +63,7 @@ local function nextAction(action, bits)
             return "-" -- steady shot
         end
 
-    elseif action == ACTION_E then
+    elseif action == ACTION_AOE then
         -- AOE
 
         if lowfocus > 0 then

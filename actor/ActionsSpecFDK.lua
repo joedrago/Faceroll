@@ -23,7 +23,7 @@ local function nextAction(action, bits)
     local abominationlimbavailable = bitand(bits, 0x2000)
     local empowerruneweaponavailable = bitand(bits, 0x4000)
 
-    if action == ACTION_Q then
+    if action == ACTION_ST then
         -- Single Target
 
         if pillaroffrostbuff > 0 then
@@ -92,7 +92,7 @@ local function nextAction(action, bits)
             end
         end
 
-    elseif action == ACTION_E then
+    elseif action == ACTION_AOE then
         -- AOE
 
         if pillaroffrostbuff > 0 then
