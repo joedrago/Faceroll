@@ -32,37 +32,6 @@ spec.abilities = {
     "symbolsofdeath",
 }
 
-local bitMap = {
-    -- player/base class state
-    ["combat"]                      = 0x1,
-    ["cp6"]                         = 0x2,
-    ["stealth"]                     = 0x4,
-
-    -- buffs
-    ["shadowblades_active"]         = 0x10,
-    ["symbolsofdeath_active"]       = 0x20,
-    ["premeditation_active"]        = 0x40,
-    ["shadowdance_active"]          = 0x80,
-    ["coldblood_active"]            = 0x100,
-    ["flagellation_active"]         = 0x200,
-    ["flagellation_maxed"]          = 0x400,
-    ["dansemacabre_low"]            = 0x800,
-
-    -- cds
-    ["shadowblades_available"]      = 0x1000,
-    ["symbolsofdeath_available"]    = 0x2000,
-    ["shadowdance_available"]       = 0x4000,
-    ["coldblood_available"]         = 0x8000,
-    ["flagellation_available"]      = 0x10000,
-    ["flagellation_soon"]           = 0x20000,
-    ["vanish_available"]            = 0x40000,
-    ["secrettechnique_available"]  = 0x80000,
-    ["secrettechnique_soon"]       = 0x100000,
-
-    -- target debuffs
-    ["should_rupture"]              = 0x200000,
-}
-
 local bits = Faceroll.createBits({
     -- player/base class state
     "combat",
