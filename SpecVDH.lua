@@ -12,7 +12,7 @@ spec.buffs = {
     "Soul Fragments",
 }
 
-spec.abilities = {
+spec.actions = {
     "throwglaive",
     "felblade",
     "soulcleave",

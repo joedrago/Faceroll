@@ -15,7 +15,7 @@ spec.buffs = {
     "Moving Target",
 }
 
-spec.abilities = {
+spec.actions = {
     "multishot",
     "rapidfire",
     "aimedshot",
@@ -144,7 +144,7 @@ spec.nextAction = function(action, rawBits)
             return "explosiveshot"
 
         else
-            -- Use Steady Shot as a Focus generator when no other abilities are
+            -- Use Steady Shot as a Focus generator when no other actions are
             -- available. Each cast gives 20 Focus, so avoid casting multiple
             -- times in a row if you risk Focus capping.
             return "steadyshot"

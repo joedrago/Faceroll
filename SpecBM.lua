@@ -13,7 +13,7 @@ spec.buffs = {
     "Hogstrider",
 }
 
-spec.abilities = {
+spec.actions = {
     "explosiveshot",
     "cobrashot",
     "direbeast",

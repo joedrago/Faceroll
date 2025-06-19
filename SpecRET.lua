@@ -13,7 +13,7 @@ spec.buffs = {
     "Light's Deliverance",
 }
 
-spec.abilities = {
+spec.actions = {
     "divinehammer",
     "executionsentence",
     "wakeofashes",

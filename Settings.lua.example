@@ -26,7 +26,7 @@ Faceroll.enableSpec("HDH")
 -----------------------------------------------------------------------------------------
 -- Keybinds
 
--- The default action bars for a spec's listed abilities (in order)
+-- The default action bars for a spec's listed actions (in order)
 Faceroll.keys[1] = "7"
 Faceroll.keys[2] = "8"
 Faceroll.keys[3] = "9"
@@ -40,7 +40,7 @@ Faceroll.keys[10] = "f10"
 Faceroll.keys[11] = "f11"
 Faceroll.keys[12] = "f12"
 
--- Any individual ability's keybind can be set/overridden like this:
+-- Any individual action's keybind can be set/overridden like this:
 -- Faceroll.keys["bestialwrath"] = "1"
 
 -- Keybinds to enable ST or AOE mode

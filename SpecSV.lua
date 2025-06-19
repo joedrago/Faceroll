@@ -13,7 +13,7 @@ spec.buffs = {
     "Tip of the Spear",
 }
 
-spec.abilities = {
+spec.actions = {
     "wildfirebomb",
     "killcommand",
     "raptorstrike",

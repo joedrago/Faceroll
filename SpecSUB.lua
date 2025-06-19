@@ -19,7 +19,7 @@ spec.buffs = {
     "Danse Macabre",
 }
 
-spec.abilities = {
+spec.actions = {
     "backstab",
     "coldblood",
     "eviscerate",

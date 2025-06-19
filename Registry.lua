@@ -37,7 +37,7 @@ Faceroll.createSpec = function(name, color, specKey)
         ["calcBits"]=nil,
         ["nextAction"]=nil,
         ["buffs"]=nil,
-        ["abilities"]={},
+        ["actions"]={},
         ["keys"]={},
         ["index"]=nil,
     }
@@ -69,17 +69,17 @@ end
 
 Faceroll.activateKeybinds = function()
     for _, spec in ipairs(Faceroll.activeSpecsByIndex) do
-        if spec.abilities ~= nil then
-            for index, ability in ipairs(spec.abilities) do
-                local key = Faceroll.keys[ability]
+        if spec.actions ~= nil then
+            for index, action in ipairs(spec.actions) do
+                local key = Faceroll.keys[action]
                 if key == nil then
                     key = Faceroll.keys[index]
                 end
                 if key ~= nil then
-                    print("["..spec.name.."] " .. ability .. " -> " .. key)
-                    spec.keys[ability] = key
+                    print("["..spec.name.."] " .. action .. " -> " .. key)
+                    spec.keys[action] = key
                 else
-                    print("["..spec.name.."] " .. ability .. " -> UNMAPPED")
+                    print("["..spec.name.."] " .. action .. " -> UNMAPPED")
                 end
             end
         end

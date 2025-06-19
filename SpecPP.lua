@@ -14,7 +14,7 @@ spec.buffs = {
     "Consecration",
 }
 
-spec.abilities = {
+spec.actions = {
     "blessedhammer",
     "judgment",
     "hammerofwrath",

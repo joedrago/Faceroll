@@ -12,7 +12,7 @@ spec.buffs = {
     "Essence Break",
 }
 
-spec.abilities = {
+spec.actions = {
     "throwglaive",
     "immolationaura",
     "chaosstrike",
