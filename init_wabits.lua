@@ -3,23 +3,36 @@ print("init_wabits.lua startup")
 Faceroll = {}
 
 local sendKeyVKCodes = {
+    ["`"]=192,
     ["["]=219,
     ["]"]=221,
-
-    ["e"]=69,
-    ["q"]=81,
 
     ["/"]=191,
     ["enter"]=13,
     ["return"]=13,
     ["backspace"]=8,
 
+    ["1"]=49,
+    ["2"]=50,
+    ["3"]=51,
+    ["4"]=52,
+    ["5"]=53,
+    ["6"]=54,
     ["7"]=55,
     ["8"]=56,
     ["9"]=57,
     ["0"]=48,
     ["-"]=189,
     ["="]=187,
+
+    ["c"]=67,
+    ["e"]=69,
+    ["f"]=70,
+    ["q"]=81,
+    ["q"]=81,
+    ["v"]=86,
+    ["x"]=88,
+    ["z"]=90,
 
     ["f5"]=116,
     ["f6"]=117,
@@ -51,4 +64,17 @@ function sendKeyToWow(key)
     end
 end
 
-require("./actor/Faceroll")
+-----------------------------------------------------------------------------------------
+-- Stub some functions that the mod needs but the actor doesn't
+
+Faceroll.trackBuffs = function() end
+
+-----------------------------------------------------------------------------------------
+-- Discover the list of Spec*.lua files to give to ActMain
+
+Faceroll.load = WABITS_LOAD
+
+-----------------------------------------------------------------------------------------
+-- Shared code
+
+require("./ActMain")

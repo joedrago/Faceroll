@@ -203,10 +203,34 @@ int wlStartup()
     lua_gc(L, LUA_GCRESTART);
     lua_gc(L, LUA_GCGEN, 0, 0);
 
-    wlThreadStart(hookThread);
-
     lua_pushcfunction(L, sendKeyToWowNative);
     lua_setglobal(L, "sendKeyToWowNative");
+
+    lua_newtable(L);
+    lua_setglobal(L, "WABITS_LOAD");
+
+    HANDLE hFind;
+    WIN32_FIND_DATA FindFileData;
+    int nextIndex = 0;
+    if ((hFind = FindFirstFile("Spec*.lua", &FindFileData)) != INVALID_HANDLE_VALUE) {
+        do {
+            if (strstr(FindFileData.cFileName, "Spec") == FindFileData.cFileName) {
+                char * specName = FindFileData.cFileName + 4;
+                char * dotLoc = strstr(specName, ".");
+                if (dotLoc) {
+                    *dotLoc = 0;
+                }
+
+                lua_getglobal(L, "WABITS_LOAD");
+                lua_pushinteger(L, ++nextIndex);
+                lua_pushstring(L, specName);
+                lua_settable(L, -3);
+            }
+        } while (FindNextFile(hFind, &FindFileData));
+        FindClose(hFind);
+    }
+
+    wlThreadStart(hookThread);
 
     if (luaL_dofile(L, "wabits/wabits.lua") == LUA_OK) {
         lua_pop(L, lua_gettop(L));

@@ -1,1 +1,1 @@
-require("actor/init_wabits")
+require("init_wabits")
