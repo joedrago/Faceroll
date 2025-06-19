@@ -1,43 +1,12 @@
-local addonName, Faceroll = ...
-
------------------------------------------------------------------------------------------
--- Duplicate this block at the top of both hammerspoon's and mod's Faceroll.lua files
-local FR_SPECS = {}
-local SPEC_OFF = 0  FR_SPECS[ SPEC_OFF ] = { ["name"]="OFF", ["color"]="333333", ["key"]=""              }
-local SPEC_BM  = 1  FR_SPECS[ SPEC_BM  ] = { ["name"]="BM",  ["color"]="448833", ["key"]="HUNTER-1"      }
-local SPEC_AM  = 2  FR_SPECS[ SPEC_AM  ] = { ["name"]="AM",  ["color"]="995599", ["key"]="MAGE-1"       }
-local SPEC_RET = 3  FR_SPECS[ SPEC_RET ] = { ["name"]="RET", ["color"]="999933", ["key"]="PALADIN-3"     }
-local SPEC_PP  = 4  FR_SPECS[ SPEC_PP  ] = { ["name"]="PP",  ["color"]="996600", ["key"]="PALADIN-2" }
-local SPEC_HP  = 5  FR_SPECS[ SPEC_HP  ] = { ["name"]="HP",  ["color"]="999900", ["key"]="PALADIN-1" }
-local SPEC_VDH = 6  FR_SPECS[ SPEC_VDH ] = { ["name"]="VDH", ["color"]="993399", ["key"]="DEMONHUNTER-2" }
-local SPEC_HDH = 7  FR_SPECS[ SPEC_HDH ] = { ["name"]="HDH", ["color"]="993300", ["key"]="DEMONHUNTER-1" }
--- local SPEC_SV  = 0  FR_SPECS[ SPEC_SV  ] = { ["name"]="SV",  ["color"]="337733", ["key"]="HUNTER-3"      }
--- local SPEC_MM  = 0  FR_SPECS[ SPEC_MM  ] = { ["name"]="MM",  ["color"]="88aa00", ["key"]="HUNTER-2"      }
--- local SPEC_OWL = 0  FR_SPECS[ SPEC_OWL ] = { ["name"]="OWL", ["color"]="ff8800", ["key"]="DRUID-1"       }
--- local SPEC_DB  = 0  FR_SPECS[ SPEC_DB  ] = { ["name"]="DB",  ["color"]="559955", ["key"]="DRUID-3"       }
--- local SPEC_ELE = 0  FR_SPECS[ SPEC_ELE ] = { ["name"]="ELE", ["color"]="003399", ["key"]="SHAMAN-1"      }
--- local SPEC_FDK = 0  FR_SPECS[ SPEC_FDK ] = { ["name"]="FDK", ["color"]="333399", ["key"]="DEATHKNIGHT-2" }
--- local SPEC_UDK = 0  FR_SPECS[ SPEC_UDK ] = { ["name"]="UDK", ["color"]="996699", ["key"]="DEATHKNIGHT-3" }
--- local SPEC_OUT = 0  FR_SPECS[ SPEC_OUT ] = { ["name"]="OUT", ["color"]="336699", ["key"]="ROGUE-2"       }
--- local SPEC_DP  = 0  FR_SPECS[ SPEC_DP  ] = { ["name"]="DP",  ["color"]="999933", ["key"]="PRIEST-1"      }
--- local SPEC_SP  = 0  FR_SPECS[ SPEC_SP  ] = { ["name"]="SP",  ["color"]="7a208c", ["key"]="PRIEST-3"      }
--- local SPEC_FM  = 0  FR_SPECS[ SPEC_FM  ] = { ["name"]="FM",  ["color"]="005599", ["key"]="MAGE-3"        }
-local SPEC_LAST = #FR_SPECS
------------------------------------------------------------------------------------------
-
------------------------------------------------------------------------------------------
--- Spec Key Lookup
-
-local FR_KEYLOOKUP = {}
-for specIndex, spec in pairs(FR_SPECS) do
-    FR_KEYLOOKUP[spec.key] = specIndex
+if Faceroll == nil then
+    _, Faceroll = ...
 end
 
 -----------------------------------------------------------------------------------------
 -- The little "OFF" / "SV" text
 
 local enabledFrame = nil
-local enabledSpec = SPEC_OFF
+local enabledSpec = Faceroll.SPEC_OFF
 
 local function enabledFrameCreate()
     enabledFrame = Faceroll.createFrame(34, 34,                   -- size
@@ -48,7 +17,7 @@ end
 
 local function enabledFrameUpdate()
     if enabledFrame ~= nil then
-        local spec = FR_SPECS[enabledSpec]
+        local spec = Faceroll.specs[enabledSpec]
         local color = spec.color
         if Faceroll.hold and enabledSpec > 0 then
             color = "cccccc"
@@ -59,8 +28,8 @@ end
 
 function enabledFrameCycle()
     enabledSpec = enabledSpec + 1
-    if enabledSpec > SPEC_LAST then
-        enabledSpec = SPEC_LAST
+    if enabledSpec > Faceroll.SPEC_LAST then
+        enabledSpec = Faceroll.SPEC_LAST
     end
     enabledFrameUpdate()
 end
@@ -144,7 +113,7 @@ local function showBits(bits)
     bitsBG:Show()
     local b = 1
     for bitIndex = 0,31 do
-        if bit.band(bits, b)==0 then
+        if Faceroll.bitand(bits, b)==0 then
             bitsCells[bitIndex]:Hide()
         else
             bitsCells[bitIndex]:Show()
@@ -167,10 +136,10 @@ local function updateBits()
         return
     end
     local specKey = playerClass .. "-" .. specIndex
-    local calcBitsFunc = Faceroll.registeredSpecs[specKey]
-    if calcBitsFunc ~= nil then
-        local bits = calcBitsFunc()
-        local specIndex = FR_KEYLOOKUP[specKey]
+    local spec = Faceroll.specKeys[specKey]
+    if spec and spec.calcBits then
+        local bits = spec.calcBits()
+        local specIndex = spec.index
         if specIndex ~= nil then
             -- use the last 4 bits for the current specIndex
             -- print("specIndex: " .. specIndex .. " oldBits: " .. bits)
@@ -230,7 +199,7 @@ end
 local eventFrame = CreateFrame("Frame")
 local initialized = false
 local function onEvent(self, event, arg1, arg2, ...)
-    if not initialized and ((event == "ADDON_LOADED" and addonName == arg1) or (event == "PLAYER_LOGIN")) then
+    if not initialized and ((event == "ADDON_LOADED" and arg1 == "Faceroll") or (event == "PLAYER_LOGIN")) then
         initialized = true
         eventFrame:UnregisterEvent("ADDON_LOADED")
         eventFrame:UnregisterEvent("PLAYER_LOGIN")

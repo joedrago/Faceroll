@@ -1,4 +1,6 @@
-local _, Faceroll = ...
+if Faceroll == nil then
+    _, Faceroll = ...
+end
 
 local FONTS = {
     ["firamono"]="Interface\\AddOns\\Faceroll\\fonts\\FiraMono-Medium.ttf",

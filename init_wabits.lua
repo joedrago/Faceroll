@@ -1,16 +1,18 @@
 print("init_wabits.lua startup")
 
-KEY_TOGGLE = 116 -- F5
-KEY_SPEC = 116 -- F5
-KEY_Q = 81 -- q
-KEY_E = 69 -- e
-KEY_SLASH = 191 -- /
-KEY_ENTER = 13 -- enter
-KEY_DELETE = 8 -- backspace
+Faceroll = {}
 
 local sendKeyVKCodes = {
     ["["]=219,
     ["]"]=221,
+
+    ["e"]=69,
+    ["q"]=81,
+
+    ["/"]=191,
+    ["enter"]=13,
+    ["return"]=13,
+    ["backspace"]=8,
 
     ["7"]=55,
     ["8"]=56,
@@ -19,6 +21,8 @@ local sendKeyVKCodes = {
     ["-"]=189,
     ["="]=187,
 
+    ["f5"]=116,
+    ["f6"]=117,
     ["f7"]=118,
     ["f8"]=119,
     ["f9"]=120,
@@ -33,6 +37,10 @@ local sendKeyVKCodes = {
     ["pad8"]=104,
     ["pad9"]=105,
 }
+
+Faceroll.lookupKeyCode = function(keyName)
+    return sendKeyVKCodes[keyName]
+end
 
 function sendKeyToWow(key)
     print("sendKeyToWow("..key..")")

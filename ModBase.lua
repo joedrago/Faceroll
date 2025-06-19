@@ -1,4 +1,6 @@
-local _, Faceroll = ...
+if Faceroll == nil then
+    _, Faceroll = ...
+end
 
 Faceroll.hold = false
 
@@ -31,26 +33,18 @@ Faceroll.textColor = function(text, color)
 end
 
 -----------------------------------------------------------------------------------------
--- Spec Registration
-
-Faceroll.registeredSpecs = {}
-Faceroll.registerSpec = function(specKey, calcBitsFunc)
-    Faceroll.registeredSpecs[specKey] = calcBitsFunc
-end
-
------------------------------------------------------------------------------------------
 -- Buff Tracking
 
 local buffs = {}
 
 Faceroll.trackBuffs = function(newBuffs)
-    for k, v in pairs(newBuffs) do
-        buffs[k] = v
-        buffs[k].id = 0
-        buffs[k].remain = false
-        buffs[k].cto = false
-        buffs[k].expirationTime = 0
-        buffs[k].stacks = 0
+    for _, name in ipairs(newBuffs) do
+        buffs[name] = { ["name"]=name }
+        buffs[name].id = 0
+        buffs[name].remain = false
+        buffs[name].cto = false
+        buffs[name].expirationTime = 0
+        buffs[name].stacks = 0
     end
 end
 
