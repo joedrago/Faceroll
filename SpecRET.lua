@@ -25,7 +25,7 @@ spec.actions = {
     "hammerofwrath",
 }
 
-local bits = Faceroll.createBits({
+spec.states = {
     "holypower3",
     "holypower5",
     "allinbuff",
@@ -41,11 +41,9 @@ local bits = Faceroll.createBits({
     "hammerofwrathavailable",
     "hammeroflightavailable",
     "holding",
-})
+}
 
-spec.calcBits = function()
-    bits:reset()
-
+spec.calcState = function(state)
     local holypower = UnitPower("player", Enum.PowerType.HolyPower)
     local holAvailable = false
     if GetTime() < Faceroll.holExpirationTime then
@@ -53,54 +51,54 @@ spec.calcBits = function()
     end
 
     if holypower >= 3 then
-        bits:enable("holypower3")
+        state.holypower3 = true
     end
     if holypower >= 5 then
-        bits:enable("holypower5")
+        state.holypower5 = true
     end
 
     if Faceroll.isBuffActive("All In!") then
-        bits:enable("allinbuff")
+        state.allinbuff = true
     end
     if Faceroll.isBuffActive("Empyrean Power") then
-        bits:enable("empyreanpowerbuff")
+        state.empyreanpowerbuff = true
     end
     if Faceroll.isBuffActive("Light's Deliverance") then
-        bits:enable("lightsdeliverancebuff")
+        state.lightsdeliverancebuff = true
     end
 
     if Faceroll.isDotActive("Expurgation") then
-        bits:enable("expurgationdot")
+        state.expurgationdot = true
     end
 
     if Faceroll.isSpellAvailable("Divine Hammer") then
-        bits:enable("divinehammeravailable")
+        state.divinehammeravailable = true
     end
     if Faceroll.isSpellAvailable("Execution Sentence") then
-        bits:enable("executionsentenceavailable")
+        state.executionsentenceavailable = true
     end
     if Faceroll.isSpellAvailable("Wake of Ashes") then
-        bits:enable("wakeofashesavailable")
+        state.wakeofashesavailable = true
     end
     if Faceroll.isSpellAvailable("Divine Toll") then
-        bits:enable("divinetollavailable")
+        state.divinetollavailable = true
     end
     if Faceroll.isSpellAvailable("Judgment") then
-        bits:enable("judgmentavailable")
+        state.judgmentavailable = true
     end
     if Faceroll.isSpellAvailable("Blade of Justice") then
-        bits:enable("bladeofjusticeavailable")
+        state.bladeofjusticeavailable = true
     end
     if Faceroll.isSpellAvailable("Hammer of Wrath") then
-        bits:enable("hammerofwrathavailable")
+        state.hammerofwrathavailable = true
     end
 
     if holAvailable then
-        bits:enable("hammeroflightavailable")
+        state.hammeroflightavailable = true
     end
 
     if Faceroll.hold then
-        bits:enable("holding")
+        state.holding = true
     end
 
     if Faceroll.debug then
@@ -113,13 +111,11 @@ spec.calcBits = function()
         Faceroll.setDebugText(o)
     end
 
-    return bits.value
+    return state
 end
 
-spec.nextAction = function(action, rawBits)
-    local state = bits:parse(rawBits)
-
-    if action == Faceroll.ACTION_ST then
+spec.calcAction = function(mode, state)
+    if mode == Faceroll.MODE_ST then
         -- Single Target
 
         if not state.holding and state.divinehammeravailable and state.holypower3 then
@@ -166,7 +162,7 @@ spec.nextAction = function(action, rawBits)
 
         end
 
-    elseif action == Faceroll.ACTION_AOE then
+    elseif mode == Faceroll.MODE_AOE then
         -- AOE
 
         if not state.holding and state.divinehammeravailable and state.holypower3 then

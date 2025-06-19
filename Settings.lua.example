@@ -44,8 +44,8 @@ Faceroll.keys[12] = "f12"
 -- Faceroll.keys["bestialwrath"] = "1"
 
 -- Keybinds to enable ST or AOE mode
-Faceroll.keys["action_st"] = "q"
-Faceroll.keys["action_aoe"] = "e"
+Faceroll.keys["mode_st"] = "q"
+Faceroll.keys["mode_aoe"] = "e"
 
 -- Keybinds which map to the macros "/fr ST" and "/fr AE"
 Faceroll.keys["signal_st"] = "pad9"

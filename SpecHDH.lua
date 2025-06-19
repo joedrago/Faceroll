@@ -25,7 +25,7 @@ spec.actions = {
     "essencebreak",
 }
 
-local bits = Faceroll.createBits({
+spec.states = {
     "metamorphosisbuff",
     "essencebreakbuff",
     "metamorphosis",
@@ -39,61 +39,57 @@ local bits = Faceroll.createBits({
     "furyG40",
     "furyL130",
     "furyL140",
-})
+}
 
-spec.calcBits = function()
-    bits:reset()
-
+spec.calcState = function(state)
     if Faceroll.isBuffActive("Metamorphosis") then
-        bits:enable("metamorphosisbuff")
+        state.metamorphosisbuff = true
     end
     if Faceroll.isBuffActive("Essence Break") then
-        bits:enable("essencebreakbuff")
+        state.essencebreakbuff = true
     end
 
     if Faceroll.isSpellAvailable("Metamorphosis") then
-        bits:enable("metamorphosis")
+        state.metamorphosis = true
     end
     if Faceroll.isSpellAvailable("Essence Break") then
-        bits:enable("essencebreak")
+        state.essencebreak = true
     end
     if Faceroll.isSpellAvailable("The Hunt") then
-        bits:enable("thehunt")
+        state.thehunt = true
     end
     if Faceroll.isSpellAvailable("Sigil of Flame") then
-        bits:enable("sigilofflame")
+        state.sigilofflame = true
     end
     if Faceroll.isSpellAvailable("Eye Beam") then
-        bits:enable("eyebeam")
+        state.eyebeam = true
     end
     if Faceroll.isSpellAvailable("Blade Dance") then
-        bits:enable("bladedance")
+        state.bladedance = true
     end
     if Faceroll.isSpellAvailable("Felblade") then
-        bits:enable("felblade")
+        state.felblade = true
     end
     if Faceroll.isSpellAvailable("Immolation Aura") then
-        bits:enable("immolationaura")
+        state.immolationaura = true
     end
 
     local fury = UnitPower("player")
     if fury >= 40 then
-        bits:enable("furyG40")
+        state.furyG40 = true
     end
     if fury < 130 then
-        bits:enable("furyL130")
+        state.furyL130 = true
     end
     if fury < 140 then
-        bits:enable("furyL140")
+        state.furyL140 = true
     end
 
-    return bits.value
+    return state
 end
 
-spec.nextAction = function(action, rawBits)
-    local state = bits:parse(rawBits)
-
-    if action == Faceroll.ACTION_ST then
+spec.calcAction = function(mode, state)
+    if mode == Faceroll.MODE_ST then
         -- Single Target
 
         if state.essencebreakbuff and state.bladedance then
@@ -157,7 +153,7 @@ spec.nextAction = function(action, rawBits)
             return "throwglaive"
         end
 
-    elseif action == Faceroll.ACTION_AOE then
+    elseif mode == Faceroll.MODE_AOE then
         -- AOE
 
 

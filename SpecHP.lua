@@ -18,46 +18,42 @@ spec.actions = {
     "hammerofwrath",
 }
 
-local bits = Faceroll.createBits({
+spec.states = {
     "holypower5",
     "crusaderstrike",
     "divinetoll",
     "judgment",
     "hammerofwrath",
     "consecration",
-})
+}
 
-spec.calcBits = function()
-    bits:reset()
-
+spec.calcState = function(state)
     local holypower = UnitPower("player", Enum.PowerType.HolyPower)
     if holypower < 5 then
-        bits:enable("holypower5")
+        state.holypower5 = true
     end
 
     if Faceroll.isSpellAvailable("Crusader Strike") then
-        bits:enable("crusaderstrike")
+        state.crusaderstrike = true
     end
     if Faceroll.isSpellAvailable("Divine Toll") then
-        bits:enable("divinetoll")
+        state.divinetoll = true
     end
     if Faceroll.isSpellAvailable("Judgment") then
-        bits:enable("judgment")
+        state.judgment = true
     end
     if Faceroll.isSpellAvailable("Hammer of Wrath") then
-        bits:enable("hammerofwrath")
+        state.hammerofwrath = true
     end
     if Faceroll.isSpellAvailable("Consecration") then
-        bits:enable("consecration")
+        state.consecration = true
     end
 
-    return bits.value
+    return state
 end
 
-spec.nextAction = function(action, rawBits)
-    local state = bits:parse(rawBits)
-
-    if action == Faceroll.ACTION_ST then
+spec.calcAction = function(mode, state)
+    if mode == Faceroll.MODE_ST then
         -- Single Target
 
         if state.hammerofwrath then
@@ -74,7 +70,7 @@ spec.nextAction = function(action, rawBits)
 
         end
 
-    elseif action == Faceroll.ACTION_AOE then
+    elseif mode == Faceroll.MODE_AOE then
         -- AOE
 
         if state.hammerofwrath then

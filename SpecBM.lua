@@ -24,7 +24,7 @@ spec.actions = {
     "bestialwrath",
 }
 
-local bits = Faceroll.createBits({
+spec.states = {
     "barbedshothighprio",
     "bestialwrath",
     "killcommand",
@@ -37,11 +37,9 @@ local bits = Faceroll.createBits({
     "beastcleaveending",
     "energyG85",
     "shouldmendpet",
-})
+}
 
-spec.calcBits = function()
-    bits:reset()
-
+spec.calcState = function(state)
     local barbedShotCharges = Faceroll.spellCharges("Barbed Shot")
     local barbedShotTwoChargesSoon = Faceroll.spellChargesSoon("Barbed Shot", 2, 2.5)
     local killCommandCharges = Faceroll.spellCharges("Kill Command")
@@ -51,42 +49,42 @@ spec.calcBits = function()
         or barbedShotCharges > killCommandCharges
         or Faceroll.spellCooldown("Bestial Wrath") < 5
         then
-            bits:enable("barbedshothighprio")
+            state.barbedshothighprio = true
         end
     end
 
     if Faceroll.isSpellAvailable("Bestial Wrath") then
-        bits:enable("bestialwrath")
+        state.bestialwrath = true
     end
     if Faceroll.isSpellAvailable("Kill Command") then
-        bits:enable("killcommand")
+        state.killcommand = true
     end
     if Faceroll.isSpellAvailable("Explosive Shot") then
-        bits:enable("explosiveshot")
+        state.explosiveshot = true
     end
     if Faceroll.isSpellAvailable("Dire Beast") then
-        bits:enable("direbeast")
+        state.direbeast = true
     end
     if Faceroll.isSpellAvailable("Barbed Shot") then
-        bits:enable("barbedshot")
+        state.barbedshot = true
     end
     if barbedShotTwoChargesSoon then
-        bits:enable("barbedshottwochargessoon")
+        state.barbedshottwochargessoon = true
     end
 
     if Faceroll.isBuffActive("Hogstrider") then
-        bits:enable("hogstrider")
+        state.hogstrider = true
     end
     if Faceroll.isBuffActive("Beast Cleave") then
-        bits:enable("beastcleave")
+        state.beastcleave = true
     end
     if Faceroll.getBuffRemaining("Beast Cleave") < 2.5 then
-        bits:enable("beastcleaveending")
+        state.beastcleaveending = true
     end
 
     local energy = UnitPower("player")
     if energy >= 85 then
-        bits:enable("energyG85")
+        state.energyG85 = true
     end
 
     if UnitExists("pet") then
@@ -100,18 +98,16 @@ spec.calcBits = function()
         if hasSpiritMend then
             local petHealth = UnitHealth("pet") / UnitHealthMax("pet")
             if petHealth < 0.90 and Faceroll.isSpellAvailable("Mend Pet") then
-                bits:enable("shouldmendpet")
+                state.shouldmendpet = true
             end
         end
     end
 
-    return bits.value
+    return state
 end
 
-spec.nextAction = function(action, rawBits)
-    local state = bits:parse(rawBits)
-
-    if action == Faceroll.ACTION_ST then
+spec.calcAction = function(mode, state)
+    if mode == Faceroll.MODE_ST then
         -- Single Target
 
         if state.shouldmendpet then
@@ -147,7 +143,7 @@ spec.nextAction = function(action, rawBits)
             return "cobrashot"
         end
 
-    elseif action == Faceroll.ACTION_AOE then
+    elseif mode == Faceroll.MODE_AOE then
         -- AOE
 
         if state.shouldmendpet then

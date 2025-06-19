@@ -25,7 +25,7 @@ spec.actions = {
     "arcaneshot",
 }
 
-local bits = Faceroll.createBits({
+spec.states = {
     "trickshots",
     "streamline",
     "preciseshots",
@@ -37,47 +37,45 @@ local bits = Faceroll.createBits({
     "killshot",
     "lowfocus",
     "streamlinedeadzone",
-})
+}
 
 local streamlineDeadzone = Faceroll.deadzoneCreate("Aimed Shot", 0.3, 0.5)
 
-spec.calcBits = function()
-    bits:reset()
-
+spec.calcState = function(state)
     if Faceroll.isBuffActive("Trick Shots") then
-        bits:enable("trickshots")
+        state.trickshots = true
     end
     if Faceroll.isBuffActive("Streamline") then
-        bits:enable("streamline")
+        state.streamline = true
         Faceroll.deadzoneUpdate(streamlineDeadzone)
     end
     if Faceroll.isBuffActive("Precise Shots") then
-        bits:enable("preciseshots")
+        state.preciseshots = true
     end
     if Faceroll.isBuffActive("Spotter's Mark") then
-        bits:enable("spottersmark")
+        state.spottersmark = true
     end
     if Faceroll.isBuffActive("Moving Target") then
-        bits:enable("movingtarget")
+        state.movingtarget = true
     end
     if Faceroll.isSpellAvailable("Aimed Shot") then
-        bits:enable("aimedshot")
+        state.aimedshot = true
     end
     if Faceroll.isSpellAvailable("Rapid Fire") then
-        bits:enable("rapidfire")
+        state.rapidfire = true
     end
     if Faceroll.isSpellAvailable("Explosive Shot") then
-        bits:enable("explosiveshot")
+        state.explosiveshot = true
     end
     if Faceroll.isSpellAvailable("Kill Shot") then
-        bits:enable("killshot")
+        state.killshot = true
     end
     if UnitPower("player") < 30 then
-        bits:enable("lowfocus")
+        state.lowfocus = true
     end
 
     if Faceroll.deadzoneActive(streamlineDeadzone) then
-        bits:enable("streamlinedeadzone")
+        state.streamlinedeadzone = true
     end
 
     if Faceroll.debug then
@@ -95,13 +93,11 @@ spec.calcBits = function()
         Faceroll.setDebugText(o)
     end
 
-    return bits.value
+    return state
 end
 
-spec.nextAction = function(action, rawBits)
-    local state = bits:parse(rawBits)
-
-    if action == Faceroll.ACTION_ST then
+spec.calcAction = function(mode, state)
+    if mode == Faceroll.MODE_ST then
         -- Single Target
 
         if state.preciseshots and state.killshot then
@@ -150,7 +146,7 @@ spec.nextAction = function(action, rawBits)
             return "steadyshot"
         end
 
-    elseif action == Faceroll.ACTION_AOE then
+    elseif mode == Faceroll.MODE_AOE then
         -- AOE
 
         if state.lowfocus then

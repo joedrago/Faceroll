@@ -43,7 +43,7 @@ Faceroll.activateKeybinds()
 
 local facerollSpec = Faceroll.SPEC_OFF      --  Which spec are we trying to be right now?
 local facerollActive = false                --  An additional way to temporarily behave like SPEC_OFF when people hit enter/slash/delete
-local facerollAction = Faceroll.ACTION_NONE --  Which faceroll key action is running? (the "paradigm")
+local facerollAction = Faceroll.MODE_NONE --  Which faceroll key action is running? (the "paradigm")
 local facerollSpecSendRemaining = 0         --  Where are with our rotary-phone-sending of the spec number
 local facerollSlowDown = 0                  --  Offer a means to only act every so many ticks
 local facerollGameBits = 0                  --  The current game state!
@@ -52,8 +52,8 @@ local facerollGameBits = 0                  --  The current game state!
 -- Key handlers
 
 KEYCODE_TOGGLE = Faceroll.lookupKeyCode(Faceroll.keys["toggle"])
-KEYCODE_ST = Faceroll.lookupKeyCode(Faceroll.keys["action_st"])
-KEYCODE_AOE = Faceroll.lookupKeyCode(Faceroll.keys["action_aoe"])
+KEYCODE_ST = Faceroll.lookupKeyCode(Faceroll.keys["mode_st"])
+KEYCODE_AOE = Faceroll.lookupKeyCode(Faceroll.keys["mode_aoe"])
 KEYCODE_DISABLE1 = Faceroll.lookupKeyCode(Faceroll.keys["disable1"])
 KEYCODE_DISABLE2 = Faceroll.lookupKeyCode(Faceroll.keys["disable2"])
 KEYCODE_DISABLE3 = Faceroll.lookupKeyCode(Faceroll.keys["disable3"])
@@ -82,11 +82,11 @@ function onKeyCode(keyCode)
     elseif facerollActive then
         if keyCode == KEYCODE_ST then
             FRDEBUG("Faceroll: ST")
-            facerollAction = Faceroll.ACTION_ST
+            facerollAction = Faceroll.MODE_ST
             return true
         elseif keyCode == KEYCODE_AOE then
             FRDEBUG("Faceroll: AOE")
-            facerollAction = Faceroll.ACTION_AOE
+            facerollAction = Faceroll.MODE_AOE
             return true
         end
 
@@ -97,7 +97,7 @@ end
 function onReset()
     if facerollSpec ~= nil then
         FRDEBUG("Faceroll: Reset")
-        facerollAction = Faceroll.ACTION_NONE
+        facerollAction = Faceroll.MODE_NONE
     end
 end
 
@@ -115,7 +115,7 @@ function onUpdate(bits)
         return
     end
 
-    if not facerollActive or facerollAction == Faceroll.ACTION_NONE then
+    if not facerollActive or facerollAction == Faceroll.MODE_NONE then
         return
     end
 
@@ -123,9 +123,9 @@ function onUpdate(bits)
     if facerollSlowDown > 2 then
         facerollSlowDown = 0
         if facerollSpec ~= Faceroll.SPEC_OFF then
-            if facerollAction == Faceroll.ACTION_ST then
+            if facerollAction == Faceroll.MODE_ST then
                 sendKeyToWow(Faceroll.keys["signal_st"]) -- signal we're in ST
-            elseif facerollAction == Faceroll.ACTION_AOE then
+            elseif facerollAction == Faceroll.MODE_AOE then
                 sendKeyToWow(Faceroll.keys["signal_aoe"]) -- signal we're in AOE
             end
         end
@@ -134,8 +134,9 @@ function onUpdate(bits)
         local action = nil
 
         local spec = Faceroll.activeSpecsByIndex[facerollSpec]
-        if spec ~= nil and spec.nextAction ~= nil then
-            action = spec.nextAction(facerollAction, facerollGameBits)
+        if spec ~= nil and spec.calcAction ~= nil then
+            local state = spec.bits:unpack(facerollGameBits)
+            action = spec.calcAction(facerollAction, state)
         end
 
         if action ~= nil then
@@ -150,7 +151,7 @@ function onUpdate(bits)
                 print("UNKNOWN ACTION: " .. action)
             end
         else
-            if Faceroll.debug and facerollAction ~= Faceroll.ACTION_NONE then
+            if Faceroll.debug and facerollAction ~= Faceroll.MODE_NONE then
                 print("No action (nil) facerollAction " .. facerollAction)
             end
         end

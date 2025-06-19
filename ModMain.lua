@@ -137,8 +137,9 @@ local function updateBits()
     end
     local specKey = playerClass .. "-" .. specIndex
     local spec = Faceroll.activeSpecsByKey[specKey]
-    if spec and spec.calcBits then
-        local bits = spec.calcBits()
+    if spec and spec.calcState then
+        local state = spec.calcState(spec.bits:unpack(0))
+        local bits = spec.bits:pack(state)
         local specIndex = spec.index
         if specIndex ~= nil then
             -- use the last 4 bits for the current specIndex

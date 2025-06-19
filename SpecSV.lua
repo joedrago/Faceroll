@@ -23,7 +23,7 @@ spec.actions = {
     "explosiveshot",
 }
 
-local bits = Faceroll.createBits({
+spec.states = {
     "lunarstorm",
     "strikeitrich",
     "tipofthespear",
@@ -35,52 +35,48 @@ local bits = Faceroll.createBits({
     "killshot",
     "furyoftheeagle",
     "highfocus",
-})
+}
 
-spec.calcBits = function()
-    bits:reset()
-
+spec.calcState = function(state)
     if not Faceroll.isBuffActive("Lunar Storm") then
-        bits:enable("lunarstorm")
+        state.lunarstorm = true
     end
     if Faceroll.isBuffActive("Strike it Rich") then
-        bits:enable("strikeitrich")
+        state.strikeitrich = true
     end
     if Faceroll.isBuffActive("Tip of the Spear") then
-        bits:enable("tipofthespear")
+        state.tipofthespear = true
     end
     if Faceroll.spellCharges("Wildfire Bomb") >= 2 then
-        bits:enable("wildfirebomb2")
+        state.wildfirebomb2 = true
     end
     if Faceroll.spellCharges("Wildfire Bomb") >= 1 then
-        bits:enable("wildfirebomb1")
+        state.wildfirebomb1 = true
     end
     if Faceroll.isSpellAvailable("Butchery") then
-        bits:enable("butchery")
+        state.butchery = true
     end
     if Faceroll.isSpellAvailable("Kill Command") then
-        bits:enable("killcommand")
+        state.killcommand = true
     end
     if Faceroll.isSpellAvailable("Explosive Shot") then
-        bits:enable("explosiveshot")
+        state.explosiveshot = true
     end
     if Faceroll.isSpellAvailable("Kill Shot") then
-        bits:enable("killshot")
+        state.killshot = true
     end
     if Faceroll.isSpellAvailable("Fury of the Eagle") then
-        bits:enable("furyoftheeagle")
+        state.furyoftheeagle = true
     end
     if UnitPower("player") > 85 then
-        bits:enable("highfocus")
+        state.highfocus = true
     end
 
-    return bits.value
+    return state
 end
 
-spec.nextAction = function(action, rawBits)
-    local state = bits:parse(rawBits)
-
-    if action == Faceroll.ACTION_ST then
+spec.calcAction = function(mode, state)
+    if mode == Faceroll.MODE_ST then
         -- Single Target
 
         if state.lunarstorm and state.wildfirebomb1 then
@@ -146,7 +142,7 @@ spec.nextAction = function(action, rawBits)
             return "raptorstrike"
         end
 
-    elseif action == Faceroll.ACTION_AOE then
+    elseif mode == Faceroll.MODE_AOE then
         -- AOE
 
         if (state.lunarstorm and state.wildfirebomb1) or state.wildfirebomb2 then

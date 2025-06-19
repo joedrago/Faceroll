@@ -26,7 +26,7 @@ spec.actions = {
     "sigilofspite",
 }
 
-local bits = Faceroll.createBits({
+spec.states = {
     "metamorphosisbuff",
     "metamorphosiscd",
     "feldevastation",
@@ -43,64 +43,62 @@ local bits = Faceroll.createBits({
     "soulfragmentszero",
     "fierybrand",
     "sigilofspite",
-})
+}
 
-spec.calcBits = function()
-    bits:reset()
-
+spec.calcState = function(state)
     if Faceroll.isBuffActive("Metamorphosis") then
-        bits:enable("metamorphosisbuff")
+        state.metamorphosisbuff = true
     end
 
     if Faceroll.isSpellAvailable("Metamorphosis") then
-        bits:enable("metamorphosiscd")
+        state.metamorphosiscd = true
     end
     if Faceroll.isSpellAvailable("Fel Devastation") then
-        bits:enable("feldevastation")
+        state.feldevastation = true
     end
     if Faceroll.isSpellAvailable("Sigil of Flame") then
-        bits:enable("sigilofflame")
+        state.sigilofflame = true
     end
     if Faceroll.isSpellAvailable("Immolation Aura") then
-        bits:enable("immolationaura")
+        state.immolationaura = true
     end
     if Faceroll.isSpellAvailable("The Hunt") then
-        bits:enable("thehunt")
+        state.thehunt = true
     end
     if Faceroll.isSpellAvailable("Felblade") then
-        bits:enable("felblade")
+        state.felblade = true
     end
     if Faceroll.spellCharges("Fracturestate.") then
-        bits:enable("fracture")
+        state.fracture = true
     end
 
     local fury = UnitPower("player")
     if fury >= 30 then
-        bits:enable("furyG30")
+        state.furyG30 = true
     end
     if fury >= 40 then
-        bits:enable("furyG40")
+        state.furyG40 = true
     end
     if fury >= 50 then
-        bits:enable("furyG50")
+        state.furyG50 = true
     end
     if fury < 130 then
-        bits:enable("furyL130")
+        state.furyL130 = true
     end
 
     if Faceroll.getBuffStacks("Soul Fragments") >= 4 then
-        bits:enable("soulfragments4plus")
+        state.soulfragments4plus = true
     end
     if Faceroll.getBuffStacks("Soul Fragments") == 0 then
-        bits:enable("soulfragmentszero")
+        state.soulfragmentszero = true
     end
 
     if Faceroll.isDotActive("Fiery Brand") <= 0 and Faceroll.isSpellAvailable("Fiery Brand") then
-        bits:enable("fierybrand")
+        state.fierybrand = true
     end
 
     if Faceroll.isSpellAvailable("Sigil of Spite") then
-        bits:enable("sigilofspite")
+        state.sigilofspite = true
     end
 
     if Faceroll.debug then
@@ -114,13 +112,11 @@ spec.calcBits = function()
         Faceroll.setDebugText(o)
     end
 
-    return bits.value
+    return state
 end
 
-spec.nextAction = function(action, rawBits)
-    local state = bits:parse(rawBits)
-
-    if action == Faceroll.ACTION_ST then
+spec.calcAction = function(mode, state)
+    if mode == Faceroll.MODE_ST then
         -- Single Target
 
         if state.fierybrand then
@@ -172,7 +168,7 @@ spec.nextAction = function(action, rawBits)
             return "throwglaive"
         end
 
-    elseif action == Faceroll.ACTION_AOE then
+    elseif mode == Faceroll.MODE_AOE then
         -- AOE
 
         if state.fierybrand then

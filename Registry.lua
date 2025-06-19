@@ -4,9 +4,9 @@ end
 
 Faceroll.keys = {}
 
-Faceroll.ACTION_NONE = 0
-Faceroll.ACTION_ST = 1
-Faceroll.ACTION_AOE = 2
+Faceroll.MODE_NONE = 0
+Faceroll.MODE_ST = 1
+Faceroll.MODE_AOE = 2
 
 local nextSpec = 0
 Faceroll.SPEC_OFF = 0
@@ -29,14 +29,50 @@ Faceroll.bitand = function(a, b)
     return result
 end
 
+local function bitsUnpack(self, rawBits)
+    local unpacked = {}
+    local currBit = 1
+    for _, name in pairs(self.names) do
+        local v = false
+        if Faceroll.bitand(rawBits, currBit) ~= 0 then
+            v = true
+        end
+        unpacked[name] = v
+        currBit = currBit * 2
+    end
+    return unpacked
+end
+
+local function bitsPack(self, state)
+    local value = 0
+    local currBit = 1
+    for _, name in pairs(self.names) do
+        if state[name] then
+            value = value + currBit
+        end
+        currBit = currBit * 2
+    end
+    return value
+end
+
+Faceroll.createBits = function(names)
+    local bits = {
+        ["names"]=names,
+        ["unpack"]=bitsUnpack,
+        ["pack"]=bitsPack,
+    }
+    return bits
+end
+
 Faceroll.createSpec = function(name, color, specKey)
     local spec = {
         ["name"]=name,
         ["color"]=color,
         ["key"]=specKey,
-        ["calcBits"]=nil,
-        ["nextAction"]=nil,
+        ["calcState"]=nil,
+        ["calcAction"]=nil,
         ["buffs"]=nil,
+        ["states"]={},
         ["actions"]={},
         ["keys"]={},
         ["index"]=nil,
@@ -59,6 +95,7 @@ Faceroll.enableSpec = function(specName)
                 print("WARNING: Multiple specs for the same key active! Overriding preexisting spec key: " .. spec.key)
             end
             Faceroll.activeSpecsByKey[spec.key] = spec
+            spec.bits = Faceroll.createBits(spec.states)
 
             print("Enabling Spec: " .. spec.name .. " (" .. Faceroll.SPEC_LAST .. ")")
             return
@@ -88,64 +125,3 @@ end
 
 Faceroll.createSpec("OFF", "333333", "OFF")
 Faceroll.enableSpec("OFF")
-
-local function bitsEnable(self, name)
-    local bitValue = self.lookup[name]
-    if bitValue ~= nil then
-        if Faceroll.bitand(self.value, bitValue) == 0 then
-            self.value = self.value + bitValue
-        end
-    end
-end
-
-local function bitsReset(self)
-    self.value = 0
-end
-
-local function bitsIsEnabled(self, name)
-    local bitValue = self.lookup[name]
-    if bitValue ~= nil then
-        if Faceroll.bitand(self.value, bitValue) ~= 0 then
-            return true
-        end
-    end
-    return false
-end
-
-local function bitsParse(self, rawBits)
-    local parsed = {}
-    local currBit = 1
-    for _, name in pairs(self.names) do
-        local v = false
-        if Faceroll.bitand(rawBits, currBit) ~= 0 then
-            v = true
-        end
-        parsed[name] = v
-        currBit = currBit * 2
-    end
-    return parsed
-end
-
-local function bitsValue(self)
-    return self.value
-end
-
-Faceroll.createBits = function(names)
-    local lookup = {}
-    local currBit = 1
-    for _, name in pairs(names) do
-        lookup[name] = currBit
-        currBit = currBit * 2
-    end
-
-    local bits = {
-        ["value"]=0,
-        ["names"]=names,
-        ["lookup"]=lookup,
-        ["enable"]=bitsEnable,
-        ["isEnabled"]=bitsIsEnabled,
-        ["parse"]=bitsParse,
-        ["reset"]=bitsReset,
-    }
-    return bits
-end

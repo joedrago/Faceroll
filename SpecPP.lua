@@ -26,7 +26,7 @@ spec.actions = {
     "wordofglory",
 }
 
-local bits = Faceroll.createBits({
+spec.states = {
     "holavailable",
     "holypower1",
     "holypower3",
@@ -43,11 +43,9 @@ local bits = Faceroll.createBits({
     "consecration",
     "holding",
     "incombat",
-})
+}
 
-spec.calcBits = function()
-    bits:reset()
-
+spec.calcState = function(state)
     local holypower = UnitPower("player", Enum.PowerType.HolyPower)
     local holAvailable = false
     if GetTime() < Faceroll.holExpirationTime then
@@ -55,14 +53,14 @@ spec.calcBits = function()
     end
 
     if holAvailable then
-        bits:enable("holavailable")
+        state.holavailable = true
     end
 
     if holypower > 0 then
-        bits:enable("holypower1")
+        state.holypower1 = true
     end
     if holypower >= 3 then
-        bits:enable("holypower3")
+        state.holypower3 = true
     end
 
     -- some health threshold (60%?)
@@ -70,56 +68,54 @@ spec.calcBits = function()
     local hpmax = UnitHealthMax("player")
     local hpnorm = hp / hpmax
     if hpnorm < 0.6 and Faceroll.spellCharges("Shining Light") > 0 then
-        bits:enable("needsheal")
+        state.needsheal = true
     end
 
     if Faceroll.isBuffActive("Shake the Heavens") then
-        bits:enable("shaketheheavensbuff")
+        state.shaketheheavensbuff = true
     end
     if Faceroll.isBuffActive("Blessing of Dawn") then
-        bits:enable("blessingofdawnbuff")
+        state.blessingofdawnbuff = true
     end
     if Faceroll.isBuffActive("Consecration") then
-        bits:enable("consecrationbuff")
+        state.consecrationbuff = true
     end
 
     if Faceroll.isSpellAvailable("Blessed Hammer") then
-        bits:enable("blessedhammer")
+        state.blessedhammer = true
     end
     if Faceroll.isSpellAvailable("Eye of Tyr") then
-        bits:enable("eyeoftyr")
+        state.eyeoftyr = true
     end
     if Faceroll.isSpellAvailable("Divine Toll") then
-        bits:enable("divinetoll")
+        state.divinetoll = true
     end
     if Faceroll.isSpellAvailable("Judgment") then
-        bits:enable("judgment")
+        state.judgment = true
     end
     if Faceroll.isSpellAvailable("Avenger's Shield") then
-        bits:enable("avengersshield")
+        state.avengersshield = true
     end
     if Faceroll.isSpellAvailable("Hammer of Wrath") then
-        bits:enable("hammerofwrath")
+        state.hammerofwrath = true
     end
     if Faceroll.isSpellAvailable("Consecration") then
-        bits:enable("consecration")
+        state.consecration = true
     end
 
     if Faceroll.hold then
-        bits:enable("holding")
+        state.holding = true
     end
 
     if UnitAffectingCombat("player") then
-        bits:enable("incombat")
+        state.incombat = true
     end
 
-    return bits.value
+    return state
 end
 
-spec.nextAction = function(action, rawBits)
-    local state = bits:parse(rawBits)
-
-    if action == Faceroll.ACTION_ST then
+spec.calcAction = function(mode, state)
+    if mode == Faceroll.MODE_ST then
         -- Single Target
 
         if not state.incombat and not state.holypower3 and state.blessedhammer then
@@ -160,7 +156,7 @@ spec.nextAction = function(action, rawBits)
 
         end
 
-    elseif action == Faceroll.ACTION_AOE then
+    elseif mode == Faceroll.MODE_AOE then
         -- AOE
 
         if not state.incombat and not state.holypower3 and state.blessedhammer then

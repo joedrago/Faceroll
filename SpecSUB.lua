@@ -32,7 +32,7 @@ spec.actions = {
     "symbolsofdeath",
 }
 
-local bits = Faceroll.createBits({
+spec.states = {
     -- player/base class state
     "combat",
     "cp6",
@@ -61,83 +61,81 @@ local bits = Faceroll.createBits({
 
     -- target debuffs
     "should_rupture",
-})
+}
 
-spec.calcBits = function()
-    bits:reset()
-
+spec.calcState = function(state)
     local cp = GetComboPoints("player", "target")
     -- print("energy " .. energy .. " cp " .. cp)
 
     -- player/base class state
     if UnitAffectingCombat("player") then
-        bits:enable("combat")
+        state.combat = true
     end
     if cp >= 6 then
-        bits:enable("cp6")
+        state.cp6 = true
     end
     if Faceroll.isBuffActive("Stealth") or Faceroll.isBuffActive("Vanish") then
-        bits:enable("stealth")
+        state.stealth = true
     end
 
     -- buffs
     if Faceroll.isBuffActive("Shadow Blades") then
-        bits:enable("shadowblades_active")
+        state.shadowblades_active = true
     end
     if Faceroll.isBuffActive("Symbols of Death") then
-        bits:enable("symbolsofdeath_active")
+        state.symbolsofdeath_active = true
     end
     if Faceroll.isBuffActive("Premeditation") then
-        bits:enable("premeditation_active")
+        state.premeditation_active = true
     end
     if Faceroll.isBuffActive("Shadow Dance") then
-        bits:enable("shadowdance_active")
+        state.shadowdance_active = true
     end
     if Faceroll.isBuffActive("Cold Blood") then
-        bits:enable("coldblood_active")
+        state.coldblood_active = true
     end
     if Faceroll.isBuffActive("Flagellation") then
-        bits:enable("flagellation_active")
+        state.flagellation_active = true
     end
     if Faceroll.getBuffStacks("Flagellation") >= 30 then
-        bits:enable("flagellation_maxed")
+        state.flagellation_maxed = true
     end
     if Faceroll.getBuffStacks("Danse Macabre") <= 2 then
-        bits:enable("dansemacabre_low")
+        state.dansemacabre_low = true
     end
 
     -- cds
     if Faceroll.isSpellAvailable("Shadow Blades") then
-        bits:enable("shadowblades_available")
+        state.shadowblades_available = true
     end
     if Faceroll.spellCharges("Symbols of Death") > 0 then
-        bits:enable("symbolsofdeath_available")
+        state.symbolsofdeath_available = true
     end
     if Faceroll.spellCharges("Shadow Dance") > 0 then
-        bits:enable("shadowdance_available")
+        state.shadowdance_available = true
     end
     if Faceroll.isSpellAvailable("Cold Blood") then
-        bits:enable("coldblood_available")
+        state.coldblood_available = true
     end
     if Faceroll.isSpellAvailable("flagellation") then
-        bits:enable("flagellation_available")
+        state.flagellation_available = true
     end
     if Faceroll.spellCooldown("flagellation") < 30 and Faceroll.spellCooldown("flagellation") > 1.5 then
-        bits:enable("flagellation_soon")
+        state.flagellation_soon = true
     end
     if Faceroll.isSpellAvailable("vanish") then
-        bits:enable("vanish_available")
+        state.vanish_available = true
     end
     if Faceroll.spellCooldown("Secret Technique") < 1.5 then
-        bits:enable("secrettechnique_available")
+        state.secrettechnique_available = true
     end
     if Faceroll.spellCooldown("Secret Technique") < 10 then
-        bits:enable("secrettechnique_soon")
+        state.secrettechnique_soon = true
     end
 
     -- target debuffs
     if Faceroll.isDotActive("Rupture") < .3 then
-        bits:enable("should_rupture")
+        state.should_rupture = true
     end
 
     local function bt(b)
@@ -158,13 +156,11 @@ spec.calcBits = function()
         Faceroll.setDebugText(o)
     end
 
-    return bits.value
+    return state
 end
 
-spec.nextAction = function(action, rawBits)
-    local state = bits:parse(rawBits)
-
-    local useCooldowns = action == Faceroll.ACTION_ST
+spec.calcAction = function(mode, state)
+    local useCooldowns = mode == Faceroll.MODE_ST
 
     if state.flagellation_active and state.shadowblades_available and useCooldowns then
         return "shadowblades"
