@@ -11,8 +11,9 @@ Faceroll.ACTION_AOE = 2
 local nextSpec = 0
 Faceroll.SPEC_OFF = 0
 Faceroll.SPEC_LAST = 0
-Faceroll.specs = {}
-Faceroll.specKeys = {}
+Faceroll.availableSpecs = {}
+Faceroll.activeSpecsByIndex = {}
+Faceroll.activeSpecsByKey = {}
 
 Faceroll.bitand = function(a, b)
     local result = 0
@@ -40,23 +41,25 @@ Faceroll.createSpec = function(name, color, specKey)
         ["keys"]={},
         ["index"]=nil,
     }
+    table.insert(Faceroll.availableSpecs, spec)
     return spec
 end
 
-Faceroll.registerSpec = function(spec)
-    if spec.buffs ~= nil then
-        Faceroll.trackBuffs(spec.buffs)
-    end
-    Faceroll.specKeys[spec.key] = spec
-end
-
 Faceroll.enableSpec = function(specName)
-    for specKey, spec in pairs(Faceroll.specKeys) do
+    for _, spec in ipairs(Faceroll.availableSpecs) do
         if spec.name == specName then
-            Faceroll.specs[nextSpec] = spec
+            Faceroll.activeSpecsByIndex[nextSpec] = spec
             nextSpec = nextSpec + 1
-            spec.index = #Faceroll.specs
-            Faceroll.SPEC_LAST = #Faceroll.specs
+            spec.index = #Faceroll.activeSpecsByIndex
+            Faceroll.SPEC_LAST = #Faceroll.activeSpecsByIndex
+            if spec.buffs ~= nil then
+                Faceroll.trackBuffs(spec.buffs)
+            end
+            if Faceroll.activeSpecsByKey[spec.key] ~= nil then
+                print("WARNING: Multiple specs for the same key active! Overriding preexisting spec key: " .. spec.key)
+            end
+            Faceroll.activeSpecsByKey[spec.key] = spec
+
             print("Enabling Spec: " .. spec.name .. " (" .. Faceroll.SPEC_LAST .. ")")
             return
         end
@@ -65,7 +68,7 @@ Faceroll.enableSpec = function(specName)
 end
 
 Faceroll.activateKeybinds = function()
-    for _, spec in ipairs(Faceroll.specs) do
+    for _, spec in ipairs(Faceroll.activeSpecsByIndex) do
         if spec.abilities ~= nil then
             for index, ability in ipairs(spec.abilities) do
                 local key = Faceroll.keys[ability]
@@ -83,7 +86,7 @@ Faceroll.activateKeybinds = function()
     end
 end
 
-Faceroll.registerSpec(Faceroll.createSpec("OFF", "333333", "OFF"))
+Faceroll.createSpec("OFF", "333333", "OFF")
 Faceroll.enableSpec("OFF")
 
 local function bitsEnable(self, name)

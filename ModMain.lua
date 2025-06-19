@@ -17,7 +17,7 @@ end
 
 local function enabledFrameUpdate()
     if enabledFrame ~= nil then
-        local spec = Faceroll.specs[enabledSpec]
+        local spec = Faceroll.activeSpecsByIndex[enabledSpec]
         local color = spec.color
         if Faceroll.hold and enabledSpec > 0 then
             color = "cccccc"
@@ -136,7 +136,7 @@ local function updateBits()
         return
     end
     local specKey = playerClass .. "-" .. specIndex
-    local spec = Faceroll.specKeys[specKey]
+    local spec = Faceroll.activeSpecsByKey[specKey]
     if spec and spec.calcBits then
         local bits = spec.calcBits()
         local specIndex = spec.index

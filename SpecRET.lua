@@ -210,5 +210,3 @@ spec.nextAction = function(action, rawBits)
 
     return nil
 end
-
-Faceroll.registerSpec(spec)

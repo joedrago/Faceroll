@@ -74,7 +74,7 @@ function onKeyCode(keyCode)
         facerollSpecSendRemaining = 0
         sendKeyToWow(Faceroll.keys["froff"])
         facerollSpecSendRemaining = facerollSpec
-        print("Faceroll: " .. Faceroll.specs[facerollSpec].name)
+        print("Faceroll: " .. Faceroll.activeSpecsByIndex[facerollSpec].name)
 
     elseif keyCode == KEYCODE_DISABLE1 or keyCode == KEYCODE_DISABLE2 or keyCode == KEYCODE_DISABLE3 then
         facerollActive = false
@@ -133,7 +133,7 @@ function onUpdate(bits)
     elseif facerollSlowDown == 1 then
         local action = nil
 
-        local spec = Faceroll.specs[facerollSpec]
+        local spec = Faceroll.activeSpecsByIndex[facerollSpec]
         if spec ~= nil and spec.nextAction ~= nil then
             action = spec.nextAction(facerollAction, facerollGameBits)
         end
