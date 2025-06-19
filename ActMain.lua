@@ -9,6 +9,12 @@ function FRDEBUG(text)
 end
 
 -----------------------------------------------------------------------------------------
+-- Stub some functions that the mod needs but the actor doesn't
+
+Faceroll.trackBuffs = function() end
+Faceroll.deadzoneCreate = function() end
+
+-----------------------------------------------------------------------------------------
 -- Load and prepare all specs and settings
 
 require("Registry")

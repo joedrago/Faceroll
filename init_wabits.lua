@@ -65,11 +65,6 @@ function sendKeyToWow(key)
 end
 
 -----------------------------------------------------------------------------------------
--- Stub some functions that the mod needs but the actor doesn't
-
-Faceroll.trackBuffs = function() end
-
------------------------------------------------------------------------------------------
 -- Discover the list of Spec*.lua files to give to ActMain
 
 Faceroll.load = WABITS_LOAD

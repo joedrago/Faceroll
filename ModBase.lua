@@ -39,12 +39,21 @@ local buffs = {}
 
 Faceroll.trackBuffs = function(newBuffs)
     for _, name in ipairs(newBuffs) do
+        local extraSettings = nil
+        if type(name) == "table" then
+            extraSettings = name
+            name = name.name
+        end
         buffs[name] = { ["name"]=name }
         buffs[name].id = 0
         buffs[name].remain = false
         buffs[name].cto = false
         buffs[name].expirationTime = 0
         buffs[name].stacks = 0
+
+        if extraSettings ~= nil and extraSettings.harmful ~= nil then
+            buffs[name].harmful = extraSettings.harmful
+        end
     end
 end
 

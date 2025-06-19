@@ -11,7 +11,13 @@ Faceroll.debug = false
 -- Activated specs (order matters!)
 
 Faceroll.enableSpec("BM")
+Faceroll.enableSpec("MM")
+Faceroll.enableSpec("SV")
 Faceroll.enableSpec("VDH")
+Faceroll.enableSpec("HDH")
+Faceroll.enableSpec("RET")
+Faceroll.enableSpec("PP")
+Faceroll.enableSpec("HP")
 
 -----------------------------------------------------------------------------------------
 -- Keybinds

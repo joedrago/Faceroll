@@ -8,6 +8,12 @@ Registry.lua
 ModFrame.lua
 ModBase.lua
 SpecBM.lua
+SpecMM.lua
+SpecSV.lua
+SpecHP.lua
+SpecPP.lua
+SpecRET.lua
 SpecVDH.lua
+SpecHDH.lua
 Settings.lua
 ModMain.lua
