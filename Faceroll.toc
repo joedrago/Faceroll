@@ -15,5 +15,6 @@ SpecPP.lua
 SpecRET.lua
 SpecVDH.lua
 SpecHDH.lua
+SpecSUB.lua
 Settings.lua
 ModMain.lua
