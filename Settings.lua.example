@@ -3,12 +3,7 @@ if Faceroll == nil then
 end
 
 -----------------------------------------------------------------------------------------
--- Enable debug output / dashboards
-
-Faceroll.debug = false
-
------------------------------------------------------------------------------------------
--- Activated specs (order matters!)
+-- Activated specs. Put your most commonly used specs closer to the top.
 
 Faceroll.enableSpec("BM")
 -- Faceroll.enableSpec("MM")
@@ -26,7 +21,10 @@ Faceroll.enableSpec("HDH")
 -----------------------------------------------------------------------------------------
 -- Keybinds
 
--- The default action bars for a spec's listed actions (in order)
+-- The default action bars for a spec's listed actions (in order). Unless an
+-- explicit keybind is set for a named action (see below), they will be bound to
+-- the order provided below, and printed when ActMain runs (wabits console or
+-- hammerspoon console).
 Faceroll.keys[1] = "7"
 Faceroll.keys[2] = "8"
 Faceroll.keys[3] = "9"
@@ -57,3 +55,32 @@ Faceroll.keys["froff"] = "]"
 
 -- The keybind which toggles whether Faceroll is active or not
 Faceroll.keys["toggle"] = "f5"
+
+
+-----------------------------------------------------------------------------------------
+-- Element positioning
+
+-- The little "OFF" / "SV" spec text
+Faceroll.enabledFrameAnchor = "BOTTOMLEFT"
+Faceroll.enabledFrameX = 470
+Faceroll.enabledFrameY = 70
+Faceroll.enabledFrameFontSize = 18
+
+-- The text in the center of the screen saying "FR AE", etc
+Faceroll.activeFrameAnchor = "CENTER"
+Faceroll.activeFrameX = 0
+Faceroll.activeFrameY = -185
+Faceroll.activeFrameFontSize = 24
+Faceroll.activeFrameColor = "F5FF9D"
+
+-- The bits panel. This must correspond to the run_wabits* script's crop you use.
+-- If you use this, debug the wabits side with the PNG invocation of the script to
+-- verify you're capturing the whole panel and nothing but the panel.
+Faceroll.bitsPanelAnchor = "TOPRIGHT"
+Faceroll.bitsPanelX = -165
+Faceroll.bitsPanelY = -5
+
+-----------------------------------------------------------------------------------------
+-- Enable debug output / dashboards
+
+Faceroll.debug = false

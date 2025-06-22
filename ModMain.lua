@@ -9,10 +9,10 @@ local enabledFrame = nil
 local enabledSpec = Faceroll.SPEC_OFF
 
 local function enabledFrameCreate()
-    enabledFrame = Faceroll.createFrame(34, 34,                   -- size
-                                        "BOTTOMLEFT", 470, 70,    -- position
-                                        "TOOLTIP", 0.0,           -- strata/alpha
-                                        "CENTER", "firamono", 18) -- text
+    enabledFrame = Faceroll.createFrame(34, 34,
+                                        Faceroll.enabledFrameAnchor, Faceroll.enabledFrameX, Faceroll.enabledFrameY,
+                                        "TOOLTIP", 0.0,
+                                        "CENTER", "firamono", Faceroll.enabledFrameFontSize)
 end
 
 local function enabledFrameUpdate()
@@ -46,10 +46,10 @@ local activeFrame = nil
 local activeFrameTime = 0
 
 local function activeFrameCreate()
-    activeFrame = Faceroll.createFrame(100, 20,                      -- size
-                                       "CENTER", 0, -185,            -- position
+    activeFrame = Faceroll.createFrame(100, 20,
+                                       Faceroll.activeFrameAnchor, Faceroll.activeFrameX, Faceroll.activeFrameY,
                                        "TOOLTIP", 0.0,               -- strata/alpha
-                                       "CENTER", "forcedsquare", 24) -- text
+                                       "CENTER", "forcedsquare", Faceroll.activeFrameFontSize) -- text
 end
 
 function activeFrameSet(text)
@@ -58,7 +58,7 @@ function activeFrameSet(text)
         activeText = "HOLD " .. text
     end
     activeFrameTime = GetTime()
-    activeFrame:setText(Faceroll.textColor(activeText, "F5FF9D"))
+    activeFrame:setText(Faceroll.textColor(activeText, Faceroll.activeFrameColor))
 end
 
 -- This timer auto-resets the active frame text after ~500ms,
@@ -81,7 +81,7 @@ local bitsCells = {}
 
 local function createBits()
     bitsBG = CreateFrame("Frame")
-    bitsBG:SetPoint("TOPRIGHT", -165, -5)
+    bitsBG:SetPoint(Faceroll.bitsPanelAnchor, Faceroll.bitsPanelX, Faceroll.bitsPanelY)
     bitsBG:SetHeight(32)
     bitsBG:SetWidth(16)
     bitsBG:SetFrameStrata("TOOLTIP")
