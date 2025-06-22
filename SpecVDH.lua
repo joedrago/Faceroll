@@ -10,6 +10,7 @@ local spec = Faceroll.createSpec("VDH", "993399", "DEMONHUNTER-2")
 spec.buffs = {
     "Metamorphosis",
     "Soul Fragments",
+    "Demon Spikes",
 }
 
 spec.actions = {
@@ -24,10 +25,12 @@ spec.actions = {
     "spiritbomb",
     "fierybrand",
     "sigilofspite",
+    "demonspikes",
 }
 
 spec.states = {
     "metamorphosisbuff",
+    "demonspikesbuff",
     "metamorphosiscd",
     "feldevastation",
     "sigilofflame",
@@ -35,6 +38,7 @@ spec.states = {
     "thehunt",
     "felblade",
     "fracture",
+    "demonspikes",
     "furyG30",
     "furyG40",
     "furyG50",
@@ -45,9 +49,15 @@ spec.states = {
     "sigilofspite",
 }
 
+local demonspikesDeadzone = Faceroll.deadzoneCreate("Demon Spikes", 0.3, 0.5)
+
 spec.calcState = function(state)
     if Faceroll.isBuffActive("Metamorphosis") then
         state.metamorphosisbuff = true
+    end
+    if Faceroll.getBuffRemaining("Demon Spikes") > 2 then
+        state.demonspikesbuff = true
+        Faceroll.deadzoneUpdate(demonspikesDeadzone)
     end
 
     if Faceroll.isSpellAvailable("Metamorphosis") then
@@ -68,8 +78,11 @@ spec.calcState = function(state)
     if Faceroll.isSpellAvailable("Felblade") then
         state.felblade = true
     end
-    if Faceroll.spellCharges("Fracturestate.") then
+    if Faceroll.spellCharges("Fracture") then
         state.fracture = true
+    end
+    if Faceroll.spellCharges("Demon Spikes") > 0 and not Faceroll.deadzoneActive(demonspikesDeadzone) then
+        state.demonspikes = true
     end
 
     local fury = UnitPower("player")
@@ -119,7 +132,10 @@ spec.calcAction = function(mode, state)
     if mode == Faceroll.MODE_ST then
         -- Single Target
 
-        if state.fierybrand then
+        if not state.demonspikesbuff and state.demonspikes then
+            return "demonspikes"
+
+        elseif state.fierybrand then
             -- Use Fiery Brand if the debuff is not currently active.
             return "fierybrand"
 
@@ -171,7 +187,10 @@ spec.calcAction = function(mode, state)
     elseif mode == Faceroll.MODE_AOE then
         -- AOE
 
-        if state.fierybrand then
+        if not state.demonspikesbuff and state.demonspikes then
+            return "demonspikes"
+
+        elseif state.fierybrand then
             -- Use Fiery Brand if the debuff is not currently active.
             return "fierybrand"
 
