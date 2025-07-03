@@ -6,17 +6,19 @@ end
 -- Activated specs. Put your most commonly used specs closer to the top.
 
 Faceroll.enableSpec("BM")
--- Faceroll.enableSpec("MM")
--- Faceroll.enableSpec("SV")
+Faceroll.enableSpec("MM")
+Faceroll.enableSpec("SV")
 
 Faceroll.enableSpec("VDH")
 Faceroll.enableSpec("HDH")
 
--- Faceroll.enableSpec("RET")
--- Faceroll.enableSpec("PP")
+Faceroll.enableSpec("RET")
+Faceroll.enableSpec("PP")
 -- Faceroll.enableSpec("HP")
 
 -- Faceroll.enableSpec("SUB")
+
+Faceroll.enableSpec("CW")
 
 -----------------------------------------------------------------------------------------
 -- Keybinds

@@ -131,7 +131,10 @@ end
 
 local function updateBits()
     local _, playerClass = UnitClass("player")
-    local specIndex = GetSpecialization()
+    local specIndex = "CLASSIC"
+    if GetSpecialization ~= nil then
+        specIndex = GetSpecialization()
+    end
     if playerClass == nil or specIndex == nil then
         return
     end
