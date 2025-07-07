@@ -132,8 +132,10 @@ end
 local function updateBits()
     local _, playerClass = UnitClass("player")
     local specIndex = "CLASSIC"
-    if GetSpecialization ~= nil then
-        specIndex = GetSpecialization()
+    if not Faceroll.classic then
+        if GetSpecialization ~= nil then
+            specIndex = GetSpecialization()
+        end
     end
     if playerClass == nil or specIndex == nil then
         return
@@ -151,6 +153,10 @@ local function updateBits()
             -- print("specIndex: " .. specIndex .. " newBits: " .. bits)
         end
         showBits(bits)
+        if Faceroll.debug then
+            Faceroll.setDebugState(state)
+        else
+        end
     else
         hideBits()
     end
@@ -179,6 +185,10 @@ local function toggleHold()
         Faceroll.hold = true
     end
     enabledFrameUpdate()
+end
+local function toggleDebug()
+    Faceroll.debug = not Faceroll.debug
+    Faceroll.updateDebugOverlay()
 end
 
 -----------------------------------------------------------------------------------------
@@ -210,11 +220,12 @@ local function onEvent(self, event, arg1, arg2, ...)
         init()
     elseif event == "PLAYER_ENTERING_WORLD" then
         Faceroll.resetBuffs()
-    elseif event == "UNIT_SPELLCAST_SUCCEEDED" then
-        updateBits()
-    elseif event == "UNIT_PET" then
-        updateBits()
-    elseif event == "PLAYER_TARGET_CHANGED" then
+    elseif event == "UNIT_SPELLCAST_SUCCEEDED"
+        or event == "UNIT_PET"
+        or event == "PLAYER_TARGET_CHANGED"
+        or event == "PLAYER_REGEN_DISABLED"
+        or event == "PLAYER_REGEN_ENABLED"
+    then
         updateBits()
     elseif event == "UNIT_AURA" then
         if arg1 == "player" then
@@ -225,6 +236,10 @@ local function onEvent(self, event, arg1, arg2, ...)
         local _, spellEvent, _, source, _, _, _, _, _, _, _, spellID = CombatLogGetCurrentEventInfo()
         if source == UnitGUID("player") then
             Faceroll.onPlayerSpellEvent(spellEvent, spellID)
+        end
+        if Faceroll.classic then
+            -- Classic seems to get fewer other events, just blast here
+            updateBits()
         end
     end
 end
@@ -237,6 +252,8 @@ eventFrame:RegisterEvent("UNIT_PET")
 eventFrame:RegisterEvent("PLAYER_TARGET_CHANGED")
 eventFrame:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED")
 eventFrame:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
+eventFrame:RegisterEvent("PLAYER_REGEN_DISABLED")
+eventFrame:RegisterEvent("PLAYER_REGEN_ENABLED")
 eventFrame:SetScript("OnEvent", onEvent)
 
 DEFAULT_CHAT_FRAME.editBox:HookScript("OnShow", function()
@@ -257,3 +274,5 @@ SLASH_FRTICK1 = '/frtick'
 SlashCmdList["FRTICK"] = tickReset
 SLASH_FRHOLD1 = '/frhold'
 SlashCmdList["FRHOLD"] = toggleHold
+SLASH_FRDEBUG1 = '/frdebug'
+SlashCmdList["FRDEBUG"] = toggleDebug

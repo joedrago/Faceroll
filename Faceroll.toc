@@ -8,6 +8,8 @@ Registry.lua
 ModFrame.lua
 ModBase.lua
 SpecBM.lua
+SpecCD.lua
+SpecCP.lua
 SpecCW.lua
 SpecHDH.lua
 SpecHP.lua

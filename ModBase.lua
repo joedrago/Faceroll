@@ -3,26 +3,69 @@ if Faceroll == nil then
 end
 
 Faceroll.hold = false
+Faceroll.classic = false
+if WOW_PROJECT_ID == WOW_PROJECT_CLASSIC then
+    Faceroll.classic = true
+end
 
 -----------------------------------------------------------------------------------------
 -- Debug Overlay Shenanigans
 
 Faceroll.debug = false
 Faceroll.debugOverlay = nil
+Faceroll.debugState = ""
+Faceroll.debugText = ""
 
-Faceroll.setDebugText = function(text)
-    if Faceroll.debug and Faceroll.debugOverlay ~= nil then
-        Faceroll.debugOverlay:setText(text)
+Faceroll.updateDebugOverlay = function()
+    if Faceroll.debugOverlay == nil then
+        return
+    end
+
+    if Faceroll.debug then
+        Faceroll.debugOverlay:setText(Faceroll.debugState .. "\n" .. Faceroll.debugText)
+        Faceroll.debugOverlay.frame:Show()
+    else
+        Faceroll.debugOverlay.frame:Hide()
     end
 end
 
-Faceroll.debugInit = function()
-    if Faceroll.debug then
-        Faceroll.debugOverlay = Faceroll.createFrame(300, 300,                  -- size
-                                                     "TOPLEFT", 0, 0,           -- position
-                                                     "TOOLTIP", 0.9,            -- strata/alpha
-                                                     "TOPLEFT", "firamono", 13) -- text
+Faceroll.setDebugText = function(text)
+    Faceroll.debugText = text
+    Faceroll.updateDebugOverlay()
+end
+
+Faceroll.setDebugState = function(state)
+    local pad = function(text, count)
+        text = tostring(text)
+        while strlenutf8(text) < count do
+            text = " " .. text
+        end
+        return text
     end
+
+    local function bt(b)
+        if b then
+            return "\124cffffff00T\124r"
+        end
+        return "\124cff777777F\124r"
+    end
+
+    local o = ""
+    for k,v in pairs(state) do
+        o = o .. pad(k, 20) .. "  : " .. bt(v) .. "\n"
+    end
+
+    Faceroll.debugState = o
+    Faceroll.updateDebugOverlay()
+end
+
+
+Faceroll.debugInit = function()
+    Faceroll.debugOverlay = Faceroll.createFrame(300, 300,                  -- size
+                                                    "TOPLEFT", 0, 0,           -- position
+                                                    "TOOLTIP", 0.9,            -- strata/alpha
+                                                    "TOPLEFT", "firamono", 13) -- text
+    Faceroll.updateDebugOverlay()
 end
 
 -----------------------------------------------------------------------------------------
@@ -129,11 +172,22 @@ Faceroll.spellChargesSoon = function(spellName, count, seconds)
     return true
 end
 
+local builtinGSC = nil
+if C_Spell ~= nil then
+    builtinGSC = C_Spell.GetSpellCooldown
+end
+if builtinGSC == nil then
+    builtinGSC = function(spellName)
+        local _, duration = GetSpellCooldown(spellName)
+        return { ["duration"]=duration }
+    end
+end
+
 Faceroll.isSpellAvailable = function(spellName)
     if not C_Spell.IsSpellUsable(spellName) then
         return false
     end
-    if C_Spell.GetSpellCooldown(spellName).duration > 1.5 then
+    if builtinGSC(spellName).duration > 1.5 then
         return false
     end
     return true
@@ -171,6 +225,10 @@ Faceroll.isHotActive = function(spellName, target)
         return normalizedDuration
     end
     return -1
+end
+
+Faceroll.targetingEnemy = function()
+    return UnitExists("target") and not UnitIsDead("target") and not UnitIsFriend("player", "target")
 end
 
 -- Spellcasting "dead zones", aka windows of time where we should consider this spell unavailable/dead
