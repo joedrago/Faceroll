@@ -8,6 +8,7 @@ end
 local spec = Faceroll.createSpec("CP", "ccccaa", "PRIEST-CLASSIC")
 
 spec.buffs = {
+    "Inner Fire",
     "Renew",
     "Weakened Soul",
     "Power Word: Shield",
@@ -16,6 +17,7 @@ spec.buffs = {
 spec.states = {
     "combat",
 
+    "innerfire",
     "renewbuff",
     "weakenedsoulbuff",
     "shieldbuff",
@@ -34,6 +36,9 @@ spec.calcState = function(state)
         state.combat = true
     end
 
+    if Faceroll.isBuffActive("Inner Fire") then
+        state.innerfire = true
+    end
     if Faceroll.isBuffActive("Renew") then
         state.renewbuff = true
     end
@@ -76,6 +81,7 @@ spec.actions = {
     "mindblast",
     "pain",
     "shoot",
+    "innerfire",
 }
 
 spec.calcAction = function(mode, state)
@@ -83,7 +89,10 @@ spec.calcAction = function(mode, state)
         -- Single Target
 
         if state.targetingenemy then
-            if state.hp80 and not state.renewbuff then
+            if not state.combat and not state.innerfire then
+                return "innerfire"
+
+            elseif state.hp80 and not state.renewbuff then
                 return "renew"
 
             elseif not state.shieldbuff and not state.weakenedsoulbuff and state.shieldavailable then
