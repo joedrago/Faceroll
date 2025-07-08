@@ -14,6 +14,9 @@ spec.buffs = {
     "Power Word: Shield",
 }
 
+-----------------------------------------------------------------------------------------
+-- States
+
 spec.states = {
     "combat",
 
@@ -75,6 +78,9 @@ spec.calcState = function(state)
     return state
 end
 
+-----------------------------------------------------------------------------------------
+-- Actions
+
 spec.actions = {
     "shield",
     "renew",
@@ -89,7 +95,7 @@ spec.calcAction = function(mode, state)
         -- Single Target
 
         if state.targetingenemy then
-            if not state.combat and not state.innerfire then
+            if not state.innerfire then
                 return "innerfire"
 
             elseif state.hp80 and not state.renewbuff then
@@ -113,8 +119,12 @@ spec.calcAction = function(mode, state)
     elseif mode == Faceroll.MODE_AOE then
         -- AOE
 
-        if state.targetingenemy then
+        if not state.innerfire then
+            return "innerfire"
+
+        elseif state.targetingenemy then
             return "shoot"
+
         end
     end
 

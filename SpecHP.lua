@@ -11,12 +11,8 @@ spec.buffs = {
     "Consecration",
 }
 
-spec.actions = {
-    "crusaderstrike",
-    "judgment",
-    "consecration",
-    "hammerofwrath",
-}
+-----------------------------------------------------------------------------------------
+-- States
 
 spec.states = {
     "holypower5",
@@ -51,6 +47,16 @@ spec.calcState = function(state)
 
     return state
 end
+
+-----------------------------------------------------------------------------------------
+-- Actions
+
+spec.actions = {
+    "crusaderstrike",
+    "judgment",
+    "consecration",
+    "hammerofwrath",
+}
 
 spec.calcAction = function(mode, state)
     if mode == Faceroll.MODE_ST then

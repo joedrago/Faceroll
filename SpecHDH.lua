@@ -12,18 +12,8 @@ spec.buffs = {
     "Essence Break",
 }
 
-spec.actions = {
-    "throwglaive",
-    "immolationaura",
-    "chaosstrike",
-    "felblade",
-    "bladedance",
-    "eyebeam",
-    "sigilofflame",
-    "metamorphosis",
-    "thehunt",
-    "essencebreak",
-}
+-----------------------------------------------------------------------------------------
+-- States
 
 spec.states = {
     "metamorphosisbuff",
@@ -87,6 +77,22 @@ spec.calcState = function(state)
 
     return state
 end
+
+-----------------------------------------------------------------------------------------
+-- Actions
+
+spec.actions = {
+    "throwglaive",
+    "immolationaura",
+    "chaosstrike",
+    "felblade",
+    "bladedance",
+    "eyebeam",
+    "sigilofflame",
+    "metamorphosis",
+    "thehunt",
+    "essencebreak",
+}
 
 spec.calcAction = function(mode, state)
     if mode == Faceroll.MODE_ST then

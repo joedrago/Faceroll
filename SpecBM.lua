@@ -13,16 +13,8 @@ spec.buffs = {
     "Hogstrider",
 }
 
-spec.actions = {
-    "explosiveshot",
-    "cobrashot",
-    "direbeast",
-    "barbedshot",
-    "killcommand",
-    "multishot",
-    "mendpet",
-    "bestialwrath",
-}
+-----------------------------------------------------------------------------------------
+-- States
 
 spec.states = {
     "barbedshothighprio",
@@ -105,6 +97,20 @@ spec.calcState = function(state)
 
     return state
 end
+
+-----------------------------------------------------------------------------------------
+-- Actions
+
+spec.actions = {
+    "explosiveshot",
+    "cobrashot",
+    "direbeast",
+    "barbedshot",
+    "killcommand",
+    "multishot",
+    "mendpet",
+    "bestialwrath",
+}
 
 spec.calcAction = function(mode, state)
     if mode == Faceroll.MODE_ST then

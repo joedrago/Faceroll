@@ -19,18 +19,8 @@ spec.buffs = {
     "Danse Macabre",
 }
 
-spec.actions = {
-    "backstab",
-    "coldblood",
-    "eviscerate",
-    "flagellation",
-    "rupture",
-    "secrettechnique",
-    "shadowblades",
-    "shadowdance",
-    "shadowstrike",
-    "symbolsofdeath",
-}
+-----------------------------------------------------------------------------------------
+-- States
 
 spec.states = {
     -- player/base class state
@@ -158,6 +148,22 @@ spec.calcState = function(state)
 
     return state
 end
+
+-----------------------------------------------------------------------------------------
+-- Actions
+
+spec.actions = {
+    "backstab",
+    "coldblood",
+    "eviscerate",
+    "flagellation",
+    "rupture",
+    "secrettechnique",
+    "shadowblades",
+    "shadowdance",
+    "shadowstrike",
+    "symbolsofdeath",
+}
 
 spec.calcAction = function(mode, state)
     local useCooldowns = mode == Faceroll.MODE_ST

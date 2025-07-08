@@ -15,15 +15,8 @@ spec.buffs = {
     "Moving Target",
 }
 
-spec.actions = {
-    "multishot",
-    "rapidfire",
-    "aimedshot",
-    "explosiveshot",
-    "steadyshot",
-    "killshot",
-    "arcaneshot",
-}
+-----------------------------------------------------------------------------------------
+-- States
 
 spec.states = {
     "trickshots",
@@ -95,6 +88,19 @@ spec.calcState = function(state)
 
     return state
 end
+
+-----------------------------------------------------------------------------------------
+-- Actions
+
+spec.actions = {
+    "multishot",
+    "rapidfire",
+    "aimedshot",
+    "explosiveshot",
+    "steadyshot",
+    "killshot",
+    "arcaneshot",
+}
 
 spec.calcAction = function(mode, state)
     if mode == Faceroll.MODE_ST then

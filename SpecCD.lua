@@ -9,18 +9,18 @@ local spec = Faceroll.createSpec("CD", "006600", "DRUID-CLASSIC")
 
 spec.buffs = {
     "Mark of the Wild",
+    "Thorns",
 }
 
-spec.actions = {
-    "moonfire",
-    "wrath",
-}
+-----------------------------------------------------------------------------------------
+-- States
 
 spec.states = {
     "targetingenemy",
     "combat",
     "moonfire",
     "motw",
+    "thorns",
 }
 
 spec.calcState = function(state)
@@ -39,14 +39,30 @@ spec.calcState = function(state)
     if Faceroll.isBuffActive("Mark of the Wild") then
         state.motw = true
     end
+    if Faceroll.isBuffActive("Thorns") then
+        state.thorns = true
+    end
+
     return state
 end
+
+-----------------------------------------------------------------------------------------
+-- Actions
+
+spec.actions = {
+    "moonfire",
+    "wrath",
+    "thorns",
+}
 
 spec.calcAction = function(mode, state)
     if mode == Faceroll.MODE_ST then
         -- Single Target
 
-        if not state.moonfire and state.combat then
+        if not state.thorns and state.combat then
+            return "thorns"
+
+        elseif not state.moonfire and state.combat then
             return "moonfire"
 
         else

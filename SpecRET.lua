@@ -13,17 +13,8 @@ spec.buffs = {
     "Light's Deliverance",
 }
 
-spec.actions = {
-    "divinehammer",
-    "executionsentence",
-    "wakeofashes",
-    "finalverdict",
-    "divinestorm",
-    "bladeofjustice",
-    "divinetoll",
-    "judgment",
-    "hammerofwrath",
-}
+-----------------------------------------------------------------------------------------
+-- States
 
 spec.states = {
     "holypower3",
@@ -113,6 +104,21 @@ spec.calcState = function(state)
 
     return state
 end
+
+-----------------------------------------------------------------------------------------
+-- Actions
+
+spec.actions = {
+    "divinehammer",
+    "executionsentence",
+    "wakeofashes",
+    "finalverdict",
+    "divinestorm",
+    "bladeofjustice",
+    "divinetoll",
+    "judgment",
+    "hammerofwrath",
+}
 
 spec.calcAction = function(mode, state)
     if mode == Faceroll.MODE_ST then

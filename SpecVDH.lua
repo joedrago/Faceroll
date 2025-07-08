@@ -13,20 +13,8 @@ spec.buffs = {
     "Demon Spikes",
 }
 
-spec.actions = {
-    "throwglaive",
-    "felblade",
-    "soulcleave",
-    "fracture",
-    "metamorphosis",
-    "feldevastation",
-    "sigilofflame",
-    "immolationaura",
-    "spiritbomb",
-    "fierybrand",
-    "sigilofspite",
-    "demonspikes",
-}
+-----------------------------------------------------------------------------------------
+-- States
 
 spec.states = {
     "metamorphosisbuff",
@@ -127,6 +115,24 @@ spec.calcState = function(state)
 
     return state
 end
+
+-----------------------------------------------------------------------------------------
+-- Actions
+
+spec.actions = {
+    "throwglaive",
+    "felblade",
+    "soulcleave",
+    "fracture",
+    "metamorphosis",
+    "feldevastation",
+    "sigilofflame",
+    "immolationaura",
+    "spiritbomb",
+    "fierybrand",
+    "sigilofspite",
+    "demonspikes",
+}
 
 spec.calcAction = function(mode, state)
     if mode == Faceroll.MODE_ST then

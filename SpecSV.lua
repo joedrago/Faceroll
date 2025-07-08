@@ -13,15 +13,8 @@ spec.buffs = {
     "Tip of the Spear",
 }
 
-spec.actions = {
-    "wildfirebomb",
-    "killcommand",
-    "raptorstrike",
-    "butchery",
-    "furyoftheeagle",
-    "killshot",
-    "explosiveshot",
-}
+-----------------------------------------------------------------------------------------
+-- States
 
 spec.states = {
     "lunarstorm",
@@ -74,6 +67,19 @@ spec.calcState = function(state)
 
     return state
 end
+
+-----------------------------------------------------------------------------------------
+-- Actions
+
+spec.actions = {
+    "wildfirebomb",
+    "killcommand",
+    "raptorstrike",
+    "butchery",
+    "furyoftheeagle",
+    "killshot",
+    "explosiveshot",
+}
 
 spec.calcAction = function(mode, state)
     if mode == Faceroll.MODE_ST then
