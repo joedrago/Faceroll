@@ -16,14 +16,19 @@ spec.buffs = {
 -- States
 
 spec.states = {
+    "bear",
     "targetingenemy",
     "combat",
+    "roar",
     "moonfire",
-    "motw",
     "thorns",
 }
 
 spec.calcState = function(state)
+    if GetShapeshiftForm() == 1 then
+        state.bear = true
+    end
+
     if Faceroll.targetingEnemy() then
         state.targetingenemy = true
     end
@@ -32,13 +37,14 @@ spec.calcState = function(state)
         state.combat = true
     end
 
+    if Faceroll.isDotActive("Demoralizing Roar") > 0.1 then
+        state.roar = true
+    end
+
     if Faceroll.isDotActive("Moonfire") > 0.1 then
         state.moonfire = true
     end
 
-    if Faceroll.isBuffActive("Mark of the Wild") then
-        state.motw = true
-    end
     if Faceroll.isBuffActive("Thorns") then
         state.thorns = true
     end
@@ -50,33 +56,32 @@ end
 -- Actions
 
 spec.actions = {
-    "moonfire",
-    "wrath",
+    "bear",
     "thorns",
+    "roar",
+    "maul",
+    "moonfire",
 }
 
 spec.calcAction = function(mode, state)
-    if mode == Faceroll.MODE_ST then
-        -- Single Target
+    if mode == Faceroll.MODE_ST or mode == Faceroll.MODE_AOE then
 
-        if not state.thorns and state.combat then
-            return "thorns"
+        if state.targetingenemy then
+            if not state.combat and not state.thorns then
+                return "thorns"
 
-        elseif not state.moonfire and state.combat then
-            return "moonfire"
+            elseif not state.combat and not state.bear and not state.moonfire then
+                return "moonfire"
 
-        else
-            return "wrath"
-        end
+            elseif not state.bear then
+                return "bear"
 
-    elseif mode == Faceroll.MODE_AOE then
-        -- AOE
+            elseif not state.roar then
+                return "roar"
 
-        if not state.moonfire and state.combat then
-            return "moonfire"
-
-        else
-            return "wrath"
+            else
+                return "maul"
+            end
         end
 
     end
