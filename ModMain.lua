@@ -221,6 +221,7 @@ local function onEvent(self, event, arg1, arg2, ...)
     elseif event == "PLAYER_ENTERING_WORLD" then
         Faceroll.resetBuffs()
     elseif event == "UNIT_SPELLCAST_SUCCEEDED"
+        or event == "UNIT_MANA"
         or event == "UNIT_PET"
         or event == "PLAYER_TARGET_CHANGED"
         or event == "PLAYER_REGEN_DISABLED"
@@ -248,6 +249,7 @@ eventFrame:RegisterEvent("ADDON_LOADED")
 eventFrame:RegisterEvent("PLAYER_LOGIN")
 eventFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
 eventFrame:RegisterEvent("UNIT_AURA")
+eventFrame:RegisterEvent("UNIT_MANA")
 eventFrame:RegisterEvent("UNIT_PET")
 eventFrame:RegisterEvent("PLAYER_TARGET_CHANGED")
 eventFrame:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED")

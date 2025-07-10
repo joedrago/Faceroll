@@ -52,7 +52,7 @@ Faceroll.setDebugState = function(state)
 
     local o = ""
     for k,v in pairs(state) do
-        o = o .. pad(k, 20) .. "  : " .. bt(v) .. "\n"
+        o = o .. pad(k, 18) .. "  : " .. bt(v) .. "\n"
     end
 
     Faceroll.debugState = o
@@ -61,7 +61,7 @@ end
 
 
 Faceroll.debugInit = function()
-    Faceroll.debugOverlay = Faceroll.createFrame(300, 300,                  -- size
+    Faceroll.debugOverlay = Faceroll.createFrame(200, 200,                  -- size
                                                     "TOPLEFT", 0, 0,           -- position
                                                     "TOOLTIP", 0.9,            -- strata/alpha
                                                     "TOPLEFT", "firamono", 13) -- text
