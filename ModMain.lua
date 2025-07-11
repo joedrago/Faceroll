@@ -154,7 +154,7 @@ local function updateBits()
         end
         showBits(bits)
         if Faceroll.debug then
-            Faceroll.setDebugState(state)
+            Faceroll.setDebugState(state, spec.states)
         end
     else
         hideBits()

@@ -34,7 +34,7 @@ Faceroll.setDebugText = function(text)
     Faceroll.updateDebugOverlay()
 end
 
-Faceroll.setDebugState = function(state)
+Faceroll.setDebugState = function(state, keys)
     local pad = function(text, count)
         text = tostring(text)
         while strlenutf8(text) < count do
@@ -49,14 +49,6 @@ Faceroll.setDebugState = function(state)
         end
         return "\124cff777777F\124r"
     end
-
-    local keys = {}
-    for k,v in pairs(state) do
-        table.insert(keys, k)
-    end
-    table.sort(keys, function(a, b)
-        return a < b
-    end)
 
     local o = ""
     for _,k in ipairs(keys) do
