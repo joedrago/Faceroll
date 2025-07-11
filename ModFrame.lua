@@ -20,10 +20,6 @@ Faceroll.createFrame = function(
     frame:SetWidth(width)
     frame:SetHeight(height)
     frame:SetFrameStrata(strata)
-    frame.texture = frame:CreateTexture()
-    frame.texture:SetTexture("Interface/BUTTONS/WHITE8X8")
-    frame.texture:SetVertexColor(0.0, 0.0, 0.0, alpha)
-    frame.texture:SetAllPoints(frame)
     local text = frame:CreateFontString(nil, "ARTWORK")
     text:SetFont(FONTS[font], fontSize, "OUTLINE")
     text:SetPoint(justify, 0,0)
@@ -31,6 +27,10 @@ Faceroll.createFrame = function(
         text:SetJustifyH("LEFT")
         text:SetJustifyV("TOP")
     end
+    frame.texture = frame:CreateTexture()
+    frame.texture:SetTexture("Interface/BUTTONS/WHITE8X8")
+    frame.texture:SetVertexColor(0.0, 0.0, 0.0, alpha)
+    frame.texture:SetAllPoints(text)
     text:Show()
     frame:Show()
 

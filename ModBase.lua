@@ -22,7 +22,7 @@ Faceroll.updateDebugOverlay = function()
     end
 
     if Faceroll.debug then
-        Faceroll.debugOverlay:setText(Faceroll.debugState .. "\n" .. Faceroll.debugText)
+        Faceroll.debugOverlay:setText("\124cff444444      - Faceroll -      \124r\n\n" .. Faceroll.debugState .. "\n" .. Faceroll.debugText)
         Faceroll.debugOverlay.frame:Show()
     else
         Faceroll.debugOverlay.frame:Hide()
@@ -53,7 +53,11 @@ Faceroll.setDebugState = function(state, keys)
     local o = ""
     for _,k in ipairs(keys) do
         local v = state[k]
-        o = o .. pad(k, 18) .. "  : " .. bt(v) .. "\n"
+        if Faceroll.isSeparatorName(k) then
+            o = o .. "\124cffffffaa" .. pad(k, 18) .. "\124r\n"
+        else
+            o = o .. pad(k, 18) .. "  : " .. bt(v) .. "\n"
+        end
     end
 
     Faceroll.debugState = o

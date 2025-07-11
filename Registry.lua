@@ -55,7 +55,18 @@ local function bitsPack(self, state)
     return value
 end
 
-Faceroll.createBits = function(names)
+Faceroll.isSeparatorName = function(name)
+    return (string.find(name, "^[- ]") ~= nil)
+end
+
+Faceroll.createBits = function(unfilteredNames)
+    local names = {}
+    for _,name in ipairs(unfilteredNames) do
+        if not Faceroll.isSeparatorName(name) then
+            table.insert(names, name)
+        end
+    end
+
     local bits = {
         ["names"]=names,
         ["unpack"]=bitsUnpack,

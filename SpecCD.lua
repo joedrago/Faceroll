@@ -17,31 +17,52 @@ spec.buffs = {
 -- States
 
 spec.states = {
+    "- Stances -",
     "bear",
     "cat",
+    " ",
+
+    "- Combat -",
     "targetingenemy",
     "melee",
     "combat",
+    " ",
+
+    "- Resources -",
+    "hpL70",
+    "hpL90",
     "manaL70",
     "manaL80",
     "energyG30",
     "energyG40",
     "cpG3",
-    "hpL90",
-    "roar",
-    "moonfire",
+    " ",
+
+    "- Buffs -",
     "thorns",
     "rejuvenation",
+    " ",
+
+    "- Debuffs -",
+    "moonfire",
+    "roar",
+    " ",
+
+    "- Spells -",
     "enrage",
 }
 
 spec.calcState = function(state)
+    -- Stances --
+
     if GetShapeshiftForm() == 1 then
         state.bear = true
     end
     if GetShapeshiftForm() == 3 then
         state.cat = true
     end
+
+    -- Combat --
 
     if Faceroll.targetingEnemy() then
         state.targetingenemy = true
@@ -53,6 +74,18 @@ spec.calcState = function(state)
 
     if UnitAffectingCombat("player") then
         state.combat = true
+    end
+
+    -- Resources --
+
+    local curHP = UnitHealth("player")
+    local maxHP = UnitHealthMax("player")
+    local norHP = curHP / maxHP
+    if norHP < 0.7 then
+        state.hpL70 = true
+    end
+    if norHP < 0.9 then
+        state.hpL90 = true
     end
 
     local curMana = UnitPower("player", 0)
@@ -78,20 +111,7 @@ spec.calcState = function(state)
         state.cpG3 = true
     end
 
-    local curHP = UnitHealth("player")
-    local maxHP = UnitHealthMax("player")
-    local norHP = curHP / maxHP
-    if norHP < 0.9 then
-        state.hpL90 = true
-    end
-
-    if Faceroll.isDotActive("Demoralizing Roar") > 0.1 then
-        state.roar = true
-    end
-
-    if Faceroll.isDotActive("Moonfire") > 0.1 then
-        state.moonfire = true
-    end
+    -- Buffs --
 
     if Faceroll.isBuffActive("Thorns") then
         state.thorns = true
@@ -100,6 +120,18 @@ spec.calcState = function(state)
     if Faceroll.isBuffActive("Rejuvenation") then
         state.rejuvenation = true
     end
+
+    -- Debuffs --
+
+    if Faceroll.isDotActive("Moonfire") > 0.1 then
+        state.moonfire = true
+    end
+
+    if Faceroll.isDotActive("Demoralizing Roar") > 0.1 then
+        state.roar = true
+    end
+
+    -- Spells --
 
     if Faceroll.isSpellAvailable("Enrage") then
         state.enrage = true
@@ -128,7 +160,7 @@ spec.calcAction = function(mode, state)
     if mode == Faceroll.MODE_ST then
         -- Cat Form
 
-        if state.hpL90 and not state.manaL80 and not state.combat and not state.rejuvenation then
+        if state.hpL70 and not state.manaL80 and not state.combat and not state.rejuvenation then
             return "rejuvenation"
 
         elseif state.targetingenemy then

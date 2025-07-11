@@ -188,6 +188,7 @@ end
 local function toggleDebug()
     Faceroll.debug = not Faceroll.debug
     Faceroll.updateDebugOverlay()
+    updateBits()
 end
 
 -----------------------------------------------------------------------------------------
