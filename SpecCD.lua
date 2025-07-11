@@ -20,33 +20,28 @@ spec.states = {
     "- Stances -",
     "bear",
     "cat",
-    " ",
 
     "- Combat -",
     "targetingenemy",
     "melee",
     "combat",
-    " ",
 
     "- Resources -",
-    "hpL70",
+    "hpL80",
     "hpL90",
     "manaL70",
     "manaL80",
     "energyG30",
     "energyG40",
     "cpG3",
-    " ",
 
     "- Buffs -",
     "thorns",
     "rejuvenation",
-    " ",
 
     "- Debuffs -",
     "moonfire",
     "roar",
-    " ",
 
     "- Spells -",
     "enrage",
@@ -81,8 +76,8 @@ spec.calcState = function(state)
     local curHP = UnitHealth("player")
     local maxHP = UnitHealthMax("player")
     local norHP = curHP / maxHP
-    if norHP < 0.7 then
-        state.hpL70 = true
+    if norHP < 0.8 then
+        state.hpL80 = true
     end
     if norHP < 0.9 then
         state.hpL90 = true
@@ -160,20 +155,18 @@ spec.calcAction = function(mode, state)
     if mode == Faceroll.MODE_ST then
         -- Cat Form
 
-        if state.hpL70 and not state.manaL80 and not state.combat and not state.rejuvenation then
+        if state.hpL80 and not state.manaL70 and not state.combat and not state.rejuvenation then
             return "rejuvenation"
 
+        elseif not state.combat and not state.thorns then
+            return "thorns"
+
+        elseif not state.cat then
+            return "cat"
+
         elseif state.targetingenemy then
-            if not state.combat and not state.thorns then
-                return "thorns"
 
-            elseif not state.combat and not state.manaL70 and not state.cat and not state.moonfire then
-                return "moonfire"
-
-            elseif not state.cat then
-                return "cat"
-
-            elseif state.cpG3 and state.energyG30 then
+            if state.cpG3 and state.energyG30 then
                 return "rip"
 
             elseif state.energyG40 then
@@ -187,11 +180,11 @@ spec.calcAction = function(mode, state)
         if state.hpL90 and not state.manaL80 and not state.combat and not state.rejuvenation then
             return "rejuvenation"
 
-        elseif state.targetingenemy then
-            if not state.combat and not state.thorns then
+        elseif not state.combat and not state.thorns then
                 return "thorns"
 
-            elseif not state.combat and not state.manaL70 and not state.bear and not state.moonfire then
+        elseif state.targetingenemy then
+            if not state.combat and not state.manaL70 and not state.bear and not state.moonfire then
                 return "moonfire"
 
             elseif not state.bear then

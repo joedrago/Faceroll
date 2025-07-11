@@ -17,21 +17,32 @@ spec.buffs = {
 -- States
 
 spec.states = {
-    "barbedshothighprio",
+    "- Spells -",
     "bestialwrath",
     "killcommand",
     "explosiveshot",
     "direbeast",
     "barbedshot",
-    "barbedshottwochargessoon",
+
+    "- Buffs -",
     "hogstrider",
     "beastcleave",
     "beastcleaveending",
+
+    "- Barbed Shot -",
+    "barbedshothighprio",
+    "barbedshot2chg",
+
+    "- Resources -",
     "energyG85",
+
+    "- Pet HP -",
     "shouldmendpet",
 }
 
 spec.calcState = function(state)
+    -- Barbed Shot --
+
     local barbedShotCharges = Faceroll.spellCharges("Barbed Shot")
     local barbedShotTwoChargesSoon = Faceroll.spellChargesSoon("Barbed Shot", 2, 2.5)
     local killCommandCharges = Faceroll.spellCharges("Kill Command")
@@ -44,6 +55,11 @@ spec.calcState = function(state)
             state.barbedshothighprio = true
         end
     end
+    if barbedShotTwoChargesSoon then
+        state.barbedshot2chg = true
+    end
+
+    -- Spells --
 
     if Faceroll.isSpellAvailable("Bestial Wrath") then
         state.bestialwrath = true
@@ -60,9 +76,8 @@ spec.calcState = function(state)
     if Faceroll.isSpellAvailable("Barbed Shot") then
         state.barbedshot = true
     end
-    if barbedShotTwoChargesSoon then
-        state.barbedshottwochargessoon = true
-    end
+
+    -- Buffs --
 
     if Faceroll.isBuffActive("Hogstrider") then
         state.hogstrider = true
@@ -74,10 +89,14 @@ spec.calcState = function(state)
         state.beastcleaveending = true
     end
 
+    -- Resources --
+
     local energy = UnitPower("player")
     if energy >= 85 then
         state.energyG85 = true
     end
+
+    -- Pet HP --
 
     if UnitExists("pet") then
         local hasSpiritMend = false
@@ -176,7 +195,7 @@ spec.calcAction = function(mode, state)
             -- Use Dire Beast if Beast Cleave is up.
             return "direbeast"
 
-        elseif state.barbedshottwochargessoon then
+        elseif state.barbedshot2chg then
             -- Use Barbed Shot if you are about to reach 2 charges.
             return "barbedshot"
 

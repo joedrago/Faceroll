@@ -54,6 +54,9 @@ Faceroll.setDebugState = function(state, keys)
     for _,k in ipairs(keys) do
         local v = state[k]
         if Faceroll.isSeparatorName(k) then
+            if strlenutf8(o) > 0 then
+                o = o .. "\n"
+            end
             o = o .. "\124cffffffaa" .. pad(k, 18) .. "\124r\n"
         else
             o = o .. pad(k, 18) .. "  : " .. bt(v) .. "\n"
