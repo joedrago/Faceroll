@@ -18,10 +18,15 @@ spec.buffs = {
 
 spec.states = {
     "bear",
+    "cat",
     "targetingenemy",
     "melee",
     "combat",
+    "manaL70",
     "manaL80",
+    "energyG30",
+    "energyG40",
+    "cpG3",
     "hpL90",
     "roar",
     "moonfire",
@@ -33,6 +38,9 @@ spec.states = {
 spec.calcState = function(state)
     if GetShapeshiftForm() == 1 then
         state.bear = true
+    end
+    if GetShapeshiftForm() == 3 then
+        state.cat = true
     end
 
     if Faceroll.targetingEnemy() then
@@ -50,8 +58,24 @@ spec.calcState = function(state)
     local curMana = UnitPower("player", 0)
     local maxMana = UnitPowerMax("player", 0)
     local norMana = curMana / maxMana
+    if norMana < 0.7 then
+        state.manaL70 = true
+    end
     if norMana < 0.8 then
         state.manaL80 = true
+    end
+
+    local curEnergy = UnitPower("player", 3)
+    if curEnergy >= 30 then
+        state.energyG30 = true
+    end
+    if curEnergy >= 40 then
+        state.energyG40 = true
+    end
+
+    local cp = GetComboPoints("player", "target")
+    if cp >= 3 then
+        state.cpG3 = true
     end
 
     local curHP = UnitHealth("player")
@@ -91,14 +115,18 @@ spec.actions = {
     "bear",
     "thorns",
     "roar",
-    "maul",
+    "swipe",
     "moonfire",
     "rejuvenation",
     "enrage",
+    "cat",
+    "rip",
+    "claw",
 }
 
 spec.calcAction = function(mode, state)
-    if mode == Faceroll.MODE_ST or mode == Faceroll.MODE_AOE then
+    if mode == Faceroll.MODE_ST then
+        -- Cat Form
 
         if state.hpL90 and not state.manaL80 and not state.combat and not state.rejuvenation then
             return "rejuvenation"
@@ -107,7 +135,31 @@ spec.calcAction = function(mode, state)
             if not state.combat and not state.thorns then
                 return "thorns"
 
-            elseif not state.combat and not state.bear and not state.moonfire then
+            elseif not state.combat and not state.manaL70 and not state.cat and not state.moonfire then
+                return "moonfire"
+
+            elseif not state.cat then
+                return "cat"
+
+            elseif state.cpG3 and state.energyG30 then
+                return "rip"
+
+            elseif state.energyG40 then
+                return "claw"
+            end
+        end
+
+    elseif mode == Faceroll.MODE_AOE then
+        -- Bear Form
+
+        if state.hpL90 and not state.manaL80 and not state.combat and not state.rejuvenation then
+            return "rejuvenation"
+
+        elseif state.targetingenemy then
+            if not state.combat and not state.thorns then
+                return "thorns"
+
+            elseif not state.combat and not state.manaL70 and not state.bear and not state.moonfire then
                 return "moonfire"
 
             elseif not state.bear then
@@ -123,7 +175,7 @@ spec.calcAction = function(mode, state)
                 -- we want to wait if we can't roar
 
             else
-                return "maul"
+                return "swipe"
             end
         end
 
