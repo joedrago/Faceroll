@@ -25,6 +25,8 @@ spec.states = {
     "targetingenemy",
     "melee",
     "combat",
+    "aoe",
+    "hold",
 
     "- Resources -",
     "hpL80",
@@ -32,6 +34,7 @@ spec.states = {
     "manaL70",
     "manaL80",
     "energyG30",
+    "energyG35",
     "energyG40",
     "cpG3",
 
@@ -42,6 +45,7 @@ spec.states = {
     "- Debuffs -",
     "moonfire",
     "roar",
+    "rake",
 
     "- Spells -",
     "enrage",
@@ -71,6 +75,20 @@ spec.calcState = function(state)
         state.combat = true
     end
 
+    local mobCount = 0
+    for i = 0, 5, 1 do
+        if _G["NamePlate"..i] ~= nil and _G["NamePlate"..i]:IsVisible() then
+            mobCount = mobCount + 1
+        end
+    end
+    if mobCount > 1 then
+        state.aoe = true
+    end
+
+    if Faceroll.hold then
+        state.hold = true
+    end
+
     -- Resources --
 
     local curHP = UnitHealth("player")
@@ -96,6 +114,9 @@ spec.calcState = function(state)
     local curEnergy = UnitPower("player", 3)
     if curEnergy >= 30 then
         state.energyG30 = true
+    end
+    if curEnergy >= 35 then
+        state.energyG35 = true
     end
     if curEnergy >= 40 then
         state.energyG40 = true
@@ -126,6 +147,10 @@ spec.calcState = function(state)
         state.roar = true
     end
 
+    if Faceroll.isDotActive("Rake") > 0.1 then
+        state.rake = true
+    end
+
     -- Spells --
 
     if Faceroll.isSpellAvailable("Enrage") then
@@ -149,16 +174,18 @@ spec.actions = {
     "cat",
     "rip",
     "claw",
+    "rake",
+    "maul",
 }
 
 spec.calcAction = function(mode, state)
     if mode == Faceroll.MODE_ST then
         -- Cat Form
 
-        if state.hpL80 and not state.manaL70 and not state.combat and not state.rejuvenation then
+        if not state.targetingenemy and state.hpL80 and not state.manaL70 and not state.combat and not state.rejuvenation then
             return "rejuvenation"
 
-        elseif not state.combat and not state.thorns then
+        elseif not state.targetingenemy and not state.combat and not state.thorns then
             return "thorns"
 
         elseif not state.cat then
@@ -166,8 +193,13 @@ spec.calcAction = function(mode, state)
 
         elseif state.targetingenemy then
 
-            if state.cpG3 and state.energyG30 then
+            -- state.hold means "I am fighting bleed immune targets"
+
+            if not state.hold and state.cpG3 and state.energyG30 then
                 return "rip"
+
+            elseif not state.hold and not state.rake and state.energyG35 then
+                return "rake"
 
             elseif state.energyG40 then
                 return "claw"
@@ -177,10 +209,10 @@ spec.calcAction = function(mode, state)
     elseif mode == Faceroll.MODE_AOE then
         -- Bear Form
 
-        if state.hpL90 and not state.manaL80 and not state.combat and not state.rejuvenation then
+        if not state.targetingenemy and state.hpL90 and not state.manaL80 and not state.combat and not state.rejuvenation then
             return "rejuvenation"
 
-        elseif not state.combat and not state.thorns then
+        elseif not state.targetingenemy and not state.combat and not state.thorns then
                 return "thorns"
 
         elseif state.targetingenemy then
@@ -199,8 +231,10 @@ spec.calcAction = function(mode, state)
                 end
                 -- we want to wait if we can't roar
 
-            else
+            elseif state.aoe then
                 return "swipe"
+            else
+                return "maul"
             end
         end
 
