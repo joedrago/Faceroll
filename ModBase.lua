@@ -34,7 +34,7 @@ Faceroll.setDebugText = function(text)
     Faceroll.updateDebugOverlay()
 end
 
-Faceroll.setDebugState = function(state, keys)
+Faceroll.setDebugState = function(spec, state)
     local pad = function(text, count)
         text = tostring(text)
         while strlenutf8(text) < count do
@@ -51,7 +51,7 @@ Faceroll.setDebugState = function(state, keys)
     end
 
     local o = ""
-    for _,k in ipairs(keys) do
+    for _,k in ipairs(spec.states) do
         local v = state[k]
         if Faceroll.isSeparatorName(k) then
             if strlenutf8(o) > 0 then
@@ -61,6 +61,22 @@ Faceroll.setDebugState = function(state, keys)
         else
             o = o .. pad(k, 18) .. "  : " .. bt(v) .. "\n"
         end
+    end
+
+    if spec.calcAction then
+        o = o .. "\n\124cffffaaff - Next -\124r\n"
+
+        local actionST = spec.calcAction(Faceroll.MODE_ST, state)
+        if actionST == nil then
+            actionST = "--"
+        end
+        o = o .. "\124cffffaaff * ST \124r" .. "  : \124cffaaffaa" .. actionST .. "\124r\n"
+
+        local actionAOE = spec.calcAction(Faceroll.MODE_AOE, state)
+        if actionAOE == nil then
+            actionAOE = "--"
+        end
+        o = o .. "\124cffffaaff * AOE\124r" .. "  : \124cffaaffaa" .. actionAOE .. "\124r\n"
     end
 
     Faceroll.debugState = o

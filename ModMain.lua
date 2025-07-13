@@ -154,7 +154,7 @@ local function updateBits()
         end
         showBits(bits)
         if Faceroll.debug then
-            Faceroll.setDebugState(state, spec.states)
+            Faceroll.setDebugState(spec, state)
         end
     else
         hideBits()
@@ -276,5 +276,7 @@ SLASH_FRTICK1 = '/frtick'
 SlashCmdList["FRTICK"] = tickReset
 SLASH_FRHOLD1 = '/frhold'
 SlashCmdList["FRHOLD"] = toggleHold
+SLASH_FRD1 = '/frd'
+SlashCmdList["FRD"] = toggleDebug
 SLASH_FRDEBUG1 = '/frdebug'
 SlashCmdList["FRDEBUG"] = toggleDebug
