@@ -48,9 +48,11 @@ spec.states = {
     "moonfire",
     "roar",
     "rake",
+    "fff",
 
     "- Spells -",
     "enrage",
+    "fffready",
 }
 
 spec.calcState = function(state)
@@ -157,10 +159,18 @@ spec.calcState = function(state)
         state.rake = true
     end
 
+    if Faceroll.isDotActive("Faerie Fire (Feral)") > 0.1 then
+        state.fff = true
+    end
+
     -- Spells --
 
     if Faceroll.isSpellAvailable("Enrage") then
         state.enrage = true
+    end
+
+    if Faceroll.isSpellAvailable("Faerie Fire (Feral)") then
+        state.fffready = true
     end
 
     return state
@@ -183,6 +193,7 @@ spec.actions = {
     "rake",
     "maul",
     "tigersfury",
+    "fff",
 }
 
 spec.calcAction = function(mode, state)
@@ -202,7 +213,10 @@ spec.calcAction = function(mode, state)
 
             -- state.hold means "I am fighting bleed immune targets"
 
-            if not state.tigersfury and state.energyG30 then
+            if not state.fff and state.fffready then
+                return "fff"
+
+            elseif not state.tigersfury and state.energyG30 then
                 return "tigersfury"
 
             elseif not state.hold and state.cpG3 and state.energyG30 then
