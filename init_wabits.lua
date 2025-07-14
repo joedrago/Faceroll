@@ -29,7 +29,6 @@ local sendKeyVKCodes = {
     ["e"]=69,
     ["f"]=70,
     ["q"]=81,
-    ["q"]=81,
     ["v"]=86,
     ["x"]=88,
     ["z"]=90,
@@ -49,9 +48,28 @@ local sendKeyVKCodes = {
     ["pad7"]=103,
     ["pad8"]=104,
     ["pad9"]=105,
+
+    -- this must correspond to the values in wabits_lua.c
+    ["gamepad_up"]=1001,
+    ["gamepad_down"]=1002,
+    ["gamepad_left"]=1003,
+    ["gamepad_right"]=1004,
+    ["gamepad_start"]=1005,
+    ["gamepad_back"]=1006,
+    ["gamepad_l3"]=1007,
+    ["gamepad_r3"]=1008,
+    ["gamepad_l1"]=1009,
+    ["gamepad_r1"]=1010,
+    ["gamepad_a"]=1011,
+    ["gamepad_b"]=1012,
+    ["gamepad_x"]=1013,
+    ["gamepad_y"]=1014,
 }
 
 Faceroll.lookupKeyCode = function(keyName)
+    if keyName == nil then
+        return nil
+    end
     return sendKeyVKCodes[keyName]
 end
 

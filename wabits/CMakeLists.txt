@@ -59,5 +59,5 @@ add_executable(wabits
 )
 
 if(WIN32)
-    target_link_libraries(wabits wsock32)
+    target_link_libraries(wabits wsock32 xinput)
 endif()

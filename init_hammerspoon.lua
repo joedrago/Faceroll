@@ -8,6 +8,12 @@ Faceroll = {}
 -- Platform Specific Global Constants
 
 Faceroll.lookupKeyCode = function(keyName)
+    if keyName == nil then
+        return nil
+    end
+    if string.find(keyName, "^gamepad_") ~= nil then
+        return nil
+    end
     if keyName == "backspace" then
         return hs.keycodes.map["delete"]
     end

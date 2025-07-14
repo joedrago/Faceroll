@@ -51,17 +51,38 @@ local facerollGameBits = 0                  --  The current game state!
 -----------------------------------------------------------------------------------------
 -- Key handlers
 
-KEYCODE_TOGGLE = Faceroll.lookupKeyCode(Faceroll.keys["toggle"])
-KEYCODE_ST = Faceroll.lookupKeyCode(Faceroll.keys["mode_st"])
-KEYCODE_AOE = Faceroll.lookupKeyCode(Faceroll.keys["mode_aoe"])
+KEYCODE_TOGGLE1 = Faceroll.lookupKeyCode(Faceroll.keys["toggle1"])
+KEYCODE_TOGGLE2 = Faceroll.lookupKeyCode(Faceroll.keys["toggle2"])
+KEYCODE_ST1 = Faceroll.lookupKeyCode(Faceroll.keys["mode_st1"])
+KEYCODE_ST2 = Faceroll.lookupKeyCode(Faceroll.keys["mode_st2"])
+KEYCODE_AOE1 = Faceroll.lookupKeyCode(Faceroll.keys["mode_aoe1"])
+KEYCODE_AOE2 = Faceroll.lookupKeyCode(Faceroll.keys["mode_aoe2"])
+KEYCODE_RESET1 = Faceroll.lookupKeyCode(Faceroll.keys["reset1"])
+KEYCODE_RESET2 = Faceroll.lookupKeyCode(Faceroll.keys["reset2"])
 KEYCODE_DISABLE1 = Faceroll.lookupKeyCode(Faceroll.keys["disable1"])
 KEYCODE_DISABLE2 = Faceroll.lookupKeyCode(Faceroll.keys["disable2"])
 KEYCODE_DISABLE3 = Faceroll.lookupKeyCode(Faceroll.keys["disable3"])
 
-function onKeyCode(keyCode)
-    -- FRDEBUG("lole key " .. keyCode)
+function onReset()
+    if facerollSpec ~= nil then
+        FRDEBUG("Faceroll: Reset")
+        facerollAction = Faceroll.MODE_NONE
+    end
+end
 
-    if keyCode == KEYCODE_TOGGLE then
+function onKeyCode(keyCode)
+    -- FRDEBUG("lole key " .. keyCode
+    --     .. " KEYCODE_TOGGLE1 " .. KEYCODE_TOGGLE1
+    --     .. " KEYCODE_TOGGLE2 " .. KEYCODE_TOGGLE2
+    --     .. " KEYCODE_ST1 " .. KEYCODE_ST1
+    --     .. " KEYCODE_ST2 " .. KEYCODE_ST2
+    --     .. " KEYCODE_AOE1 " .. KEYCODE_AOE1
+    --     .. " KEYCODE_AOE2 " .. KEYCODE_AOE2
+    -- )
+
+    if ((KEYCODE_TOGGLE1 ~= nil) and (keyCode == KEYCODE_TOGGLE1))
+    or ((KEYCODE_TOGGLE2 ~= nil) and (keyCode == KEYCODE_TOGGLE2))
+    then
         if facerollActive then
             facerollActive = false
             facerollSpec = Faceroll.SPEC_OFF
@@ -80,11 +101,20 @@ function onKeyCode(keyCode)
         facerollActive = false
 
     elseif facerollActive then
-        if keyCode == KEYCODE_ST then
+        if ((KEYCODE_RESET1 ~= nil) and (keyCode == KEYCODE_RESET1))
+        or ((KEYCODE_RESET2 ~= nil) and (keyCode == KEYCODE_RESET2))
+        then
+            onReset()
+            return true
+        elseif ((KEYCODE_ST1 ~= nil) and (keyCode == KEYCODE_ST1))
+            or ((KEYCODE_ST2 ~= nil) and (keyCode == KEYCODE_ST2))
+        then
             FRDEBUG("Faceroll: ST")
             facerollAction = Faceroll.MODE_ST
             return true
-        elseif keyCode == KEYCODE_AOE then
+        elseif ((KEYCODE_AOE1 ~= nil) and (keyCode == KEYCODE_AOE1))
+            or ((KEYCODE_AOE2 ~= nil) and (keyCode == KEYCODE_AOE2))
+        then
             FRDEBUG("Faceroll: AOE")
             facerollAction = Faceroll.MODE_AOE
             return true
@@ -92,13 +122,6 @@ function onKeyCode(keyCode)
 
     end
     return false
-end
-
-function onReset()
-    if facerollSpec ~= nil then
-        FRDEBUG("Faceroll: Reset")
-        facerollAction = Faceroll.MODE_NONE
-    end
 end
 
 -----------------------------------------------------------------------------------------

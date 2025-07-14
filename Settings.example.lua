@@ -41,13 +41,24 @@ Faceroll.keys[9] = "f9"
 Faceroll.keys[10] = "f10"
 Faceroll.keys[11] = "f11"
 Faceroll.keys[12] = "f12"
+Faceroll.keys[13] = "pad7"
+Faceroll.keys[14] = "pad8"
+Faceroll.keys[15] = "pad4"
+Faceroll.keys[16] = "pad5"
 
 -- Any individual action's keybind can be set/overridden like this:
 -- Faceroll.keys["bestialwrath"] = "1"
 
+-- The keybind which toggles whether Faceroll is active or not
+Faceroll.keys["toggle1"] = "f5"
+Faceroll.keys["toggle2"] = "gamepad_up"
+
 -- Keybinds to enable ST or AOE mode
-Faceroll.keys["mode_st"] = "q"
-Faceroll.keys["mode_aoe"] = "e"
+Faceroll.keys["mode_st1"] = "q"
+Faceroll.keys["mode_st2"] = "gamepad_left"
+Faceroll.keys["mode_aoe1"] = "e"
+Faceroll.keys["mode_aoe2"] = "gamepad_right"
+Faceroll.keys["reset1"] = "gamepad_down"
 
 -- Keybinds which map to the macros "/fr ST" and "/fr AE"
 Faceroll.keys["signal_st"] = "pad9"
@@ -56,10 +67,6 @@ Faceroll.keys["signal_aoe"] = "pad6"
 -- Keybinds which map to the macros "/fron" and "/froff"
 Faceroll.keys["fron"] = "["
 Faceroll.keys["froff"] = "]"
-
--- The keybind which toggles whether Faceroll is active or not
-Faceroll.keys["toggle"] = "f5"
-
 
 -----------------------------------------------------------------------------------------
 -- Element positioning

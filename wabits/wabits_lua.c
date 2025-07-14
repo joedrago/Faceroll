@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <windows.h>
+#include <xinput.h>
 
 #include <lua.h>
 
@@ -191,6 +192,92 @@ static int32_t hookThread(void * p)
 }
 
 // --------------------------------------------------------------------------------------
+// Gamepad Code
+
+// This must match the values in init_wabits.lua
+#define WABITS_GAMEPAD_DPAD_UP 1001
+#define WABITS_GAMEPAD_DPAD_DOWN 1002
+#define WABITS_GAMEPAD_DPAD_LEFT 1003
+#define WABITS_GAMEPAD_DPAD_RIGHT 1004
+#define WABITS_GAMEPAD_START 1005
+#define WABITS_GAMEPAD_BACK 1006
+#define WABITS_GAMEPAD_LEFT_THUMB 1007
+#define WABITS_GAMEPAD_RIGHT_THUMB 1008
+#define WABITS_GAMEPAD_LEFT_SHOULDER 1009
+#define WABITS_GAMEPAD_RIGHT_SHOULDER 1010
+#define WABITS_GAMEPAD_A 1011
+#define WABITS_GAMEPAD_B 1012
+#define WABITS_GAMEPAD_X 1013
+#define WABITS_GAMEPAD_Y 1014
+
+static int gamepadThreadRunning = 1;
+static int32_t gamepadThread(void * p)
+{
+    printf("gamepadThread() startup\n");
+
+    struct ButtonMap
+    {
+        WORD flag;
+        int code;
+    };
+    static const struct ButtonMap buttons[] = {
+        { XINPUT_GAMEPAD_DPAD_UP, WABITS_GAMEPAD_DPAD_UP },
+        { XINPUT_GAMEPAD_DPAD_DOWN, WABITS_GAMEPAD_DPAD_DOWN },
+        { XINPUT_GAMEPAD_DPAD_LEFT, WABITS_GAMEPAD_DPAD_LEFT },
+        { XINPUT_GAMEPAD_DPAD_RIGHT, WABITS_GAMEPAD_DPAD_RIGHT },
+        { XINPUT_GAMEPAD_START, WABITS_GAMEPAD_START },
+        { XINPUT_GAMEPAD_BACK, WABITS_GAMEPAD_BACK },
+        { XINPUT_GAMEPAD_LEFT_THUMB, WABITS_GAMEPAD_LEFT_THUMB },
+        { XINPUT_GAMEPAD_RIGHT_THUMB, WABITS_GAMEPAD_RIGHT_THUMB },
+        { XINPUT_GAMEPAD_LEFT_SHOULDER, WABITS_GAMEPAD_LEFT_SHOULDER },
+        { XINPUT_GAMEPAD_RIGHT_SHOULDER, WABITS_GAMEPAD_RIGHT_SHOULDER },
+        { XINPUT_GAMEPAD_A, WABITS_GAMEPAD_A },
+        { XINPUT_GAMEPAD_B, WABITS_GAMEPAD_B },
+        { XINPUT_GAMEPAD_X, WABITS_GAMEPAD_X },
+        { XINPUT_GAMEPAD_Y, WABITS_GAMEPAD_Y },
+    };
+    static const size_t buttonCount = sizeof(buttons) / sizeof(buttons[0]);
+
+    XINPUT_STATE prevStates[XUSER_MAX_COUNT];
+    ZeroMemory(prevStates, sizeof(XINPUT_STATE) * XUSER_MAX_COUNT);
+
+    while (gamepadThreadRunning) {
+        DWORD dwResult;
+        for (DWORD i = 0; i < XUSER_MAX_COUNT; i++) {
+            XINPUT_STATE currState;
+            ZeroMemory(&currState, sizeof(XINPUT_STATE));
+
+            dwResult = XInputGetState(i, &currState);
+
+            if (dwResult == ERROR_SUCCESS) {
+                // Controller is connected
+
+                XINPUT_STATE * prevState = &prevStates[i];
+                for (size_t buttonIndex = 0; buttonIndex < buttonCount; ++buttonIndex) {
+                    const struct ButtonMap * button = &buttons[buttonIndex];
+                    if (!(prevState->Gamepad.wButtons & button->flag) && (currState.Gamepad.wButtons & button->flag)) {
+                        // This button was just pressed!
+
+                        wlOnKeyCode(L, button->code);
+                    }
+                }
+
+                memcpy(&prevStates[i], &currState, sizeof(XINPUT_STATE));
+            } else {
+                // Controller is not connected
+
+                ZeroMemory(&prevStates[i], sizeof(XINPUT_STATE));
+            }
+        }
+
+        Sleep(50);
+    }
+
+    printf("gamepadThread() shutdown\n");
+    return 0;
+}
+
+// --------------------------------------------------------------------------------------
 
 int wlStartup()
 {
@@ -231,6 +318,7 @@ int wlStartup()
     }
 
     wlThreadStart(hookThread);
+    wlThreadStart(gamepadThread);
 
     if (luaL_dofile(L, "wabits/wabits.lua") == LUA_OK) {
         lua_pop(L, lua_gettop(L));
@@ -245,6 +333,9 @@ int wlStartup()
 void wlShutdown()
 {
     printf("wlShutdown()\n");
+
+    hookThreadRunning = 0;
+    gamepadThreadRunning = 0;
 }
 
 void wlUpdate(uint32_t bits)
