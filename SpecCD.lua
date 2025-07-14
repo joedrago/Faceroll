@@ -11,6 +11,7 @@ spec.buffs = {
     "Mark of the Wild",
     "Thorns",
     "Rejuvenation",
+    "Tiger's Fury",
 }
 
 -----------------------------------------------------------------------------------------
@@ -41,6 +42,7 @@ spec.states = {
     "- Buffs -",
     "thorns",
     "rejuvenation",
+    "tigersfury",
 
     "- Debuffs -",
     "moonfire",
@@ -137,6 +139,10 @@ spec.calcState = function(state)
         state.rejuvenation = true
     end
 
+    if Faceroll.isBuffActive("Tiger's Fury") then
+        state.tigersfury = true
+    end
+
     -- Debuffs --
 
     if Faceroll.isDotActive("Moonfire") > 0.1 then
@@ -176,6 +182,7 @@ spec.actions = {
     "claw",
     "rake",
     "maul",
+    "tigersfury",
 }
 
 spec.calcAction = function(mode, state)
@@ -195,7 +202,10 @@ spec.calcAction = function(mode, state)
 
             -- state.hold means "I am fighting bleed immune targets"
 
-            if not state.hold and state.cpG3 and state.energyG30 then
+            if not state.tigersfury and state.energyG30 then
+                return "tigersfury"
+
+            elseif not state.hold and state.cpG3 and state.energyG30 then
                 return "rip"
 
             elseif not state.hold and not state.rake and state.energyG35 then
