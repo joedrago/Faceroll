@@ -12,6 +12,8 @@ local sendKeyVKCodes = {
     ["return"]=13,
     ["backspace"]=8,
 
+    ["gamepad_middle_button"]=7,
+
     ["1"]=49,
     ["2"]=50,
     ["3"]=51,

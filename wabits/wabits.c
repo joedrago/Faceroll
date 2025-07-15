@@ -400,8 +400,8 @@ wabitsBool y4mRead(struct Image * image, struct y4mFrameIterator ** iter)
     }
 
     // lazy AF
-    assert(frame.width <= 64);
-    assert(frame.height <= 64);
+    assert(frame.width <= 256);
+    assert(frame.height <= 256);
     assert(frame.format == WABITS_PIXEL_FORMAT_YUV422);
 
     image->width = frame.width;
@@ -491,9 +491,9 @@ int main(int argc, char * argv[])
 #endif
 
     struct Image image;
-    image.planes[0] = malloc(64 * 64);
-    image.planes[1] = malloc(64 * 64);
-    image.planes[2] = malloc(64 * 64);
+    image.planes[0] = malloc(256 * 256);
+    image.planes[1] = malloc(256 * 256);
+    image.planes[2] = malloc(256 * 256);
 
     struct y4mFrameIterator * frameIter = NULL;
 

@@ -51,7 +51,7 @@ Faceroll.keys[16] = "pad5"
 
 -- The keybind which toggles whether Faceroll is active or not
 Faceroll.keys["toggle1"] = "f5"
-Faceroll.keys["toggle2"] = "gamepad_up"
+Faceroll.keys["toggle2"] = "gamepad_middle_button"
 
 -- Keybinds to enable ST or AOE mode
 Faceroll.keys["mode_st1"] = "q"
