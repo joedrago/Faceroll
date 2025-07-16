@@ -188,7 +188,7 @@ spec.actions = {
     "rejuvenation",
     "enrage",
     "cat",
-    "rip",
+    "bite",
     "claw",
     "rake",
     "maul",
@@ -219,8 +219,8 @@ spec.calcAction = function(mode, state)
             elseif not state.tigersfury and state.energyG30 then
                 return "tigersfury"
 
-            elseif not state.hold and state.cpG3 and state.energyG30 then
-                return "rip"
+            elseif not state.hold and state.cpG3 and state.energyG35 then
+                return "bite"
 
             elseif not state.hold and not state.rake and state.energyG35 then
                 return "rake"
