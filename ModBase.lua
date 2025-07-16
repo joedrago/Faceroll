@@ -7,6 +7,9 @@ Faceroll.classic = false
 if WOW_PROJECT_ID == WOW_PROJECT_CLASSIC then
     Faceroll.classic = true
 end
+Faceroll.leftCombat = 0
+Faceroll.moving = false
+Faceroll.movingStopped = 0
 
 -----------------------------------------------------------------------------------------
 -- Debug Overlay Shenanigans
@@ -22,7 +25,18 @@ Faceroll.updateDebugOverlay = function()
     end
 
     if Faceroll.debug then
-        Faceroll.debugOverlay:setText("\124cff444444      - Faceroll -      \124r\n\n" .. Faceroll.debugState .. "\n" .. Faceroll.debugText)
+        local o = "\124cff444444      - Faceroll -      \124r\n\n"
+
+        local spec = Faceroll.activeSpec()
+        if spec then
+            local bitCount = #spec.bits.names
+            local actionCount = #spec.actions
+            o = o .. "\124cff" .. spec.color .. spec.name .. "\124r: \124cffffffaa".. bitCount .. "\124r bits, \124cffffffaa" .. actionCount .. "\124r actions\n\n"
+        end
+
+        o = o .. Faceroll.debugState .. "\n" .. Faceroll.debugText
+
+        Faceroll.debugOverlay:setText(o)
         Faceroll.debugOverlay.frame:Show()
     else
         Faceroll.debugOverlay.frame:Hide()

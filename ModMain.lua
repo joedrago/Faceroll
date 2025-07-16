@@ -130,18 +130,7 @@ local function hideBits()
 end
 
 local function updateBits()
-    local _, playerClass = UnitClass("player")
-    local specIndex = "CLASSIC"
-    if not Faceroll.classic then
-        if GetSpecialization ~= nil then
-            specIndex = GetSpecialization()
-        end
-    end
-    if playerClass == nil or specIndex == nil then
-        return
-    end
-    local specKey = playerClass .. "-" .. specIndex
-    local spec = Faceroll.activeSpecsByKey[specKey]
+    local spec = Faceroll.activeSpec()
     if spec and spec.calcState then
         local state = spec.calcState(spec.bits:unpack(0))
         local bits = spec.bits:pack(state)
@@ -184,6 +173,7 @@ local function toggleHold()
         Faceroll.hold = true
     end
     enabledFrameUpdate()
+    updateBits()
 end
 local function toggleDebug()
     Faceroll.debug = not Faceroll.debug
@@ -221,12 +211,24 @@ local function onEvent(self, event, arg1, arg2, ...)
     elseif event == "PLAYER_ENTERING_WORLD" then
         Faceroll.resetBuffs()
     elseif event == "UNIT_SPELLCAST_SUCCEEDED"
-        or event == "UNIT_MANA"
+        or event == "UNIT_POWER_UPDATE"
         or event == "UNIT_PET"
         or event == "PLAYER_TARGET_CHANGED"
         or event == "PLAYER_REGEN_DISABLED"
-        or event == "PLAYER_REGEN_ENABLED"
     then
+        updateBits()
+    elseif event == "PLAYER_REGEN_ENABLED" then
+        Faceroll.leftCombat = GetTime()
+        updateBits()
+    elseif event == "PLAYER_STARTED_MOVING" then
+        Faceroll.moving = true
+        updateBits()
+    elseif event == "PLAYER_STOPPED_MOVING" then
+        Faceroll.moving = false
+        Faceroll.movingStopped = GetTime()
+        C_Timer.After(0.6, function()
+            updateBits()
+        end)
         updateBits()
     elseif event == "UNIT_AURA" then
         if arg1 == "player" then
@@ -249,13 +251,15 @@ eventFrame:RegisterEvent("ADDON_LOADED")
 eventFrame:RegisterEvent("PLAYER_LOGIN")
 eventFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
 eventFrame:RegisterEvent("UNIT_AURA")
-eventFrame:RegisterEvent("UNIT_MANA")
+eventFrame:RegisterEvent("UNIT_POWER_UPDATE")
 eventFrame:RegisterEvent("UNIT_PET")
 eventFrame:RegisterEvent("PLAYER_TARGET_CHANGED")
 eventFrame:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED")
 eventFrame:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
 eventFrame:RegisterEvent("PLAYER_REGEN_DISABLED")
 eventFrame:RegisterEvent("PLAYER_REGEN_ENABLED")
+eventFrame:RegisterEvent("PLAYER_STARTED_MOVING")
+eventFrame:RegisterEvent("PLAYER_STOPPED_MOVING")
 eventFrame:SetScript("OnEvent", onEvent)
 
 DEFAULT_CHAT_FRAME.editBox:HookScript("OnShow", function()

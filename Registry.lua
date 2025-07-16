@@ -107,8 +107,10 @@ Faceroll.enableSpec = function(specName)
             end
             Faceroll.activeSpecsByKey[spec.key] = spec
             spec.bits = Faceroll.createBits(spec.states)
+            local bitCount = #spec.bits.names
+            local actionCount = #spec.actions
 
-            print("Enabling Spec: " .. spec.name .. " (" .. Faceroll.SPEC_LAST .. ")")
+            print("Enabling Spec: " .. spec.name .. " (" .. Faceroll.SPEC_LAST .. "), ".. bitCount .. "/28 bits, " .. actionCount .. " actions")
             return
         end
     end
@@ -132,6 +134,22 @@ Faceroll.activateKeybinds = function()
             end
         end
     end
+end
+
+Faceroll.activeSpec = function()
+    local _, playerClass = UnitClass("player")
+    local specIndex = "CLASSIC"
+    if not Faceroll.classic then
+        if GetSpecialization ~= nil then
+            specIndex = GetSpecialization()
+        end
+    end
+    if playerClass == nil or specIndex == nil then
+        return nil
+    end
+    local specKey = playerClass .. "-" .. specIndex
+    local spec = Faceroll.activeSpecsByKey[specKey]
+    return spec
 end
 
 Faceroll.createSpec("OFF", "333333", "OFF")

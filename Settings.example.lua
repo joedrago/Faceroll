@@ -19,6 +19,7 @@ Faceroll.enableSpec("PP")
 -- Faceroll.enableSpec("SUB")
 
 Faceroll.enableSpec("CD")
+Faceroll.enableSpec("CM")
 Faceroll.enableSpec("CP")
 Faceroll.enableSpec("CW")
 
