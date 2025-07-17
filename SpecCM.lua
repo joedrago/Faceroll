@@ -31,7 +31,7 @@ spec.states = {
 
     "- Resources -",
     "hpL50",
-    "manaL19",
+    "manaL25",
     "manaL50",
     "manaL80",
     "manafull",
@@ -104,8 +104,8 @@ spec.calcState = function(state)
     local curMana = UnitPower("player", 0)
     local maxMana = UnitPowerMax("player", 0)
     local norMana = curMana / maxMana
-    if norMana < 0.19 then
-        state.manaL19 = true
+    if norMana < 0.25 then
+        state.manaL25 = true
     end
     if norMana < 0.5 then
         state.manaL50 = true
@@ -196,7 +196,7 @@ spec.calcAction = function(mode, state)
             return nil
 
         elseif not state.combat
-           and (((state.hold and state.manaL19) or (not state.hold and state.manaL50)) or (state.hpL50))
+           and (((state.hold and state.manaL25) or (not state.hold and state.manaL50)) or (state.hpL50))
            and not state.waterL1
            and not state.drink
         --    and not state.combatrecent
@@ -235,11 +235,11 @@ spec.calcAction = function(mode, state)
             if mode == Faceroll.MODE_ST then
                 -- Single Target
 
-                if state.fireblast and state.melee and not state.manaL19 and state.hpL50 then
+                if state.fireblast and state.melee and not state.manaL25 and state.hpL50 then
                     -- hpL50 here is to take a hit or two while wanding for FSR
                     return "fireblast"
 
-                elseif state.melee or state.manaL19 then
+                elseif state.melee or state.manaL25 then
                     return "shoot"
 
                 else
