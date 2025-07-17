@@ -5,7 +5,7 @@ if Faceroll == nil then
     _, Faceroll = ...
 end
 
-local spec = Faceroll.createSpec("CM", "9999ff", "MAGE-CLASSIC")
+local spec = Faceroll.createSpec("CM", "00c7ee", "MAGE-CLASSIC")
 
 spec.buffs = {
     "Frost Armor",
