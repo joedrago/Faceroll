@@ -215,6 +215,7 @@ local function onEvent(self, event, arg1, arg2, ...)
         or event == "UNIT_PET"
         or event == "PLAYER_TARGET_CHANGED"
         or event == "PLAYER_REGEN_DISABLED"
+        or event == "BAG_UPDATE"
     then
         updateBits()
     elseif event == "PLAYER_REGEN_ENABLED" then
@@ -253,6 +254,7 @@ eventFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
 eventFrame:RegisterEvent("UNIT_AURA")
 eventFrame:RegisterEvent("UNIT_POWER_UPDATE")
 eventFrame:RegisterEvent("UNIT_PET")
+eventFrame:RegisterEvent("BAG_UPDATE")
 eventFrame:RegisterEvent("PLAYER_TARGET_CHANGED")
 eventFrame:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED")
 eventFrame:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
