@@ -13,7 +13,7 @@ spec.buffs = {
     "Drink",
 }
 
-local CONJURED_FOOD_NAME  = "Conjured Muffin"
+local CONJURED_FOOD_NAME  = "Conjured Bread"
 local CONJURED_WATER_NAME = "Conjured Fresh Water"
 
 -----------------------------------------------------------------------------------------
@@ -117,16 +117,19 @@ spec.calcState = function(state)
         state.manafull = true
     end
 
-    if GetItemCount(CONJURED_WATER_NAME) < 1 then
+    local waterCount = GetItemCount(CONJURED_WATER_NAME)
+    local foodCount  = GetItemCount(CONJURED_FOOD_NAME)
+
+    if waterCount < 1 then
         state.waterL1 = true
     end
-    if GetItemCount(CONJURED_WATER_NAME) < 100 then
+    if waterCount < 100 then
         state.waterL100 = true
     end
-    if GetItemCount(CONJURED_FOOD_NAME) < 1 then
+    if foodCount < 1 then
         state.foodL1 = true
     end
-    if GetItemCount(CONJURED_FOOD_NAME) < 100 then
+    if foodCount < 100 then
         state.foodL100 = true
     end
 
@@ -150,6 +153,16 @@ spec.calcState = function(state)
 
     if Faceroll.isSpellAvailable("Fire Blast") then
         state.fireblast = true
+    end
+
+    -- Extra debug info
+
+    if Faceroll.debug then
+        local o = ""
+        o = o .. "waterCount: " .. waterCount .. "\n"
+        o = o .. "foodCount : " .. foodCount .. "\n"
+        o = o .. "\n"
+        Faceroll.setDebugText(o)
     end
 
     return state
