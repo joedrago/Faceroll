@@ -133,6 +133,13 @@ spec.calcState = function(state)
         state.foodL100 = true
     end
 
+    if state.hold and state.waterL100 and state.foodL100 then
+        -- Make food if we have less than water
+        if foodCount < waterCount then
+            state.waterL100 = false -- lies!
+        end
+    end
+
     -- Buffs --
 
     if Faceroll.isBuffActive("Frost Armor") then
