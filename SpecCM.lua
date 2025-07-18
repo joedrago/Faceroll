@@ -20,7 +20,7 @@ spec.buffs = {
 }
 
 local CONJURED_FOOD_NAME  = "Conjured Bread"
-local CONJURED_WATER_NAME = "Conjured Fresh Water"
+local CONJURED_WATER_NAME = "Conjured Purified Water"
 
 -----------------------------------------------------------------------------------------
 -- States
@@ -33,6 +33,7 @@ spec.states = {
     "moving",
     "hold",
     "group",
+    "channeling",
 
     "- Resources -",
     "hpL50",
@@ -59,6 +60,7 @@ spec.states = {
     "- Spells -",
     "fireblast",
     "frostbolt",
+    "blizzard",
 }
 
 spec.calcState = function(state)
@@ -87,6 +89,12 @@ spec.calcState = function(state)
 
     if IsInGroup() then
         state.group = true
+    end
+
+    local channelingSpell, _, _, _, channelEndMS = UnitChannelInfo("player")
+    if channelingSpell then
+        -- local channelFinish = channelEndMS/1000 - GetTime()
+        state.channeling = true
     end
 
     -- Resources --
@@ -155,11 +163,12 @@ spec.calcState = function(state)
         state.fireblast = true
     end
 
-    local frostboltCost = C_Spell.GetSpellPowerCost("Frostbolt")
-    if frostboltCost ~= nil and frostboltCost[1] ~= nil and frostboltCost[1].cost > 0 then
-        if curMana >= frostboltCost[1].cost then
-            state.frostbolt = true
-        end
+    if Faceroll.hasManaForSpell("Frostbolt") then
+        state.frostbolt = true
+    end
+
+    if Faceroll.hasManaForSpell("Blizzard") then
+        state.blizzard = true
     end
 
     -- Extra debug info
@@ -187,6 +196,7 @@ spec.actions = {
     "consume",
     "makefood",
     "makewater",
+    "blizzard",
 }
 
 spec.calcAction = function(mode, state)
@@ -206,6 +216,7 @@ spec.calcAction = function(mode, state)
            and not state.waterL1
            and not state.drink
            and not state.moving
+           and not state.channeling
            then
             -- low on mana or hp, and we've given a second or two to loot
             return "consume"
@@ -230,25 +241,36 @@ spec.calcAction = function(mode, state)
             -- we just finished preparing a big pile of water and buffs, top off
             return "consume"
 
-        elseif state.targetingenemy and not state.hold then
+        elseif not state.hold then
             -- combat
 
             if mode == Faceroll.MODE_ST then
                 -- Single Target
 
-                if state.fireblast and state.melee and not state.manaL25 and state.hpL50 then
-                    -- hpL50 here is to take a hit or two while wanding for FSR
-                    return "fireblast"
+                if state.targetingenemy then
+                    if state.fireblast and state.melee and not state.manaL25 and state.hpL50 then
+                        -- hpL50 here is to take a hit or two while wanding for FSR
+                        return "fireblast"
 
-                elseif (state.melee and not state.group) or not state.frostbolt then
-                    return "shoot"
+                    elseif (state.melee and not state.group) or not state.frostbolt then
+                        return "shoot"
 
-                else
-                    return "frostbolt"
+                    else
+                        return "frostbolt"
+                    end
                 end
 
             elseif mode == Faceroll.MODE_AOE then
                 -- AOE
+
+                if not state.channeling then
+                    if state.blizzard then
+                        return "blizzard"
+
+                    elseif state.targetingenemy then
+                        return "shoot"
+                    end
+                end
             end
         end
     end

@@ -216,6 +216,7 @@ local function onEvent(self, event, arg1, arg2, ...)
         or event == "PLAYER_TARGET_CHANGED"
         or event == "PLAYER_REGEN_DISABLED"
         or event == "BAG_UPDATE"
+        or event == "UNIT_SPELLCAST_CHANNEL_STOP"
     then
         updateBits()
     elseif event == "PLAYER_REGEN_ENABLED" then
@@ -257,6 +258,7 @@ eventFrame:RegisterEvent("UNIT_PET")
 eventFrame:RegisterEvent("BAG_UPDATE")
 eventFrame:RegisterEvent("PLAYER_TARGET_CHANGED")
 eventFrame:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED")
+eventFrame:RegisterEvent("UNIT_SPELLCAST_CHANNEL_STOP")
 eventFrame:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
 eventFrame:RegisterEvent("PLAYER_REGEN_DISABLED")
 eventFrame:RegisterEvent("PLAYER_REGEN_ENABLED")

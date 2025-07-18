@@ -231,6 +231,17 @@ Faceroll.isSpellAvailable = function(spellName)
     return true
 end
 
+Faceroll.hasManaForSpell = function(spellName)
+    local curMana = UnitPower("player", 0)
+    local spellCost = C_Spell.GetSpellPowerCost(spellName)
+    if spellCost ~= nil and spellCost[1] ~= nil and spellCost[1].cost > 0 then
+        if curMana >= spellCost[1].cost then
+            return true
+        end
+    end
+    return false
+end
+
 Faceroll.isDotActive = function(spellName)
     local name, _, _, _, fullDuration, expirationTime = AuraUtil.FindAuraByName(spellName, "target", "HARMFUL|PLAYER")
     if name ~= nil and fullDuration > 0 then
