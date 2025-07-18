@@ -1,6 +1,12 @@
 -----------------------------------------------------------------------------------------
 -- Classic Mage
 
+-- Faceroll.hold is special in this implementation: it provides a means to
+-- create lots of conjured food and water. If you enable "hold" (/frhold), ST
+-- will attempt to create 100 food and 100 water, then self-buff, drink to full,
+-- and wait. If using AOE, it behaves the same, but will just make food and
+-- water forever (instead of stopping at 100 each).
+
 if Faceroll == nil then
     _, Faceroll = ...
 end
@@ -23,11 +29,10 @@ spec.states = {
     "- Combat -",
     "targetingenemy",
     "combat",
-    "combatrecent",
     "melee",
     "moving",
     "hold",
-    -- "shoot",
+    "group",
 
     "- Resources -",
     "hpL50",
@@ -45,6 +50,7 @@ spec.states = {
     "waterL100",
     "foodL1",
     "foodL100",
+    "foodLwater",
 
     "- Buffs -",
     "frostarmor",
@@ -52,6 +58,7 @@ spec.states = {
 
     "- Spells -",
     "fireblast",
+    "frostbolt",
 }
 
 spec.calcState = function(state)
@@ -63,11 +70,6 @@ spec.calcState = function(state)
 
     if UnitAffectingCombat("player") then
         state.combat = true
-    end
-
-    local timeSinceCombat = GetTime() - Faceroll.leftCombat
-    if timeSinceCombat <= 1 then
-        state.combatrecent = true
     end
 
     if CheckInteractDistance("target", 3) then
@@ -83,14 +85,9 @@ spec.calcState = function(state)
         state.hold = true
     end
 
-    -- local shootButton = nil
-    -- local shootButtons = C_ActionBar.FindSpellActionButtons(5019)
-    -- if shootButtons then
-    --     shootButton = shootButtons[1]
-    -- end
-    -- if shootButton and IsCurrentAction(shootButton) then
-    --     state.shoot = true
-    -- end
+    if IsInGroup() then
+        state.group = true
+    end
 
     -- Resources --
 
@@ -132,12 +129,8 @@ spec.calcState = function(state)
     if foodCount < 100 then
         state.foodL100 = true
     end
-
-    if state.hold and state.waterL100 and state.foodL100 then
-        -- Make food if we have less than water
-        if foodCount < waterCount then
-            state.waterL100 = false -- lies!
-        end
+    if foodCount < waterCount then
+        state.foodLwater = true
     end
 
     -- Buffs --
@@ -160,6 +153,13 @@ spec.calcState = function(state)
 
     if Faceroll.isSpellAvailable("Fire Blast") then
         state.fireblast = true
+    end
+
+    local frostboltCost = C_Spell.GetSpellPowerCost("Frostbolt")
+    if frostboltCost ~= nil and frostboltCost[1] ~= nil and frostboltCost[1].cost > 0 then
+        if curMana >= frostboltCost[1].cost then
+            state.frostbolt = true
+        end
     end
 
     -- Extra debug info
@@ -191,30 +191,31 @@ spec.actions = {
 
 spec.calcAction = function(mode, state)
     if mode == Faceroll.MODE_ST or mode == Faceroll.MODE_AOE then
-        if not state.combat and state.drink and not state.manafull then
+        local makeForever = state.hold and (mode == Faceroll.MODE_AOE)
+
+        if not state.combat and state.drink and state.drinkending and state.manaL80 then
+            -- we're going to need to drink more to finish drinking
+            return "consume"
+
+        elseif not state.combat and state.drink and not state.manafull then
             -- wait for full mana
             return nil
 
         elseif not state.combat
-           and (((state.hold and state.manaL25) or (not state.hold and state.manaL50)) or (state.hpL50))
+           and (((state.hold and state.manaL25) or (not state.hold and state.manaL50)) or (state.hpL50) or (not state.hold and state.group and not state.manafull))
            and not state.waterL1
            and not state.drink
-        --    and not state.combatrecent
            and not state.moving
            then
             -- low on mana or hp, and we've given a second or two to loot
             return "consume"
 
-        elseif not state.combat and state.drink and state.drinkending and state.manaL80 then
-            -- we're going to need to drink more to finish drinking
-            return "consume"
-
-        elseif not state.combat and state.waterL1 or (state.hold and state.waterL100) then
+        elseif not state.combat and not state.foodLwater and (makeForever or state.waterL1 or (state.hold and state.waterL100)) then
             -- we're either making one batch because we ran out, or we're doing
             -- a big prep because "hold" == "big prep"
             return "makewater"
 
-        elseif not state.combat and state.foodL1 or (state.hold and state.foodL100) then
+        elseif not state.combat and (makeForever or state.foodL1 or (state.hold and state.foodL100)) then
             -- we're either making one batch because we ran out, or we're doing
             -- a big prep because "hold" == "big prep"
             return "makefood"
@@ -239,7 +240,7 @@ spec.calcAction = function(mode, state)
                     -- hpL50 here is to take a hit or two while wanding for FSR
                     return "fireblast"
 
-                elseif state.melee or state.manaL25 then
+                elseif (state.melee and not state.group) or not state.frostbolt then
                     return "shoot"
 
                 else
