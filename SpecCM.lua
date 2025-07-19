@@ -17,6 +17,7 @@ spec.buffs = {
     "Frost Armor",
     "Arcane Intellect",
     "Drink",
+    "Mana Shield",
 }
 
 local CONJURED_FOOD_NAME  = "Conjured Bread"
@@ -56,6 +57,7 @@ spec.states = {
     "- Buffs -",
     "frostarmor",
     "arcaneintellect",
+    "manashield",
 
     "- Spells -",
     "fireblast",
@@ -156,6 +158,9 @@ spec.calcState = function(state)
     if Faceroll.getBuffRemaining("Drink") < 4 then
         state.drinkending = true
     end
+    if Faceroll.isBuffActive("Mana Shield") then
+        state.manashield = true
+    end
 
     -- Spells --
 
@@ -197,6 +202,7 @@ spec.actions = {
     "makefood",
     "makewater",
     "blizzard",
+    "manashield",
 }
 
 spec.calcAction = function(mode, state)
@@ -216,7 +222,7 @@ spec.calcAction = function(mode, state)
            and not state.waterL1
            and not state.drink
            and not state.moving
-           and not state.channeling
+        --    and not state.channeling
            then
             -- low on mana or hp, and we've given a second or two to loot
             return "consume"
@@ -252,7 +258,10 @@ spec.calcAction = function(mode, state)
                         -- hpL50 here is to take a hit or two while wanding for FSR
                         return "fireblast"
 
-                    elseif (state.melee and not state.group) or not state.frostbolt then
+                    elseif not state.group and state.melee and not state.manashield and not state.manaL25 then
+                        return "manashield"
+
+                    elseif (state.melee and not state.group and not state.manashield) or not state.frostbolt then
                         return "shoot"
 
                     else
