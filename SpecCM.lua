@@ -272,7 +272,10 @@ spec.calcAction = function(mode, state)
             elseif mode == Faceroll.MODE_AOE then
                 -- AOE
 
-                if not state.channeling then
+                if not state.combat and state.targetingenemy then
+                    return "shoot"
+
+                elseif not state.channeling and state.combat then
                     if state.blizzard then
                         return "blizzard"
 
