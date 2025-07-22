@@ -7,6 +7,13 @@
 -- and wait. If using AOE, it behaves the same, but will just make food and
 -- water forever (instead of stopping at 100 each).
 
+-- For combat, everything is decided based on:
+-- * am I already in combat
+-- * am I targeting an enemy
+-- * do I have enough mana
+--
+-- Typically targeting an enemy is a signal that I want to *enter* combat.
+
 if Faceroll == nil then
     _, Faceroll = ...
 end
@@ -14,14 +21,14 @@ end
 local spec = Faceroll.createSpec("CM", "00c7ee", "MAGE-CLASSIC")
 
 spec.buffs = {
-    "Frost Armor",
+    "Ice Armor",
     "Arcane Intellect",
     "Drink",
     "Mana Shield",
 }
 
-local CONJURED_FOOD_NAME  = "Conjured Bread"
-local CONJURED_WATER_NAME = "Conjured Purified Water"
+local CONJURED_FOOD_NAME  = "Conjured Rye"
+local CONJURED_WATER_NAME = "Conjured Spring Water"
 
 -----------------------------------------------------------------------------------------
 -- States
@@ -55,12 +62,12 @@ spec.states = {
     "foodLwater",
 
     "- Buffs -",
-    "frostarmor",
+    "icearmor",
     "arcaneintellect",
     "manashield",
 
     "- Spells -",
-    "fireblast",
+    "coneofcold",
     "frostbolt",
     "blizzard",
 }
@@ -145,8 +152,8 @@ spec.calcState = function(state)
 
     -- Buffs --
 
-    if Faceroll.isBuffActive("Frost Armor") then
-        state.frostarmor = true
+    if Faceroll.isBuffActive("Ice Armor") then
+        state.icearmor = true
     end
 
     if Faceroll.isBuffActive("Arcane Intellect") then
@@ -164,8 +171,8 @@ spec.calcState = function(state)
 
     -- Spells --
 
-    if Faceroll.isSpellAvailable("Fire Blast") then
-        state.fireblast = true
+    if Faceroll.isSpellAvailable("Cone of Cold") then
+        state.coneofcold = true
     end
 
     if Faceroll.hasManaForSpell("Frostbolt") then
@@ -193,10 +200,10 @@ end
 -- Actions
 
 spec.actions = {
-    "frostarmor",
+    "icearmor",
     "arcaneintellect",
     "frostbolt",
-    "fireblast",
+    "coneofcold",
     "shoot",
     "consume",
     "makefood",
@@ -217,12 +224,13 @@ spec.calcAction = function(mode, state)
             -- wait for full mana
             return nil
 
+        -- TODO: make this conditional significantly less ugly
         elseif not state.combat
-           and (((state.hold and state.manaL25) or (not state.hold and state.manaL50)) or (state.hpL50) or (not state.hold and state.group and not state.manafull))
+           and (((state.hold and state.manaL25) or (not state.hold and (state.manaL50 or state.hpL50))) or (not state.hold and state.group and not state.manafull))
            and not state.waterL1
            and not state.drink
            and not state.moving
-        --    and not state.channeling
+           and not state.targetingenemy
            then
             -- low on mana or hp, and we've given a second or two to loot
             return "consume"
@@ -237,8 +245,8 @@ spec.calcAction = function(mode, state)
             -- a big prep because "hold" == "big prep"
             return "makefood"
 
-        elseif not state.combat and not state.frostarmor then
-            return "frostarmor"
+        elseif not state.combat and not state.icearmor then
+            return "icearmor"
 
         elseif not state.combat and not state.arcaneintellect then
             return "arcaneintellect"
@@ -254,9 +262,9 @@ spec.calcAction = function(mode, state)
                 -- Single Target
 
                 if state.targetingenemy then
-                    if state.fireblast and state.melee and not state.manaL25 and state.hpL50 then
+                    if state.coneofcold and state.melee and not state.manaL25 and state.hpL50 then
                         -- hpL50 here is to take a hit or two while wanding for FSR
-                        return "fireblast"
+                        return "coneofcold"
 
                     elseif not state.group and state.melee and not state.manashield and not state.manaL25 then
                         return "manashield"
@@ -272,10 +280,7 @@ spec.calcAction = function(mode, state)
             elseif mode == Faceroll.MODE_AOE then
                 -- AOE
 
-                if not state.combat and state.targetingenemy then
-                    return "shoot"
-
-                elseif not state.channeling and state.combat then
+                if not state.channeling and (state.combat or state.targetingenemy) then
                     if state.blizzard then
                         return "blizzard"
 
