@@ -23,6 +23,8 @@ Faceroll.enableSpec("CM")
 Faceroll.enableSpec("CP")
 Faceroll.enableSpec("CW")
 
+Faceroll.enableSpec("DB")
+
 -----------------------------------------------------------------------------------------
 -- Keybinds
 

@@ -12,6 +12,7 @@ SpecCD.lua
 SpecCM.lua
 SpecCP.lua
 SpecCW.lua
+SpecDB.lua
 SpecHDH.lua
 SpecHP.lua
 SpecMM.lua
