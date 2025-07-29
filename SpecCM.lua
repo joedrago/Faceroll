@@ -21,14 +21,14 @@ end
 local spec = Faceroll.createSpec("CM", "00c7ee", "MAGE-CLASSIC")
 
 spec.buffs = {
-    "Ice Armor",
+    "Mage Armor",
     "Arcane Intellect",
     "Drink",
-    "Mana Shield",
+    "Ice Barrier",
 }
 
-local CONJURED_FOOD_NAME  = "Conjured Rye"
-local CONJURED_WATER_NAME = "Conjured Spring Water"
+local CONJURED_FOOD_NAME  = "Conjured Sourdough"
+local CONJURED_WATER_NAME = "Conjured Mineral Water"
 
 -----------------------------------------------------------------------------------------
 -- States
@@ -62,11 +62,12 @@ spec.states = {
     "foodLwater",
 
     "- Buffs -",
-    "icearmor",
+    "magearmor",
     "arcaneintellect",
-    "manashield",
+    "icebarrier",
 
     "- Spells -",
+    "icebarrierready",
     "coneofcold",
     "frostbolt",
     "blizzard",
@@ -152,8 +153,8 @@ spec.calcState = function(state)
 
     -- Buffs --
 
-    if Faceroll.isBuffActive("Ice Armor") then
-        state.icearmor = true
+    if Faceroll.isBuffActive("Mage Armor") then
+        state.magearmor = true
     end
 
     if Faceroll.isBuffActive("Arcane Intellect") then
@@ -165,11 +166,15 @@ spec.calcState = function(state)
     if Faceroll.getBuffRemaining("Drink") < 4 then
         state.drinkending = true
     end
-    if Faceroll.isBuffActive("Mana Shield") then
-        state.manashield = true
+    if Faceroll.isBuffActive("Ice Barrier") then
+        state.icebarrier = true
     end
 
     -- Spells --
+
+    if Faceroll.isSpellAvailable("Ice Barrier") then
+        state.icebarrierready = true
+    end
 
     if Faceroll.isSpellAvailable("Cone of Cold") then
         state.coneofcold = true
@@ -200,7 +205,7 @@ end
 -- Actions
 
 spec.actions = {
-    "icearmor",
+    "magearmor",
     "arcaneintellect",
     "frostbolt",
     "coneofcold",
@@ -209,7 +214,7 @@ spec.actions = {
     "makefood",
     "makewater",
     "blizzard",
-    "manashield",
+    "icebarrier",
 }
 
 spec.calcAction = function(mode, state)
@@ -245,8 +250,8 @@ spec.calcAction = function(mode, state)
             -- a big prep because "hold" == "big prep"
             return "makefood"
 
-        elseif not state.combat and not state.icearmor then
-            return "icearmor"
+        elseif not state.combat and not state.magearmor then
+            return "magearmor"
 
         elseif not state.combat and not state.arcaneintellect then
             return "arcaneintellect"
@@ -266,10 +271,10 @@ spec.calcAction = function(mode, state)
                         -- hpL50 here is to take a hit or two while wanding for FSR
                         return "coneofcold"
 
-                    elseif not state.group and state.melee and not state.manashield and not state.manaL25 then
-                        return "manashield"
+                    elseif not state.group and state.melee and not state.icebarrier and state.icebarrierready and not state.manaL25 then
+                        return "icebarrier"
 
-                    elseif (state.melee and not state.group and not state.manashield) or not state.frostbolt then
+                    elseif (state.melee and not state.group and not state.icebarrier) or not state.frostbolt then
                         return "shoot"
 
                     else
