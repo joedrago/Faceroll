@@ -23,12 +23,13 @@ local spec = Faceroll.createSpec("CM", "00c7ee", "MAGE-CLASSIC")
 spec.buffs = {
     "Mage Armor",
     "Arcane Intellect",
+    "Arcane Brilliance",
     "Drink",
     "Ice Barrier",
 }
 
-local CONJURED_FOOD_NAME  = "Conjured Sourdough"
-local CONJURED_WATER_NAME = "Conjured Mineral Water"
+local CONJURED_FOOD_NAME  = "Conjured Sweet Roll"
+local CONJURED_WATER_NAME = "Conjured Sparkling Water"
 
 -----------------------------------------------------------------------------------------
 -- States
@@ -157,7 +158,7 @@ spec.calcState = function(state)
         state.magearmor = true
     end
 
-    if Faceroll.isBuffActive("Arcane Intellect") then
+    if Faceroll.isBuffActive("Arcane Intellect") or Faceroll.isBuffActive("Arcane Brilliance") then
         state.arcaneintellect = true
     end
     if Faceroll.isBuffActive("Drink") then
@@ -271,7 +272,7 @@ spec.calcAction = function(mode, state)
                         -- hpL50 here is to take a hit or two while wanding for FSR
                         return "coneofcold"
 
-                    elseif not state.group and state.melee and not state.icebarrier and state.icebarrierready and not state.manaL25 then
+                    elseif not state.group and not state.icebarrier and state.icebarrierready and not state.manaL25 then
                         return "icebarrier"
 
                     elseif (state.melee and not state.group and not state.icebarrier) or not state.frostbolt then

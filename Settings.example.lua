@@ -5,12 +5,13 @@ end
 -----------------------------------------------------------------------------------------
 -- Activated specs. Put your most commonly used specs closer to the top.
 
+Faceroll.enableSpec("VDH")
+Faceroll.enableSpec("HDH")
+Faceroll.enableSpec("CM")
+
 Faceroll.enableSpec("BM")
 Faceroll.enableSpec("MM")
 Faceroll.enableSpec("SV")
-
-Faceroll.enableSpec("VDH")
-Faceroll.enableSpec("HDH")
 
 Faceroll.enableSpec("RET")
 Faceroll.enableSpec("PP")
@@ -19,7 +20,6 @@ Faceroll.enableSpec("PP")
 -- Faceroll.enableSpec("SUB")
 
 Faceroll.enableSpec("CD")
-Faceroll.enableSpec("CM")
 Faceroll.enableSpec("CP")
 Faceroll.enableSpec("CW")
 
