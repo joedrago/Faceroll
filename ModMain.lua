@@ -148,6 +148,8 @@ local function updateBits()
     else
         hideBits()
     end
+
+    Faceroll.updateBitsCounter = Faceroll.updateBitsCounter + 1
 end
 
 local remainingTicks = 0
@@ -254,11 +256,7 @@ eventFrame:RegisterEvent("ADDON_LOADED")
 eventFrame:RegisterEvent("PLAYER_LOGIN")
 eventFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
 eventFrame:RegisterEvent("UNIT_AURA")
-eventFrame:RegisterEvent("UNIT_POWER_UPDATE")
-eventFrame:RegisterEvent("UNIT_PET")
-eventFrame:RegisterEvent("BAG_UPDATE")
 eventFrame:RegisterEvent("PLAYER_TARGET_CHANGED")
-eventFrame:RegisterEvent("ACTIONBAR_UPDATE_STATE")
 eventFrame:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED")
 eventFrame:RegisterEvent("UNIT_SPELLCAST_CHANNEL_STOP")
 eventFrame:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
@@ -267,6 +265,12 @@ eventFrame:RegisterEvent("PLAYER_REGEN_ENABLED")
 eventFrame:RegisterEvent("PLAYER_STARTED_MOVING")
 eventFrame:RegisterEvent("PLAYER_STOPPED_MOVING")
 eventFrame:SetScript("OnEvent", onEvent)
+if Faceroll.classic then
+    eventFrame:RegisterEvent("UNIT_POWER_UPDATE")
+    eventFrame:RegisterEvent("UNIT_PET")
+    eventFrame:RegisterEvent("BAG_UPDATE")
+    eventFrame:RegisterEvent("ACTIONBAR_UPDATE_STATE")
+end
 
 DEFAULT_CHAT_FRAME.editBox:HookScript("OnShow", function()
     -- If this fires, someone is trying to type in chat!

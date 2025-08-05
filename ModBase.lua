@@ -10,6 +10,7 @@ end
 Faceroll.leftCombat = 0
 Faceroll.moving = false
 Faceroll.movingStopped = 0
+Faceroll.updateBitsCounter = 0
 
 -----------------------------------------------------------------------------------------
 -- Debug Overlay Shenanigans
@@ -18,6 +19,9 @@ Faceroll.debug = false
 Faceroll.debugOverlay = nil
 Faceroll.debugState = ""
 Faceroll.debugText = ""
+Faceroll.debugUpdateText = ""
+Faceroll.debugLastUpdateBitsCounter = 0
+Faceroll.debugLastUpdateBitsTime = 0
 
 Faceroll.updateDebugOverlay = function()
     if Faceroll.debugOverlay == nil then
@@ -34,7 +38,20 @@ Faceroll.updateDebugOverlay = function()
             o = o .. "\124cff" .. spec.color .. spec.name .. "\124r: \124cffffffaa".. bitCount .. "\124r bits, \124cffffffaa" .. actionCount .. "\124r actions\n\n"
         end
 
-        o = o .. Faceroll.debugState .. "\n" .. Faceroll.debugText
+        local updatesSince = Faceroll.updateBitsCounter - Faceroll.debugLastUpdateBitsCounter
+        local now = GetTime()
+        if Faceroll.debugLastUpdateBitsTime == 0 then
+            Faceroll.debugLastUpdateBitsTime = now
+        end
+        local updateTimeDelta = now - Faceroll.debugLastUpdateBitsTime
+        if updateTimeDelta > 1 then
+            local updatesPerSec = updatesSince / updateTimeDelta
+            Faceroll.debugUpdateText = string.format("Updates/sec: %.2f\n", updatesPerSec)
+            Faceroll.debugLastUpdateBitsTime = now
+            Faceroll.debugLastUpdateBitsCounter = Faceroll.updateBitsCounter
+        end
+
+        o = o .. Faceroll.debugState .. "\n" .. Faceroll.debugText .. Faceroll.debugUpdateText
 
         Faceroll.debugOverlay:setText(o)
         Faceroll.debugOverlay.frame:Show()
