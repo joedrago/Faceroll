@@ -7,6 +7,7 @@
 Registry.lua
 ModFrame.lua
 ModBase.lua
+SpecAM.lua
 SpecBM.lua
 SpecCD.lua
 SpecCM.lua

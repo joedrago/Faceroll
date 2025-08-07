@@ -9,6 +9,8 @@ Faceroll.enableSpec("VDH")
 Faceroll.enableSpec("HDH")
 Faceroll.enableSpec("CM")
 
+Faceroll.enableSpec("AM")
+
 Faceroll.enableSpec("BM")
 Faceroll.enableSpec("MM")
 Faceroll.enableSpec("SV")
