@@ -28,7 +28,7 @@ spec.buffs = {
     "Ice Barrier",
 }
 
-local CONJURED_FOOD_NAME  = "Conjured Sweet Roll"
+local CONJURED_FOOD_NAME  = "Conjured Sourdough"
 local CONJURED_WATER_NAME = "Conjured Sparkling Water"
 
 -----------------------------------------------------------------------------------------
