@@ -102,17 +102,6 @@ spec.calcState = function(state)
         state.sigilofspite = true
     end
 
-    if Faceroll.debug then
-        local o = ""
-        local avl = "N"
-        if Faceroll.isSpellAvailable("Fiery Brand") then
-            avl = "Y"
-        end
-        o = o .. "dot(Fiery Brand): " .. Faceroll.isDotActive("Fiery Brand") .. "\n"
-        o = o .. "avl(Fiery Brand): " .. avl .. "\n"
-        Faceroll.setDebugText(o)
-    end
-
     return state
 end
 
@@ -145,6 +134,10 @@ spec.calcAction = function(mode, state)
             -- Use Fiery Brand if the debuff is not currently active.
             return "fierybrand"
 
+        elseif state.metamorphosisbuff and state.feldevastation and state.furyG50 then
+            -- Use Fel Devastation if you have at least 50 Fury.
+            return "feldevastation"
+
         elseif state.immolationaura then
             -- Use Immolation Aura/ Consuming Fire.
             return "immolationaura"
@@ -173,10 +166,6 @@ spec.calcAction = function(mode, state)
             -- Use Metamorphosis only if Sigil of Flame and Fel Devastation are on cooldown.
             return "metamorphosis"
 
-        elseif state.furyG30 then
-            -- Spend Fury with Soul Cleave.
-            return "soulcleave"
-
         elseif state.furyL130 and state.felblade then
             -- Felblade if you won't cap Fury.
             return "felblade"
@@ -184,6 +173,10 @@ spec.calcAction = function(mode, state)
         elseif state.furyL130 and state.fracture then
             --  Fracture if you won't cap Fury.
             return "fracture"
+
+        elseif state.furyG30 then
+            -- Spend Fury with Soul Cleave.
+            return "soulcleave"
 
         else
             -- Throw Glaive for filler or when kiting.
@@ -199,6 +192,10 @@ spec.calcAction = function(mode, state)
         elseif state.fierybrand then
             -- Use Fiery Brand if the debuff is not currently active.
             return "fierybrand"
+
+        elseif state.metamorphosisbuff and state.feldevastation and state.furyG50 then
+            -- Use Fel Devastation if you have at least 50 Fury.
+            return "feldevastation"
 
         elseif state.furyG40 and state.soulfragments4plus then
             -- Use Spirit Bomb/ Spirit Burst with 4+ Souls.
