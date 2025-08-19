@@ -29,6 +29,7 @@ spec.states = {
     "furyG40",
     "furyL130",
     "furyL140",
+    "hold",
 }
 
 spec.calcState = function(state)
@@ -74,6 +75,9 @@ spec.calcState = function(state)
     if fury < 140 then
         state.furyL140 = true
     end
+    if Faceroll.hold then
+        state.hold = true
+    end
 
     return state
 end
@@ -106,7 +110,7 @@ spec.calcAction = function(mode, state)
             -- Cast Annihilation during Essence Break.
             return "chaosstrike"
 
-        elseif state.thehunt then
+        elseif not state.hold and state.thehunt then
             -- Cast The Hunt.
             return "thehunt"
 
@@ -114,7 +118,7 @@ spec.calcAction = function(mode, state)
             -- Cast Sigil of Doom in Metamorphosis.
             return "sigilofflame"
 
-        elseif state.metamorphosisbuff and state.essencebreak then
+        elseif not state.hold and state.metamorphosisbuff and state.essencebreak then
             -- Cast Essence Break while in Metamorphosis.
             return "essencebreak"
 
@@ -122,7 +126,7 @@ spec.calcAction = function(mode, state)
             -- Cast Death Sweep.
             return "bladedance"
 
-        elseif state.metamorphosis and not state.eyebeam then
+        elseif not state.hold and state.metamorphosis and not state.eyebeam then
             -- Cast Metamorphosis if Eye Beam is on cooldown.
             return "metamorphosis"
 
@@ -179,7 +183,7 @@ spec.calcAction = function(mode, state)
             -- Cast Sigil of Doom in Metamorphosis.
             return "sigilofflame"
 
-        elseif state.metamorphosisbuff and state.essencebreak then
+        elseif not state.hold and state.metamorphosisbuff and state.essencebreak then
             -- Cast Essence Break while in Metamorphosis.
             return "essencebreak"
 
@@ -187,7 +191,7 @@ spec.calcAction = function(mode, state)
             -- Cast Death Sweep.
             return "bladedance"
 
-        elseif state.metamorphosis and not state.eyebeam and not state.sigilofflame then
+        elseif not state.hold and state.metamorphosis and not state.eyebeam and not state.sigilofflame then
             -- Cast Metamorphosis if Eye Beam and Sigil of Flame are on cooldown.
             return "metamorphosis"
 

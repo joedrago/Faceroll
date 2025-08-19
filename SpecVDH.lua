@@ -35,6 +35,7 @@ spec.states = {
     "soulfragmentszero",
     "fierybrand",
     "sigilofspite",
+    "hold",
 }
 
 local demonspikesDeadzone = Faceroll.deadzoneCreate("Demon Spikes", 0.3, 0.5)
@@ -102,6 +103,10 @@ spec.calcState = function(state)
         state.sigilofspite = true
     end
 
+    if Faceroll.hold then
+        state.hold = true
+    end
+
     return state
 end
 
@@ -142,7 +147,7 @@ spec.calcAction = function(mode, state)
             -- Use Immolation Aura/ Consuming Fire.
             return "immolationaura"
 
-        elseif state.sigilofflame then
+        elseif not state.hold and state.sigilofflame then
             -- Use Sigil of Flame/ Sigil of Doom.
             return "sigilofflame"
 
@@ -205,7 +210,7 @@ spec.calcAction = function(mode, state)
             -- Use Immolation Aura/ Consuming Fire.
             return "immolationaura"
 
-        elseif state.sigilofflame then
+        elseif not state.hold and state.sigilofflame then
             -- Use Sigil of Flame/ Sigil of Doom.
             return "sigilofflame"
 
