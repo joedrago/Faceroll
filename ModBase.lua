@@ -238,8 +238,8 @@ if builtinGSC == nil then
     end
 end
 
-Faceroll.isSpellAvailable = function(spellName)
-    if not C_Spell.IsSpellUsable(spellName) then
+Faceroll.isSpellAvailable = function(spellName, ignoreUsable)
+    if not C_Spell.IsSpellUsable(spellName) and not ignoreUsable then
         return false
     end
     if builtinGSC(spellName).duration > 1.5 then

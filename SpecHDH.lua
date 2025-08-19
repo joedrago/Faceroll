@@ -9,26 +9,34 @@ local spec = Faceroll.createSpec("HDH", "993300", "DEMONHUNTER-1")
 
 spec.buffs = {
     "Metamorphosis",
-    "Essence Break",
+    "Immolation Aura",
 }
 
 -----------------------------------------------------------------------------------------
 -- States
 
 spec.states = {
+    "- Buffs -",
     "metamorphosisbuff",
-    "essencebreakbuff",
+    "immolationaurabuff",
+
+    "- Spells -",
     "metamorphosis",
-    "essencebreak",
     "thehunt",
     "sigilofflame",
     "eyebeam",
+    "eyebeamsoon",
     "bladedance",
     "felblade",
-    "immolationaura",
+    "immocharges2",
+    "immocharges1",
+
+    "- Resources -",
+    "furyG35",
     "furyG40",
-    "furyL130",
-    "furyL140",
+    "furyL80",
+
+    "- State -",
     "hold",
 }
 
@@ -36,15 +44,12 @@ spec.calcState = function(state)
     if Faceroll.isBuffActive("Metamorphosis") then
         state.metamorphosisbuff = true
     end
-    if Faceroll.isBuffActive("Essence Break") then
-        state.essencebreakbuff = true
+    if Faceroll.isBuffActive("Immolation Aura") then
+        state.immolationaurabuff = true
     end
 
     if Faceroll.isSpellAvailable("Metamorphosis") then
         state.metamorphosis = true
-    end
-    if Faceroll.isSpellAvailable("Essence Break") then
-        state.essencebreak = true
     end
     if Faceroll.isSpellAvailable("The Hunt") then
         state.thehunt = true
@@ -52,8 +57,11 @@ spec.calcState = function(state)
     if Faceroll.isSpellAvailable("Sigil of Flame") then
         state.sigilofflame = true
     end
-    if Faceroll.isSpellAvailable("Eye Beam") then
+    if Faceroll.isSpellAvailable("Eye Beam", true) then
         state.eyebeam = true
+    end
+    if Faceroll.spellCooldown("Eye Beam") <= 3 then
+        state.eyebeamsoon = true
     end
     if Faceroll.isSpellAvailable("Blade Dance") then
         state.bladedance = true
@@ -61,19 +69,24 @@ spec.calcState = function(state)
     if Faceroll.isSpellAvailable("Felblade") then
         state.felblade = true
     end
-    if Faceroll.isSpellAvailable("Immolation Aura") then
-        state.immolationaura = true
+
+    local immoCharges = Faceroll.spellCharges("Immolation Aura")
+    if immoCharges >= 2 then
+        state.immocharges2 = true
+    end
+    if immoCharges >= 1 then
+        state.immocharges1 = true
     end
 
     local fury = UnitPower("player")
+    if fury >= 35 then
+        state.furyG35 = true
+    end
     if fury >= 40 then
         state.furyG40 = true
     end
-    if fury < 130 then
-        state.furyL130 = true
-    end
-    if fury < 140 then
-        state.furyL140 = true
+    if fury < 80 then
+        state.furyL80 = true
     end
     if Faceroll.hold then
         state.hold = true
@@ -95,138 +108,117 @@ spec.actions = {
     "sigilofflame",
     "metamorphosis",
     "thehunt",
-    "essencebreak",
 }
 
 spec.calcAction = function(mode, state)
     if mode == Faceroll.MODE_ST then
         -- Single Target
 
-        if state.essencebreakbuff and state.bladedance then
-            -- Cast Death Sweep during Essence Break.
-            return "bladedance"
+        if state.immocharges2 then
+            -- Cast Immolation Aura or ( Consuming Fire in Metamorphosis) if
+            -- capped at 2 charges.
+            return "immolationaura"
 
-        elseif state.essencebreakbuff and state.furyG40 then
-            -- Cast Annihilation during Essence Break.
-            return "chaosstrike"
+        elseif state.immocharges1 and not state.immolationaurabuff and state.eyebeamsoon then
+            -- Cast Immolation Aura or ( Consuming Fire in Metamorphosis) if you
+            -- do not currently have it active and Eye Beam is coming up within
+            -- 3 seconds.
+            return "immolationaura"
+
+        elseif state.metamorphosisbuff and state.bladedance and state.furyG35 then
+            -- Cast Death Sweep.
+            return "bladedance"
 
         elseif not state.hold and state.thehunt then
             -- Cast The Hunt.
             return "thehunt"
 
-        elseif state.metamorphosisbuff and state.sigilofflame then
-            -- Cast Sigil of Doom in Metamorphosis.
-            return "sigilofflame"
-
-        elseif not state.hold and state.metamorphosisbuff and state.essencebreak then
-            -- Cast Essence Break while in Metamorphosis.
-            return "essencebreak"
-
-        elseif state.metamorphosisbuff and state.bladedance then
-            -- Cast Death Sweep.
-            return "bladedance"
-
         elseif not state.hold and state.metamorphosis and not state.eyebeam then
             -- Cast Metamorphosis if Eye Beam is on cooldown.
             return "metamorphosis"
 
-        elseif state.sigilofflame then
-            -- Cast Sigil of Flame before an Eye Beam, should always sync these up.
-            return "sigilofflame"
-
-        elseif state.eyebeam then
-            -- Cast Eye Beam or (Abyssal Gaze in Metamorphosis).
+        elseif not state.hold and state.eyebeam then
+            -- Cast Eye Beam (or Abyssal Gaze in Metamorphosis).
             return "eyebeam"
 
-        elseif state.bladedance then
+        elseif state.bladedance and state.furyG35 then
             -- Cast Blade Dance.
             return "bladedance"
 
-        elseif state.metamorphosis and state.furyG40 then
+        elseif state.furyG40 then
             -- Cast Annihilation.
             return "chaosstrike"
 
-        elseif state.furyL130 and state.felblade then
-            -- Cast Felblade if under 130 Fury.
+        elseif state.felblade and state.furyL80 then
+            -- Cast Felblade if under 80 Fury.
             return "felblade"
 
         elseif state.furyG40 then
             -- Cast Chaos Strike.
             return "chaosstrike"
 
-        elseif state.immolationaura then
+        elseif state.immocharges1 then
             -- Cast Immolation Aura or ( Consuming Fire in Metamorphosis).
             return "immolationaura"
 
+        elseif state.sigilofflame then
+            -- Cast Sigil of Flame (or Sigil of Doom in Metamorphosis) if under
+            -- 40 Fury.
+            return "sigilofflame"
+
         else
-            -- Cast Throw Glaive if no other buttons are available.
+            -- Cast Throw Glaive or Fel Rush if no other abilities are
+            -- available.
             return "throwglaive"
+
         end
 
     elseif mode == Faceroll.MODE_AOE then
         -- AOE
 
-
-        if state.essencebreakbuff and state.bladedance then
-            -- Cast Death Sweep during Essence Break.
-            return "bladedance"
-
-        elseif state.essencebreakbuff and state.furyG40 then
-            -- Cast Annihilation during Essence Break.
-            return "chaosstrike"
-
-        elseif state.thehunt then
-            -- Cast The Hunt.
-            return "thehunt"
-
-        elseif state.metamorphosisbuff and state.sigilofflame then
-            -- Cast Sigil of Doom in Metamorphosis.
-            return "sigilofflame"
-
-        elseif not state.hold and state.metamorphosisbuff and state.essencebreak then
-            -- Cast Essence Break while in Metamorphosis.
-            return "essencebreak"
-
-        elseif state.metamorphosisbuff and state.bladedance then
+        if state.metamorphosisbuff and state.bladedance and state.furyG35 then
             -- Cast Death Sweep.
             return "bladedance"
 
-        elseif not state.hold and state.metamorphosis and not state.eyebeam and not state.sigilofflame then
-            -- Cast Metamorphosis if Eye Beam and Sigil of Flame are on cooldown.
+        elseif state.immocharges1 then
+            -- Cast Immolation Aura or ( Consuming Fire in Metamorphosis).
+            return "immolationaura"
+
+        elseif not state.hold and state.thehunt then
+            -- Cast The Hunt.
+            return "thehunt"
+
+        elseif not state.hold and state.metamorphosis and not state.eyebeam then
+            -- Cast Metamorphosis if Eye Beam is on cooldown.
             return "metamorphosis"
 
-        elseif state.eyebeam then
-            -- Cast Eye Beam or (Abyssal Gaze in Metamorphosis).
-            return "eyebeam"
-
-        elseif state.bladedance then
+        elseif state.bladedance and state.furyG35 then
             -- Cast Blade Dance.
             return "bladedance"
 
-        elseif state.sigilofflame and state.furyL140 then
-            -- Cast Sigil of Flame if under 140 fury.
+        elseif not state.hold and state.eyebeam then
+            -- Cast Eye Beam (or Abyssal Gaze in Metamorphosis).
+            return "eyebeam"
+
+        elseif state.sigilofflame then
+            -- Cast Sigil of Flame (or Sigil of Doom in Metamorphosis).
             return "sigilofflame"
 
-        elseif state.metamorphosis and state.furyG40 then
+        elseif state.furyG40 then
             -- Cast Annihilation.
             return "chaosstrike"
 
-        elseif state.furyL130 and state.felblade then
-            -- Cast Felblade if under 130 Fury.
+        elseif state.felblade then
+            -- Cast Felblade.
             return "felblade"
 
-        elseif state.furyG40 then
-            -- Cast Chaos Strike.
-            return "chaosstrike"
-
-        elseif state.immolationaura then
-            -- Cast Immolation Aura or (Consuming Fire in Metamorphosis).
-            return "immolationaura"
-
         else
-            -- Cast Throw Glaive if no other buttons are available.
+            -- Cast Throw Glaive or Fel Rush if no other abilities are
+            -- available.
             return "throwglaive"
+
         end
+
     end
 
     return nil
