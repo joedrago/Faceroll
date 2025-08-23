@@ -129,7 +129,7 @@ spec.calcAction = function(mode, state)
             -- 3 seconds.
             return "immolationaura"
 
-        elseif state.metamorphosisbuff and state.bladedance and state.furyG35 then
+        elseif state.metamorphosisbuff and state.bladedance then
             -- Cast Death Sweep.
             return "bladedance"
 
@@ -145,7 +145,7 @@ spec.calcAction = function(mode, state)
             -- Cast Eye Beam (or Abyssal Gaze in Metamorphosis).
             return "eyebeam"
 
-        elseif state.bladedance and state.furyG35 then
+        elseif state.bladedance then
             -- Cast Blade Dance.
             return "bladedance"
 
@@ -170,7 +170,7 @@ spec.calcAction = function(mode, state)
             -- 40 Fury.
             return "sigilofflame"
 
-        else
+        elseif state.furyG70 or not state.eyebeamsoon then
             -- Cast Throw Glaive or Fel Rush if no other abilities are
             -- available.
             return "throwglaive"
@@ -180,7 +180,7 @@ spec.calcAction = function(mode, state)
     elseif mode == Faceroll.MODE_AOE then
         -- AOE
 
-        if state.metamorphosisbuff and state.bladedance and state.furyG35 then
+        if state.metamorphosisbuff and state.bladedance then
             -- Cast Death Sweep.
             return "bladedance"
 
@@ -196,7 +196,7 @@ spec.calcAction = function(mode, state)
             -- Cast Metamorphosis if Eye Beam is on cooldown.
             return "metamorphosis"
 
-        elseif state.bladedance and state.furyG35 and (state.furyG70 or not state.eyebeamsoon) then
+        elseif state.bladedance then
             -- Cast Blade Dance.
             return "bladedance"
 
@@ -216,7 +216,7 @@ spec.calcAction = function(mode, state)
             -- Cast Felblade.
             return "felblade"
 
-        else
+        elseif state.furyG70 or not state.eyebeamsoon then
             -- Cast Throw Glaive or Fel Rush if no other abilities are
             -- available.
             return "throwglaive"
