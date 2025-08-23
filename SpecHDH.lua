@@ -34,6 +34,7 @@ spec.states = {
     "- Resources -",
     "furyG35",
     "furyG40",
+    "furyG70",
     "furyL80",
 
     "- State -",
@@ -84,6 +85,9 @@ spec.calcState = function(state)
     end
     if fury >= 40 then
         state.furyG40 = true
+    end
+    if fury >= 70 then
+        state.furyG70 = true
     end
     if fury < 80 then
         state.furyL80 = true
@@ -188,11 +192,11 @@ spec.calcAction = function(mode, state)
             -- Cast The Hunt.
             return "thehunt"
 
-        elseif not state.hold and state.metamorphosis and not state.eyebeam then
+        elseif not state.hold and state.metamorphosis and not state.eyebeamsoon then
             -- Cast Metamorphosis if Eye Beam is on cooldown.
             return "metamorphosis"
 
-        elseif state.bladedance and state.furyG35 then
+        elseif state.bladedance and state.furyG35 and (state.furyG70 or not state.eyebeamsoon) then
             -- Cast Blade Dance.
             return "bladedance"
 
@@ -204,7 +208,7 @@ spec.calcAction = function(mode, state)
             -- Cast Sigil of Flame (or Sigil of Doom in Metamorphosis).
             return "sigilofflame"
 
-        elseif state.furyG40 then
+        elseif state.furyG40 and (state.furyG70 or not state.eyebeamsoon) then
             -- Cast Annihilation.
             return "chaosstrike"
 

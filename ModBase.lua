@@ -227,18 +227,18 @@ Faceroll.spellChargesSoon = function(spellName, count, seconds)
     return true
 end
 
-local builtinGSC = nil
-if C_Spell ~= nil then
-    builtinGSC = C_Spell.GetSpellCooldown
-end
-if builtinGSC == nil then
-    builtinGSC = function(spellName)
-        local _, duration = GetSpellCooldown(spellName)
-        return { ["duration"]=duration }
-    end
-end
-
 Faceroll.isSpellAvailable = function(spellName, ignoreUsable)
+    local builtinGSC = nil
+    if C_Spell ~= nil then
+        builtinGSC = C_Spell.GetSpellCooldown
+    end
+    if builtinGSC == nil then
+        builtinGSC = function(spellName)
+            local _, duration = GetSpellCooldown(spellName)
+            return { ["duration"]=duration }
+        end
+    end
+
     if not C_Spell.IsSpellUsable(spellName) and not ignoreUsable then
         return false
     end
