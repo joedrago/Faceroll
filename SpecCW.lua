@@ -42,16 +42,16 @@ spec.calcAction = function(mode, state)
     if mode == Faceroll.MODE_ST then
         -- Single Target
 
-        if not state.curseofagony then
-            return "curseofagony"
+        -- if not state.curseofagony then
+        --     return "curseofagony"
 
-        elseif not state.corruption then
-            return "corruption"
+        -- elseif not state.corruption then
+        --     return "corruption"
 
-        else
+        -- else
             return "shadowbolt"
 
-        end
+        -- end
 
     elseif mode == Faceroll.MODE_AOE then
         -- AOE
