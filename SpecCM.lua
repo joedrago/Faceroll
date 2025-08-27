@@ -275,8 +275,8 @@ spec.calcAction = function(mode, state)
                     elseif not state.group and not state.icebarrier and state.icebarrierready and not state.manaL25 then
                         return "icebarrier"
 
-                    elseif (state.melee and not state.group and not state.icebarrier) or not state.frostbolt then
-                        return "shoot"
+                    -- elseif (state.melee and not state.group and not state.icebarrier) or not state.frostbolt then
+                    --     return "shoot"
 
                     else
                         return "frostbolt"
