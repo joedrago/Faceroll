@@ -8,6 +8,7 @@ end
 Faceroll.enableSpec("VDH")
 Faceroll.enableSpec("HDH")
 Faceroll.enableSpec("CM")
+Faceroll.enableSpec("CW")
 
 Faceroll.enableSpec("AM")
 
@@ -16,16 +17,16 @@ Faceroll.enableSpec("MM")
 Faceroll.enableSpec("SV")
 
 Faceroll.enableSpec("RET")
-Faceroll.enableSpec("PP")
+-- Faceroll.enableSpec("PP")
 -- Faceroll.enableSpec("HP")
 
 -- Faceroll.enableSpec("SUB")
 
-Faceroll.enableSpec("CD")
-Faceroll.enableSpec("CP")
-Faceroll.enableSpec("CW")
+-- Faceroll.enableSpec("CD")
+-- Faceroll.enableSpec("CP")
 
 Faceroll.enableSpec("DB")
+Faceroll.enableSpec("OWL")
 
 -----------------------------------------------------------------------------------------
 -- Keybinds
