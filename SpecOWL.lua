@@ -19,6 +19,8 @@ spec.buffs = {
 spec.states = {
     "- Buffs -",
     "eclipse",
+    "dreamstate",
+    "woestacks",
 
     "- Dots -",
     "moonfire",
@@ -45,6 +47,10 @@ local wrathDeadzone = Faceroll.deadzoneCreate("Wrath", 0.3, 1)
 spec.calcState = function(state)
     if Faceroll.getBuffRemaining("Eclipse (Lunar)") > 1.5 then
         state.eclipse = true
+    end
+
+    if Faceroll.getBuffRemaining("Dreamstate") > 1.5 then
+        state.dreamstate = true
     end
 
     if Faceroll.getBuffStacks("Warrior of Elune") > 0 then
@@ -138,7 +144,7 @@ spec.calcAction = function(mode, state)
         elseif state.apG75 or (state.apG36 and state.moving) then
             return "starsurge"
 
-        elseif state.woe then
+        elseif state.woe and not state.dreamstate then
             return "woe"
 
         else
