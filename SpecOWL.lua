@@ -162,7 +162,7 @@ spec.calcAction = function(mode, state)
         elseif not state.moonfire then
             return "moonfire"
 
-        elseif state.foe then
+        elseif state.foe and not state.hold then
             return "foe"
 
         elseif state.incarnation and not state.eclipse and not state.hold then
@@ -174,7 +174,7 @@ spec.calcAction = function(mode, state)
         elseif state.apG75 or (state.apG45 and state.moving) then
             return "starfall"
 
-        elseif state.woe then
+        elseif state.woe and not state.hold then
             return "woe"
 
         else
