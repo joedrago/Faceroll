@@ -45,6 +45,11 @@ spec.states = {
 local wrathDeadzone = Faceroll.deadzoneCreate("Wrath", 0.3, 1)
 
 spec.calcState = function(state)
+    local hasOrbitalStrike = false
+    if C_Spell.GetSpellInfo("Incarnation: Chosen of Elune").spellID == 390414 then
+        hasOrbitalStrike = true
+    end
+
     if Faceroll.getBuffRemaining("Eclipse (Lunar)") > 1.5 then
         state.eclipse = true
     end
@@ -65,7 +70,7 @@ spec.calcState = function(state)
         state.sunfire = true
     end
 
-    if Faceroll.isSpellAvailable("Incarnation: Chosen of Elune") then
+    if Faceroll.isSpellAvailable("Incarnation: Chosen of Elune") and not hasOrbitalStrike then
         state.incarnation = true
     end
 

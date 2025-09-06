@@ -167,14 +167,14 @@ function onUpdate(bits)
             if key ~= nil then
                 sendKeyToWow(key)
 
-                if Faceroll.debug then
+                if Faceroll.debug ~= Faceroll.DEBUG_OFF then
                     print("Action: " .. action .. " ("..key..")")
                 end
             else
                 print("UNKNOWN ACTION: " .. action)
             end
         else
-            if Faceroll.debug and facerollAction ~= Faceroll.MODE_NONE then
+            if Faceroll.debug ~= Faceroll.DEBUG_OFF and facerollAction ~= Faceroll.MODE_NONE then
                 print("No action (nil) facerollAction " .. facerollAction)
             end
         end

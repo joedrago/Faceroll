@@ -142,9 +142,7 @@ local function updateBits()
             -- print("specIndex: " .. specIndex .. " newBits: " .. bits)
         end
         showBits(bits)
-        if Faceroll.debug then
-            Faceroll.setDebugState(spec, state)
-        end
+        Faceroll.setDebugState(spec, state)
     else
         hideBits()
     end
@@ -178,7 +176,10 @@ local function toggleHold()
     updateBits()
 end
 local function toggleDebug()
-    Faceroll.debug = not Faceroll.debug
+    Faceroll.debug = Faceroll.debug + 1
+    if Faceroll.debug > Faceroll.DEBUG_LAST then
+        Faceroll.debug = 0
+    end
     Faceroll.updateDebugOverlay()
     updateBits()
 end

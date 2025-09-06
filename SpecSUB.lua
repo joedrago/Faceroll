@@ -135,7 +135,7 @@ spec.calcState = function(state)
         return "\124cff777777F\124r"
     end
 
-    if Faceroll.debug then
+    if Faceroll.debug ~= Faceroll.DEBUG_OFF then
         local o = ""
 
         o = o .. "SD: " .. bt(Faceroll.isBuffActive("shadowdance")) .. "\n"

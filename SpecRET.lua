@@ -92,7 +92,7 @@ spec.calcState = function(state)
         state.holding = true
     end
 
-    if Faceroll.debug then
+    if Faceroll.debug ~= Faceroll.DEBUG_OFF then
         local o = ""
         local hol = "N"
         if holAvailable then

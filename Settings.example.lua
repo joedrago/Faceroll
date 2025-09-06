@@ -8,7 +8,9 @@ end
 Faceroll.enableSpec("VDH")
 Faceroll.enableSpec("HDH")
 Faceroll.enableSpec("CM")
+Faceroll.enableSpec("DW")
 Faceroll.enableSpec("CW")
+Faceroll.enableSpec("CP")
 
 Faceroll.enableSpec("AM")
 
@@ -23,7 +25,6 @@ Faceroll.enableSpec("RET")
 -- Faceroll.enableSpec("SUB")
 
 -- Faceroll.enableSpec("CD")
--- Faceroll.enableSpec("CP")
 
 Faceroll.enableSpec("DB")
 Faceroll.enableSpec("OWL")
@@ -100,4 +101,4 @@ Faceroll.bitsPanelY = -5
 -----------------------------------------------------------------------------------------
 -- Enable debug output / dashboards
 
-Faceroll.debug = false
+Faceroll.debug = Faceroll.DEBUG_OFF

@@ -15,7 +15,12 @@ Faceroll.updateBitsCounter = 0
 -----------------------------------------------------------------------------------------
 -- Debug Overlay Shenanigans
 
-Faceroll.debug = false
+Faceroll.DEBUG_OFF = 0
+Faceroll.DEBUG_ON = 1
+Faceroll.DEBUG_MINIMAL = 2
+Faceroll.DEBUG_LAST = 2
+
+Faceroll.debug = Faceroll.DEBUG_OFF
 Faceroll.debugOverlay = nil
 Faceroll.debugState = ""
 Faceroll.debugText = ""
@@ -28,11 +33,11 @@ Faceroll.updateDebugOverlay = function()
         return
     end
 
-    if Faceroll.debug then
+    if Faceroll.debug ~= Faceroll.DEBUG_OFF then
         local o = "\124cff444444      - Faceroll -      \124r\n\n"
 
         local spec = Faceroll.activeSpec()
-        if spec then
+        if spec and (Faceroll.debug ~= Faceroll.DEBUG_MINIMAL) then
             local bitCount = #spec.bits.names
             local actionCount = #spec.actions
             o = o .. "\124cff" .. spec.color .. spec.name .. "\124r: \124cffffffaa".. bitCount .. "\124r bits, \124cffffffaa" .. actionCount .. "\124r actions\n\n"
@@ -51,7 +56,11 @@ Faceroll.updateDebugOverlay = function()
             Faceroll.debugLastUpdateBitsCounter = Faceroll.updateBitsCounter
         end
 
-        o = o .. Faceroll.debugState .. "\n" .. Faceroll.debugText .. Faceroll.debugUpdateText
+        if Faceroll.debug == Faceroll.DEBUG_MINIMAL then
+            o = o .. Faceroll.debugState .. "\n"
+        else
+            o = o .. Faceroll.debugState .. "\n" .. Faceroll.debugText .. Faceroll.debugUpdateText
+        end
 
         Faceroll.debugOverlay:setText(o)
         Faceroll.debugOverlay.frame:Show()
@@ -66,6 +75,10 @@ Faceroll.setDebugText = function(text)
 end
 
 Faceroll.setDebugState = function(spec, state)
+    if Faceroll.debug == Faceroll.DEBUG_OFF then
+        return
+    end
+
     local pad = function(text, count)
         text = tostring(text)
         while strlenutf8(text) < count do
@@ -82,20 +95,24 @@ Faceroll.setDebugState = function(spec, state)
     end
 
     local o = ""
-    for _,k in ipairs(spec.states) do
-        local v = state[k]
-        if Faceroll.isSeparatorName(k) then
-            if strlenutf8(o) > 0 then
-                o = o .. "\n"
+
+    if Faceroll.debug ~= Faceroll.DEBUG_MINIMAL then
+        for _,k in ipairs(spec.states) do
+            local v = state[k]
+            if Faceroll.isSeparatorName(k) then
+                if strlenutf8(o) > 0 then
+                    o = o .. "\n"
+                end
+                o = o .. "\124cffffffaa" .. pad(k, 18) .. "\124r\n"
+            else
+                o = o .. pad(k, 18) .. "  : " .. bt(v) .. "\n"
             end
-            o = o .. "\124cffffffaa" .. pad(k, 18) .. "\124r\n"
-        else
-            o = o .. pad(k, 18) .. "  : " .. bt(v) .. "\n"
         end
+        o = o .. "\n"
     end
 
     if spec.calcAction then
-        o = o .. "\n\124cffffaaff - Next -\124r\n"
+        o = o .. "\124cffffaaff - Next -\124r\n"
 
         local actionST = spec.calcAction(Faceroll.MODE_ST, state)
         if actionST == nil then
@@ -151,6 +168,9 @@ Faceroll.trackBuffs = function(newBuffs)
 
         if extraSettings ~= nil and extraSettings.harmful ~= nil then
             buffs[name].harmful = extraSettings.harmful
+        end
+        if extraSettings ~= nil and extraSettings.spellid ~= nil then
+            buffs[name].spellid = extraSettings.spellid
         end
     end
 end
@@ -345,7 +365,7 @@ Faceroll.onPlayerAura = function(info)
     if info.addedAuras then
         for _, aura in pairs(info.addedAuras) do
             for _, buff in pairs(buffs) do
-                if aura.name == buff.name then
+                if aura.name == buff.name then -- and ((not buff.spellid) or (buff.spellid == aura.spellId)) then
                     -- print("Detected: " .. buff.name)
                     if buff.harmful then
                         if aura.isHarmful then
@@ -371,7 +391,7 @@ Faceroll.onPlayerAura = function(info)
 			local aura = C_UnitAuras.GetAuraDataByAuraInstanceID("player", v)
             if aura ~= nil then
                 for _, buff in pairs(buffs) do
-                    if aura.name == buff.name then
+                    if aura.name == buff.name then -- and ((not buff.spellid) or (buff.spellid == aura.spellId)) then
                         buff.id = aura.auraInstanceID
                         buff.expirationTime = aura.expirationTime
                         buff.stacks = aura.applications

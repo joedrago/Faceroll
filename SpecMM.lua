@@ -71,7 +71,7 @@ spec.calcState = function(state)
         state.streamlinedeadzone = true
     end
 
-    if Faceroll.debug then
+    if Faceroll.debug ~= Faceroll.DEBUG_OFF then
         local o = ""
         local dztext = "F"
         if Faceroll.deadzoneActive(streamlineDeadzone) then

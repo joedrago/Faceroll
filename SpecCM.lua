@@ -191,7 +191,7 @@ spec.calcState = function(state)
 
     -- Extra debug info
 
-    if Faceroll.debug then
+    if Faceroll.debug ~= Faceroll.DEBUG_OFF then
         local o = ""
         o = o .. "waterCount: " .. waterCount .. "\n"
         o = o .. "foodCount : " .. foodCount .. "\n"
