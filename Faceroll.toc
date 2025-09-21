@@ -15,6 +15,7 @@ SpecCP.lua
 SpecCW.lua
 SpecDB.lua
 SpecDW.lua
+SpecFDK.lua
 SpecHDH.lua
 SpecHP.lua
 SpecMM.lua

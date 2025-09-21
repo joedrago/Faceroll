@@ -11,6 +11,7 @@ Faceroll.enableSpec("CM")
 Faceroll.enableSpec("DW")
 Faceroll.enableSpec("CW")
 Faceroll.enableSpec("CP")
+Faceroll.enableSpec("FDK")
 
 Faceroll.enableSpec("AM")
 
