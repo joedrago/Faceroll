@@ -155,7 +155,7 @@ spec.calcAction = function(mode, state)
         elseif state.shardsG37 then
             return "rainoffire"
 
-        elseif state.cdfready and state.conflagratedot and not state.cataclysmsoon then
+        elseif state.cdfready and not state.cataclysmsoon then
             return "cdf"
 
         elseif not state.conflagratedot and state.conflagrateready then
