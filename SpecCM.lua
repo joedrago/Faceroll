@@ -29,7 +29,7 @@ spec.buffs = {
 }
 
 local CONJURED_FOOD_NAME  = "Conjured Sweet Roll"
-local CONJURED_WATER_NAME = "Conjured Sparkling Water"
+local CONJURED_WATER_NAME = "Conjured Crystal Water"
 
 -----------------------------------------------------------------------------------------
 -- States
@@ -287,12 +287,12 @@ spec.calcAction = function(mode, state)
                 -- AOE
 
                 if not state.channeling and (state.combat or state.targetingenemy) then
-                    if state.blizzard then
+                    -- if state.blizzard then
                         return "blizzard"
 
-                    elseif state.targetingenemy then
-                        return "shoot"
-                    end
+                    -- elseif state.targetingenemy then
+                        -- return "shoot"
+                    -- end
                 end
             end
         end
