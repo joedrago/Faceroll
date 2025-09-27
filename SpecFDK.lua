@@ -102,10 +102,6 @@ spec.calcState = function(state)
         state.rpG35 = true
     end
 
-    -- if Faceroll.hold then
-    --     state.hold = true
-    -- end
-
     return state
 end
 
@@ -191,7 +187,7 @@ spec.calcAction = function(mode, state)
             -- Frostbane when it procs
             return "froststrike"
 
-        elseif state.rpG35  then
+        elseif state.rpG35 then
             -- Glacial Advance
             return "glacialadvance"
 

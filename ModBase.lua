@@ -2,7 +2,7 @@ if Faceroll == nil then
     _, Faceroll = ...
 end
 
-Faceroll.hold = false
+Faceroll.options = {}
 Faceroll.classic = false
 if WOW_PROJECT_ID == WOW_PROJECT_CLASSIC then
     Faceroll.classic = true

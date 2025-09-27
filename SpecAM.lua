@@ -45,6 +45,10 @@ spec.states = {
     "arcanechargesG4",
 }
 
+spec.options = {
+    "hold",
+}
+
 spec.calcState = function(state)
     if Faceroll.isBuffActive("Clearcasting") then
         state.clearcasting = true
@@ -102,10 +106,6 @@ spec.calcState = function(state)
 
     if Faceroll.moving then
         state.moving = true
-    end
-
-    if Faceroll.hold then
-        state.hold = true
     end
 
     return state

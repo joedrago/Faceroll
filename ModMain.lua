@@ -3,27 +3,46 @@ if Faceroll == nil then
 end
 
 -----------------------------------------------------------------------------------------
--- The little "OFF" / "SV" text
+-- The little "OFF" / "SV" text and the options list above it
 
 local enabledFrame = nil
 local enabledSpec = Faceroll.SPEC_OFF
+local optionsFrame = nil
 
 local function enabledFrameCreate()
     enabledFrame = Faceroll.createFrame(34, 34,
                                         Faceroll.enabledFrameAnchor, Faceroll.enabledFrameX, Faceroll.enabledFrameY,
                                         "TOOLTIP", 0.0,
                                         "CENTER", "firamono", Faceroll.enabledFrameFontSize)
-end
+
+    optionsFrame = Faceroll.createFrame(34, 34,
+                                        Faceroll.optionsFrameAnchor, Faceroll.optionsFrameX, Faceroll.optionsFrameY,
+                                        "TOOLTIP", 0.0,
+                                        "BOTTOM", "firamono", Faceroll.optionsFrameFontSize)
+                                    end
 
 local function enabledFrameUpdate()
-    if enabledFrame ~= nil then
+    if enabledFrame ~= nil and optionsFrame ~= nil then
         local spec = Faceroll.activeSpecsByIndex[enabledSpec]
-        local color = spec.color
-        if Faceroll.hold and enabledSpec > 0 then
-            color = "cccccc"
+
+        enabledFrame:setText(Faceroll.textColor(spec.name, spec.color))
+
+        local optionsText = ""
+        if enabledSpec > 0 then
+            for _,name in ipairs(spec.options) do
+                if Faceroll.options[name] then
+                    optionsText = optionsText .. string.upper(name) .. "\n"
+                end
+            end
         end
-        enabledFrame:setText(Faceroll.textColor(spec.name, color))
+
+        local optionsFrameColor = Faceroll.optionsFrameColor
+        if optionsFrameColor == nil then
+            optionsFrameColor = spec.color
+        end
+        optionsFrame:setText(Faceroll.textColor(optionsText, optionsFrameColor))
     end
+
 end
 
 function enabledFrameCycle()
@@ -54,9 +73,6 @@ end
 
 function activeFrameSet(text)
     local activeText = "FR " .. text
-    if Faceroll.hold then
-        activeText = "HOLD " .. text
-    end
     activeFrameTime = GetTime()
     activeFrame:setText(Faceroll.textColor(activeText, Faceroll.activeFrameColor))
 end
@@ -132,7 +148,7 @@ end
 local function updateBits()
     local spec = Faceroll.activeSpec()
     if spec and spec.calcState then
-        local state = spec.calcState(spec.bits:unpack(0))
+        local state = spec.calcState(Faceroll.createState(spec))
         local bits = spec.bits:pack(state)
         local specIndex = spec.index
         if specIndex ~= nil then
@@ -166,11 +182,11 @@ local function tickReset()
     end
     remainingTicks = 20
 end
-local function toggleHold()
-    if Faceroll.hold then
-        Faceroll.hold = false
+local function toggleOption(option)
+    if Faceroll.options[option] ~= nil then
+        Faceroll.options[option] = nil
     else
-        Faceroll.hold = true
+        Faceroll.options[option] = true
     end
     enabledFrameUpdate()
     updateBits()
@@ -289,8 +305,8 @@ SLASH_FROFF1 = '/froff'
 SlashCmdList["FROFF"] = enabledFrameReset
 SLASH_FRTICK1 = '/frtick'
 SlashCmdList["FRTICK"] = tickReset
-SLASH_FRHOLD1 = '/frhold'
-SlashCmdList["FRHOLD"] = toggleHold
+SLASH_FRO1 = '/fro'
+SlashCmdList["FRO"] = toggleOption
 SLASH_FRD1 = '/frd'
 SlashCmdList["FRD"] = toggleDebug
 SLASH_FRDEBUG1 = '/frdebug'

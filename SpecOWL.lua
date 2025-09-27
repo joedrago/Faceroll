@@ -42,6 +42,10 @@ spec.states = {
     "hold",
 }
 
+spec.options = {
+    "hold",
+}
+
 local wrathDeadzone = Faceroll.deadzoneCreate("Wrath", 0.3, 1)
 
 spec.calcState = function(state)
@@ -103,10 +107,6 @@ spec.calcState = function(state)
 
     if Faceroll.moving then
         state.moving = true
-    end
-
-    if Faceroll.hold then
-        state.hold = true
     end
 
     return state

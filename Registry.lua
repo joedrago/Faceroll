@@ -85,6 +85,7 @@ Faceroll.createSpec = function(name, color, specKey)
         ["buffs"]=nil,
         ["states"]={},
         ["actions"]={},
+        ["options"]={},
         ["keys"]={},
         ["index"]=nil,
     }
@@ -115,6 +116,16 @@ Faceroll.enableSpec = function(specName)
         end
     end
     print("Faceroll.enableSpec(): ERROR - Unrecognized spec " .. specName)
+end
+
+Faceroll.createState = function(spec)
+    local state = spec.bits:unpack(0)
+    for _,name in ipairs(spec.options) do
+        if Faceroll.options[name] ~= nil then
+            state[name] = true
+        end
+    end
+    return state
 end
 
 Faceroll.activateKeybinds = function()

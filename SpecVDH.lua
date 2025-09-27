@@ -38,6 +38,10 @@ spec.states = {
     "hold",
 }
 
+spec.options = {
+    "hold",
+}
+
 local demonspikesDeadzone = Faceroll.deadzoneCreate("Demon Spikes", 0.3, 0.5)
 
 spec.calcState = function(state)
@@ -101,10 +105,6 @@ spec.calcState = function(state)
 
     if Faceroll.isSpellAvailable("Sigil of Spite") then
         state.sigilofspite = true
-    end
-
-    if Faceroll.hold then
-        state.hold = true
     end
 
     return state

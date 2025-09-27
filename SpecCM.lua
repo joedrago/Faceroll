@@ -1,11 +1,11 @@
 -----------------------------------------------------------------------------------------
 -- Classic Mage
 
--- Faceroll.hold is special in this implementation: it provides a means to
--- create lots of conjured food and water. If you enable "hold" (/frhold), ST
--- will attempt to create 100 food and 100 water, then self-buff, drink to full,
--- and wait. If using AOE, it behaves the same, but will just make food and
--- water forever (instead of stopping at 100 each).
+-- An explanation of the "brita" option: it provides a means to create lots of
+-- conjured food and water. If you enable "brita" (/fro brita), ST will attempt
+-- to create 100 food and 100 water, then self-buff, drink to full, and wait. If
+-- using AOE, it behaves the same, but will just make food and water forever
+-- (instead of stopping at 100 each).
 
 -- For combat, everything is decided based on:
 -- * am I already in combat
@@ -40,7 +40,6 @@ spec.states = {
     "combat",
     "melee",
     "moving",
-    "hold",
     "group",
     "channeling",
 
@@ -72,6 +71,13 @@ spec.states = {
     "coneofcold",
     "frostbolt",
     "blizzard",
+
+    "- Options -",
+    "brita",
+}
+
+spec.options = {
+    "brita", -- I am a brita water filter, and my existence is to fill up glasses of water
 }
 
 spec.calcState = function(state)
@@ -92,10 +98,6 @@ spec.calcState = function(state)
     -- local movingStoppedSince = GetTime() - Faceroll.movingStopped
     if Faceroll.moving then --or (movingStoppedSince < 0.5) then
         state.moving = true
-    end
-
-    if Faceroll.hold then
-        state.hold = true
     end
 
     if IsInGroup() then
@@ -220,7 +222,7 @@ spec.actions = {
 
 spec.calcAction = function(mode, state)
     if mode == Faceroll.MODE_ST or mode == Faceroll.MODE_AOE then
-        local makeForever = state.hold and (mode == Faceroll.MODE_AOE)
+        local makeForever = state.brita and (mode == Faceroll.MODE_AOE)
 
         if not state.combat and state.drink and state.drinkending and state.manaL80 then
             -- we're going to need to drink more to finish drinking
@@ -232,7 +234,7 @@ spec.calcAction = function(mode, state)
 
         -- TODO: make this conditional significantly less ugly
         elseif not state.combat
-           and (((state.hold and state.manaL25) or (not state.hold and (state.manaL50 or state.hpL50))) or (not state.hold and state.group and not state.manafull))
+           and (((state.brita and state.manaL25) or (not state.brita and (state.manaL50 or state.hpL50))) or (not state.brita and state.group and not state.manafull))
            and not state.waterL1
            and not state.drink
            and not state.moving
@@ -241,12 +243,12 @@ spec.calcAction = function(mode, state)
             -- low on mana or hp, and we've given a second or two to loot
             return "consume"
 
-        elseif not state.combat and not state.foodLwater and (makeForever or state.waterL1 or (state.hold and state.waterL100)) then
+        elseif not state.combat and not state.foodLwater and (makeForever or state.waterL1 or (state.brita and state.waterL100)) then
             -- we're either making one batch because we ran out, or we're doing
             -- a big prep because "hold" == "big prep"
             return "makewater"
 
-        elseif not state.combat and (makeForever or state.foodL1 or (state.hold and state.foodL100)) then
+        elseif not state.combat and (makeForever or state.foodL1 or (state.brita and state.foodL100)) then
             -- we're either making one batch because we ran out, or we're doing
             -- a big prep because "hold" == "big prep"
             return "makefood"
@@ -257,11 +259,11 @@ spec.calcAction = function(mode, state)
         elseif not state.combat and not state.arcaneintellect then
             return "arcaneintellect"
 
-        elseif not state.combat and state.hold and not state.waterL100 and not state.manafull then
+        elseif not state.combat and state.brita and not state.waterL100 and not state.manafull then
             -- we just finished preparing a big pile of water and buffs, top off
             return "consume"
 
-        elseif not state.hold then
+        elseif not state.brita then
             -- combat
 
             if mode == Faceroll.MODE_ST then

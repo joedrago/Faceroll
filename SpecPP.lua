@@ -32,8 +32,12 @@ spec.states = {
     "avengersshield",
     "hammerofwrath",
     "consecration",
-    "holding",
+    "hold",
     "incombat",
+}
+
+spec.options = {
+    "hold",
 }
 
 spec.calcState = function(state)
@@ -94,10 +98,6 @@ spec.calcState = function(state)
         state.consecration = true
     end
 
-    if Faceroll.hold then
-        state.holding = true
-    end
-
     if UnitAffectingCombat("player") then
         state.incombat = true
     end
@@ -151,7 +151,7 @@ spec.calcAction = function(mode, state)
         elseif state.judgment then
             return "judgment"
 
-        elseif not state.holding and state.avengersshield then
+        elseif not state.hold and state.avengersshield then
             return "avengersshield"
 
         elseif state.blessedhammer then
@@ -183,7 +183,7 @@ spec.calcAction = function(mode, state)
         elseif state.holypower3 then
             return "shieldoftherighteous"
 
-        elseif not state.holding and state.avengersshield then
+        elseif not state.hold and state.avengersshield then
             return "avengersshield"
 
         elseif state.hammerofwrath then

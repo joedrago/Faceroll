@@ -31,7 +31,11 @@ spec.states = {
     "bladeofjusticeavailable",
     "hammerofwrathavailable",
     "hammeroflightavailable",
-    "holding",
+    "hold",
+}
+
+spec.options = {
+    "hold",
 }
 
 spec.calcState = function(state)
@@ -88,10 +92,6 @@ spec.calcState = function(state)
         state.hammeroflightavailable = true
     end
 
-    if Faceroll.hold then
-        state.holding = true
-    end
-
     if Faceroll.debug ~= Faceroll.DEBUG_OFF then
         local o = ""
         local hol = "N"
@@ -124,22 +124,22 @@ spec.calcAction = function(mode, state)
     if mode == Faceroll.MODE_ST then
         -- Single Target
 
-        if not state.holding and state.divinehammeravailable and state.holypower3 then
+        if not state.hold and state.divinehammeravailable and state.holypower3 then
             return "divinehammer"
 
-        elseif not state.holding and state.executionsentenceavailable then
+        elseif not state.hold and state.executionsentenceavailable then
             return "executionsentence"
 
-        elseif not state.holding and state.hammeroflightavailable and state.holypower5 then
+        elseif not state.hold and state.hammeroflightavailable and state.holypower5 then
             return "wakeofashes"
 
-        elseif not state.holding and state.allinbuff and state.holypower3 then
+        elseif not state.hold and state.allinbuff and state.holypower3 then
             return "finalverdict"
 
         -- elseif state.hammeroflightavailable and state.holypower5 and state.lightsdeliverancebuff then
         --     return "wakeofashes"
 
-        elseif not state.holding and state.holypower5 then
+        elseif not state.hold and state.holypower5 then
             return "finalverdict"
 
         elseif state.bladeofjusticeavailable and not state.expurgationdot then
@@ -171,22 +171,22 @@ spec.calcAction = function(mode, state)
     elseif mode == Faceroll.MODE_AOE then
         -- AOE
 
-        if not state.holding and state.divinehammeravailable and state.holypower3 then
+        if not state.hold and state.divinehammeravailable and state.holypower3 then
             return "divinehammer"
 
-        elseif not state.holding and state.executionsentenceavailable then
+        elseif not state.hold and state.executionsentenceavailable then
             return "executionsentence"
 
-        elseif not state.holding and state.hammeroflightavailable and state.holypower5 then
+        elseif not state.hold and state.hammeroflightavailable and state.holypower5 then
             return "wakeofashes"
 
-        elseif not state.holding and ((state.holypower3 and state.allinbuff) or state.empyreanpowerbuff) then
+        elseif not state.hold and ((state.holypower3 and state.allinbuff) or state.empyreanpowerbuff) then
             return "divinestorm"
 
         -- elseif state.hammeroflightavailable and state.lightsdeliverancebuff then
         --     return "wakeofashes"
 
-        elseif not state.holding and state.holypower5 then
+        elseif not state.hold and state.holypower5 then
             return "divinestorm"
 
         elseif state.wakeofashesavailable then
@@ -195,7 +195,7 @@ spec.calcAction = function(mode, state)
         elseif state.divinetollavailable then
             return "divinetoll"
 
-        elseif not state.holding and not state.hammeroflightavailable and state.holypower3 then
+        elseif not state.hold and not state.hammeroflightavailable and state.holypower3 then
             return "divinestorm"
 
         elseif state.judgmentavailable then

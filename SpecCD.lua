@@ -55,6 +55,10 @@ spec.states = {
     "fffready",
 }
 
+spec.options = {
+    "hold",
+}
+
 spec.calcState = function(state)
     -- Stances --
 
@@ -87,10 +91,6 @@ spec.calcState = function(state)
     end
     if mobCount > 1 then
         state.aoe = true
-    end
-
-    if Faceroll.hold then
-        state.hold = true
     end
 
     -- Resources --

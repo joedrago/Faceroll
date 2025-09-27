@@ -41,6 +41,10 @@ spec.states = {
     "hold",
 }
 
+spec.options = {
+    "hold",
+}
+
 spec.calcState = function(state)
     if Faceroll.isBuffActive("Metamorphosis") then
         state.metamorphosisbuff = true
@@ -91,9 +95,6 @@ spec.calcState = function(state)
     end
     if fury < 80 then
         state.furyL80 = true
-    end
-    if Faceroll.hold then
-        state.hold = true
     end
 
     return state

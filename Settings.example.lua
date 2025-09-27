@@ -85,6 +85,13 @@ Faceroll.enabledFrameX = 470
 Faceroll.enabledFrameY = 70
 Faceroll.enabledFrameFontSize = 18
 
+-- The list of active options
+Faceroll.optionsFrameAnchor = "BOTTOMLEFT"
+Faceroll.optionsFrameX = 470
+Faceroll.optionsFrameY = 100
+Faceroll.optionsFrameFontSize = 10
+Faceroll.optionsFrameColor = "ffff00"
+
 -- The text in the center of the screen saying "FR AE", etc
 Faceroll.activeFrameAnchor = "CENTER"
 Faceroll.activeFrameX = 0
