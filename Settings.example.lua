@@ -90,7 +90,7 @@ Faceroll.optionsFrameAnchor = "BOTTOMLEFT"
 Faceroll.optionsFrameX = 470
 Faceroll.optionsFrameY = 100
 Faceroll.optionsFrameFontSize = 10
-Faceroll.optionsFrameColor = "ffff00"
+Faceroll.optionsFrameColor = "ffffaa"
 
 -- The text in the center of the screen saying "FR AE", etc
 Faceroll.activeFrameAnchor = "CENTER"
