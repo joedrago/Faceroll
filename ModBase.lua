@@ -184,6 +184,28 @@ Faceroll.resetBuffs = function()
         buff.expirationTime = 0
         buff.stacks = 0
     end
+
+    for i=1,100 do
+        local aura = C_UnitAuras.GetAuraDataByIndex("player", i)
+        if aura ~= nil and buffs[aura.name] ~= nil then
+            print("Faceroll: Rediscovered Buff: " .. Faceroll.textColor(aura.name, "ffffaa"))
+            local buff = buffs[aura.name]
+            if buff.harmful then
+                if aura.isHarmful then
+                    buff.id = aura.auraInstanceID
+                end
+            else
+                buff.id = aura.auraInstanceID
+                buff.expirationTime = aura.expirationTime
+                buff.stacks = aura.applications
+
+                local auraRemaining = aura.expirationTime - GetTime()
+                local rtbRemaining = math.max(Faceroll.rtbEnd - GetTime(), 0)
+                buff.remain = auraRemaining > rtbRemaining + Faceroll.rtbDelay
+                buff.cto = rtbRemaining > auraRemaining + Faceroll.rtbDelay
+            end
+        end
+    end
 end
 
 Faceroll.getBuff = function(buffName)
