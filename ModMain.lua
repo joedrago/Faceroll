@@ -27,18 +27,26 @@ local function enabledFrameUpdate()
 
         enabledFrame:setText(Faceroll.textColor(spec.name, spec.color))
 
-        local optionsText = ""
-        if enabledSpec > 0 then
-            for _,name in ipairs(spec.options) do
-                if Faceroll.options[name] then
-                    optionsText = optionsText .. string.upper(name) .. "\n"
-                end
-            end
-        end
-
         local optionsFrameColor = Faceroll.optionsFrameColor
         if optionsFrameColor == nil then
             optionsFrameColor = spec.color
+        end
+
+        local optionsText = ""
+        if enabledSpec > 0 then
+            for _,name in ipairs(spec.options) do
+                if Faceroll.optionsFrameShowAll then
+                    local color = optionsFrameColor
+                    if not Faceroll.options[name] then
+                        color = "222222"
+                    end
+                    optionsText = optionsText .. Faceroll.textColor(string.upper(name), color) .. "\n"
+                else
+                    if Faceroll.options[name] then
+                        optionsText = optionsText .. string.upper(name) .. "\n"
+                    end
+                end
+            end
         end
         optionsFrame:setText(Faceroll.textColor(optionsText, optionsFrameColor))
     end
