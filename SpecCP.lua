@@ -18,27 +18,30 @@ spec.buffs = {
 -- States
 
 spec.states = {
-    "combat",
-
+    "- Buffs -",
     "innerfire",
     "renewbuff",
     "weakenedsoulbuff",
     "shieldbuff",
 
+    "- Debuffs -",
+    "pain",
+
+    "- Spells -",
     "shieldavailable",
     "mindblast",
 
-    "targetingenemy",
-    "pain",
-
+    "- Combat -",
+    "combat",
     "hp80",
+
+    "- Target -",
+    "targetingenemy",
+    "target30",
 }
 
 spec.calcState = function(state)
-    if UnitAffectingCombat("player") then
-        state.combat = true
-    end
-
+    -- Buffs
     if Faceroll.isBuffActive("Inner Fire") then
         state.innerfire = true
     end
@@ -52,27 +55,50 @@ spec.calcState = function(state)
         state.shieldbuff = true
     end
 
-    if Faceroll.isSpellAvailable("Power Word: Shield") then
-        state.shieldavailable = true
-    end
-
-    if Faceroll.isSpellAvailable("Mind Blast") then
-        state.mindblast = true
-    end
-
-    if Faceroll.targetingEnemy() then
-        state.targetingenemy = true
-    end
-
+    -- Debuffs
     if Faceroll.isDotActive("Shadow Word: Pain") > 0.1 then
         state.pain = true
     end
 
+    -- Spells
+    if Faceroll.isSpellAvailable("Power Word: Shield") then
+        state.shieldavailable = true
+    end
+    if Faceroll.isSpellAvailable("Mind Blast") then
+        state.mindblast = true
+    end
+
+    -- Combat
+    if UnitAffectingCombat("player") then
+        state.combat = true
+    end
     local hp = UnitHealth("player")
     local hpmax = UnitHealthMax("player")
     local hpnorm = hp / hpmax
     if hpnorm < 0.8 then
         state.hp80 = true
+    end
+
+    -- Target
+    if Faceroll.targetingEnemy() then
+        state.targetingenemy = true
+
+        local targethp = UnitHealth("target")
+        local targethpmax = UnitHealthMax("target")
+        local targethpnorm = targethp / targethpmax
+        if targethpnorm <= 0.30 then
+            state.target30 = true
+        end
+    end
+
+    if Faceroll.debug ~= Faceroll.DEBUG_OFF then
+        local o = ""
+        local coast = "N"
+        if Faceroll.coasting then
+            coast = "Y"
+        end
+        o = o .. "Coasting: " .. coast .. "\n"
+        Faceroll.setDebugText(o)
     end
 
     return state
@@ -94,14 +120,14 @@ spec.calcAction = function(mode, state)
     if mode == Faceroll.MODE_ST then
         -- Single Target
 
-        if state.targetingenemy then
-            if not state.innerfire then
-                return "innerfire"
+        if state.hp80 and not state.renewbuff then
+            return "renew"
 
-            elseif state.hp80 and not state.renewbuff then
-                return "renew"
+        elseif state.targetingenemy then
+            -- if not state.innerfire then
+            --     return "innerfire"
 
-            elseif not state.shieldbuff and not state.weakenedsoulbuff and state.shieldavailable then
+            if not state.shieldbuff and not state.weakenedsoulbuff and state.shieldavailable then
                 return "shield"
 
             elseif not state.combat and state.mindblast then
@@ -109,6 +135,10 @@ spec.calcAction = function(mode, state)
 
             elseif not state.pain then
                 return "pain"
+
+            --elseif state.target30 then
+            --    -- coast until combat drops
+            --    return Faceroll.ACTION_COAST
 
             else
                 return "shoot"
