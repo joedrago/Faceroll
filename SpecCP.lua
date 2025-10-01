@@ -150,10 +150,10 @@ spec.calcAction = function(mode, state)
             return "renew"
 
         elseif state.targetingenemy then
-            -- if not state.coast and not state.innerfire then
-            --     return "innerfire"
+            if not state.coast and not state.innerfire then
+                return "innerfire"
 
-            if not state.coast and not state.shieldbuff and not state.weakenedsoulbuff and state.shieldavailable then
+            elseif not state.coast and not state.shieldbuff and not state.weakenedsoulbuff and state.shieldavailable then
                 return "shield"
 
             elseif not state.coast and not state.combat and state.mindblast then
