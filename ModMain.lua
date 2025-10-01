@@ -174,6 +174,15 @@ local function updateBits()
     Faceroll.updateBitsCounter = Faceroll.updateBitsCounter + 1
 end
 
+Faceroll.setOption = function(option, enabled)
+    if enabled then
+        Faceroll.options[option] = true
+    else
+        Faceroll.options[option] = nil
+    end
+    enabledFrameUpdate()
+end
+
 local remainingTicks = 0
 local function tick()
     -- print("tick! " .. remainingTicks)
@@ -196,6 +205,16 @@ local function toggleOption(option)
     else
         Faceroll.options[option] = true
     end
+    enabledFrameUpdate()
+    updateBits()
+end
+local function setOptionTrue(option)
+    Faceroll.options[option] = true
+    enabledFrameUpdate()
+    updateBits()
+end
+local function setOptionFalse(option)
+    Faceroll.options[option] = nil
     enabledFrameUpdate()
     updateBits()
 end
@@ -230,6 +249,7 @@ end
 local eventFrame = CreateFrame("Frame")
 local initialized = false
 local function onEvent(self, event, arg1, arg2, ...)
+    Faceroll.targetChanged = false
     if not initialized and ((event == "ADDON_LOADED" and arg1 == "Faceroll") or (event == "PLAYER_LOGIN")) then
         initialized = true
         eventFrame:UnregisterEvent("ADDON_LOADED")
@@ -237,10 +257,12 @@ local function onEvent(self, event, arg1, arg2, ...)
         init()
     elseif event == "PLAYER_ENTERING_WORLD" then
         Faceroll.resetBuffs()
+    elseif event == "PLAYER_TARGET_CHANGED" then
+        Faceroll.targetChanged = true
+        updateBits()
     elseif event == "UNIT_SPELLCAST_SUCCEEDED"
         or event == "UNIT_POWER_UPDATE"
         or event == "UNIT_PET"
-        or event == "PLAYER_TARGET_CHANGED"
         or event == "PLAYER_REGEN_DISABLED"
         or event == "BAG_UPDATE"
         or event == "UNIT_SPELLCAST_CHANNEL_STOP"
@@ -315,7 +337,11 @@ SLASH_FRTICK1 = '/frtick'
 SlashCmdList["FRTICK"] = tickReset
 SLASH_FRO1 = '/fro'
 SlashCmdList["FRO"] = toggleOption
+SLASH_FRT1 = '/frt'
+SlashCmdList["FRT"] = setOptionTrue
 SLASH_FRD1 = '/frd'
+SlashCmdList["FRF"] = setOptionFalse
+SLASH_FRF1 = '/frf'
 SlashCmdList["FRD"] = toggleDebug
 SLASH_FRDEBUG1 = '/frdebug'
 SlashCmdList["FRDEBUG"] = toggleDebug

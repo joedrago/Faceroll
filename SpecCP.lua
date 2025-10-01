@@ -31,13 +31,22 @@ spec.states = {
     "shieldavailable",
     "mindblast",
 
+    "- Target -",
+    "targetingenemy",
+    "target40",
+
     "- Combat -",
     "combat",
     "hp80",
+    "mana90",
+    "wand",
+    "coast",
+}
 
-    "- Target -",
-    "targetingenemy",
-    "target30",
+local coasting = false
+
+spec.options = {
+    "coast",
 }
 
 spec.calcState = function(state)
@@ -68,6 +77,18 @@ spec.calcState = function(state)
         state.mindblast = true
     end
 
+    -- Target
+    if Faceroll.targetingEnemy() then
+        state.targetingenemy = true
+
+        local targethp = UnitHealth("target")
+        local targethpmax = UnitHealthMax("target")
+        local targethpnorm = targethp / targethpmax
+        if targethpnorm <= 0.40 then
+            state.target40 = true
+        end
+    end
+
     -- Combat
     if UnitAffectingCombat("player") then
         state.combat = true
@@ -78,27 +99,20 @@ spec.calcState = function(state)
     if hpnorm < 0.8 then
         state.hp80 = true
     end
-
-    -- Target
-    if Faceroll.targetingEnemy() then
-        state.targetingenemy = true
-
-        local targethp = UnitHealth("target")
-        local targethpmax = UnitHealthMax("target")
-        local targethpnorm = targethp / targethpmax
-        if targethpnorm <= 0.30 then
-            state.target30 = true
-        end
+    local mana = UnitPower("player", Enum.PowerType.Mana)
+    local manamax = UnitPowerMax("player", Enum.PowerType.Mana)
+    local mananorm = mana / manamax
+    if mananorm >= 0.90 then
+        state.mana90 = true
     end
 
-    if Faceroll.debug ~= Faceroll.DEBUG_OFF then
-        local o = ""
-        local coast = "N"
-        if Faceroll.coasting then
-            coast = "Y"
-        end
-        o = o .. "Coasting: " .. coast .. "\n"
-        Faceroll.setDebugText(o)
+    if IsCurrentSpell(5019) then -- Shoot (wand)
+        state.wand = true
+    end
+
+    if not state.combat or Faceroll.targetChanged then
+        Faceroll.setOption("coast", false)
+        state.coast = false
     end
 
     return state
@@ -114,40 +128,51 @@ spec.actions = {
     "pain",
     "shoot",
     "innerfire",
+    "coast",
 }
 
 spec.calcAction = function(mode, state)
     if mode == Faceroll.MODE_ST then
-        -- Single Target
+        -- Grind
 
-        if state.hp80 and not state.renewbuff then
+        -- "Coasting" means to simply just wand a mob down for the last few
+        -- percent of its HP in order to ensure we're outside of the 5 second
+        -- rule when combat drops. Don't spend mana on a late-fight shield or
+        -- renew or SW:P, etc. Coasting will automatically self-disable on
+        -- target change or when combat drops, or if a macro with "/frf coast"
+        -- is pressed.
+
+        -- Also avoid casting Renew *right* when combat drops, and instead give
+        -- Spirit Tap + FSR a chance to enjoy that juicy spirit. This is what
+        -- the mana check is for.
+
+        if not state.coast and state.hp80 and not state.renewbuff and (state.combat or state.mana90) then
             return "renew"
 
         elseif state.targetingenemy then
-            -- if not state.innerfire then
+            -- if not state.coast and not state.innerfire then
             --     return "innerfire"
 
-            if not state.shieldbuff and not state.weakenedsoulbuff and state.shieldavailable then
+            if not state.coast and not state.shieldbuff and not state.weakenedsoulbuff and state.shieldavailable then
                 return "shield"
 
-            elseif not state.combat and state.mindblast then
+            elseif not state.coast and not state.combat and state.mindblast then
                 return "mindblast"
 
-            elseif not state.pain then
+            elseif not state.coast and not state.pain then
                 return "pain"
 
-            --elseif state.target30 then
-            --    -- coast until combat drops
-            --    return Faceroll.ACTION_COAST
-
-            else
+            elseif not state.wand then
                 return "shoot"
+
+            elseif state.target40 and not state.coast then
+                return "coast"
 
             end
         end
 
     elseif mode == Faceroll.MODE_AOE then
-        -- AOE
+        -- Chill
 
         if not state.innerfire then
             return "innerfire"

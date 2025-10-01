@@ -11,6 +11,7 @@ Faceroll.leftCombat = 0
 Faceroll.moving = false
 Faceroll.movingStopped = 0
 Faceroll.updateBitsCounter = 0
+Faceroll.targetChanged = false
 
 -----------------------------------------------------------------------------------------
 -- Debug Overlay Shenanigans
