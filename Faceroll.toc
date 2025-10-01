@@ -12,6 +12,8 @@ SpecBM.lua
 SpecCD.lua
 SpecCM.lua
 SpecCP.lua
+SpecPAL.lua
+SpecCR.lua
 SpecCW.lua
 SpecDB.lua
 SpecDW.lua
