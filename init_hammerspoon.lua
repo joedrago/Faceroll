@@ -105,3 +105,15 @@ function onGameBits(newBits, addr)
     onUpdate(bits)
 end
 server = hs.socket.udp.server(9001, onGameBits):receive()
+
+-----------------------------------------------------------------------------------------
+-- Bundle Debug
+
+function dumpBundles()
+    print("Active WoW Bundles:")
+    local bundles = hs.application.applicationsForBundleID('com.blizzard.worldofwarcraft')
+    for bundleIndex,b in ipairs(bundles) do
+        print("Bundle["..bundleIndex.."]: " .. b:name())
+    end
+end
+-- dumpBundles()
