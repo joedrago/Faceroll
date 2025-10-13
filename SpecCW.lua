@@ -15,6 +15,7 @@ spec.buffs = {}
 spec.states = {
     "curseofagony",
     "corruption",
+    "drainsoul",
 }
 
 spec.calcState = function(state)
@@ -23,6 +24,17 @@ spec.calcState = function(state)
     end
     if Faceroll.isDotActive("Corruption") > 0.1 then
         state.corruption = true
+    end
+
+    if Faceroll.targetingEnemy() then
+        state.targetingenemy = true
+
+        local targethp = UnitHealth("target")
+        local targethpmax = UnitHealthMax("target")
+        local targethpnorm = targethp / targethpmax
+        if targethpnorm <= 0.20 then
+            state.drainsoul = true
+        end
     end
 
     return state
@@ -36,20 +48,28 @@ spec.actions = {
     "corruption",
     "shadowbolt",
     "hellfire",
+    "wand",
+    "drainsoul",
 }
 
 spec.calcAction = function(mode, state)
     if mode == Faceroll.MODE_ST then
         -- Single Target
 
-        -- if not state.curseofagony then
-        --     return "curseofagony"
+        if state.drainsoul then
+            return "drainsoul"
 
-        -- elseif not state.corruption then
-        --     return "corruption"
+        elseif not state.curseofagony then
+            return "curseofagony"
 
-        -- else
-            return "shadowbolt"
+        elseif not state.corruption then
+            return "corruption"
+
+        else
+            return "wand"
+        end
+        -- -- else
+        --     return "shadowbolt"
 
         -- end
 
