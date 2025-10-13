@@ -177,6 +177,9 @@ spec.calcAction = function(mode, state)
         if not state.innerfire then
             return "innerfire"
 
+        elseif not state.coast and not state.pain then
+            return "pain"
+
         elseif state.targetingenemy then
             return "shoot"
 
