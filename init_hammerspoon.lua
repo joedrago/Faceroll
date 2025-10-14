@@ -26,11 +26,14 @@ end
 -----------------------------------------------------------------------------------------
 -- App interation
 
-wowApplication = nil
 function sendKeyToWow(keyName)
-    -- if wowApplication == nil then
-        wowApplication = hs.application.applicationsForBundleID('com.blizzard.worldofwarcraft')[1]
-    -- end
+    local wowApplication = hs.application.applicationsForBundleID('com.blizzard.worldofwarcraft')[1]
+    if wowApplication == nil then
+        wowApplication = hs.application.applicationsForBundleID('com.moonlight-stream.Moonlight')[1]
+        if wowApplication == nil then
+            FRDEBUG("cant find moonlight app")
+        end
+    end
     if wowApplication ~= nil then
         hs.eventtap.keyStroke({}, keyName, 20000, wowApplication)
     end
@@ -77,23 +80,33 @@ local function facerollListenStop()
     wowTapFlags:stop()
 end
 
+local function facerollSupportedWindow(w, reason)
+    if w ~= nil then
+        local app = w:application()
+        if app ~= nil then
+            local bundleID = app:bundleID()
+            if bundleID == "com.blizzard.worldofwarcraft"
+            or bundleID == "com.moonlight-stream.Moonlight"
+            then
+                FRDEBUG("["..reason.."] Supported Bundle: " .. bundleID)
+                return true
+            else
+                FRDEBUG("["..reason.."] Unsupported Bundle: " .. bundleID)
+            end
+        end
+    end
+    return false
+end
+
 local WoWFilter = hs.window.filter.new(true)--"Wow")
 WoWFilter:subscribe(hs.window.filter.windowFocused, function(w)
-    if w == nil then
-        FRDEBUG("Focus: w is nil")
-    else
-        FRDEBUG("Focus: " .. w:title())
-        if w:title() == "World of Warcraft" then
-            facerollListenStart()
-        end
+    if facerollSupportedWindow(w, "focus") then
+        facerollListenStart()
     end
 end)
 WoWFilter:subscribe(hs.window.filter.windowUnfocused, function(w)
-    if w ~= nil then
-        FRDEBUG("Unfocus: " .. w:title())
-        if w:title() == "World of Warcraft" then
-            facerollListenStop()
-        end
+    if facerollSupportedWindow(w, "unfocus") then
+        facerollListenStop()
     end
 end)
 
