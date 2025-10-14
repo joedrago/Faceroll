@@ -13,10 +13,16 @@ spec.buffs = {}
 -- States
 
 spec.states = {
+    "- Resources -",
     "energy35",
     "energy45",
     "cp3",
     "cp5",
+
+    "- Combat -",
+    "targetingenemy",
+    "combat",
+    "autoattack",
 }
 
 spec.calcState = function(state)
@@ -37,6 +43,24 @@ spec.calcState = function(state)
         state.cp5 = true
     end
 
+    -- Combat
+    if Faceroll.targetingEnemy() then
+        state.targetingenemy = true
+
+        -- local targethp = UnitHealth("target")
+        -- local targethpmax = UnitHealthMax("target")
+        -- local targethpnorm = targethp / targethpmax
+        -- if targethpnorm <= 0.40 then
+        --     state.target40 = true
+        -- end
+    end
+    if UnitAffectingCombat("player") then
+        state.combat = true
+    end
+    if IsCurrentSpell(6603) then -- Autoattack
+        state.autoattack = true
+    end
+
     if Faceroll.debug ~= Faceroll.DEBUG_OFF then
         local o = ""
         o = o .. "Energy: " .. energy .. "\n"
@@ -54,20 +78,25 @@ end
 spec.actions = {
     "sinisterstrike",
     "eviscerate",
+    "attack",
 }
 
 spec.calcAction = function(mode, state)
     if mode == Faceroll.MODE_ST then
         -- Single Target
 
-        -- if state.energy35 and state.cp3 then
-        if state.cp3 then
-            return "eviscerate"
+        if state.targetingenemy then
 
-        -- elseif state.energy45 then
-        else
-            return "sinisterstrike"
+            if state.combat and not state.autoattack then
+                return "attack"
 
+            elseif state.cp3 then -- if state.energy35 and state.cp3 then
+                return "eviscerate"
+
+            else --if state.energy45 then
+                return "sinisterstrike"
+
+            end
         end
 
     elseif mode == Faceroll.MODE_AOE then
