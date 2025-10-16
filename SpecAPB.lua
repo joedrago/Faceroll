@@ -15,7 +15,7 @@ spec.buffs = {}
 spec.states = {
     "- Resources -",
     "rage20",
-    "rage35",
+    "rage40",
 
     "- State -",
     "bear",
@@ -37,8 +37,8 @@ spec.calcState = function(state)
     if rage >= 20 then
         state.rage20 = true
     end
-    if rage >= 35 then
-        state.rage35 = true
+    if rage >= 40 then
+        state.rage40 = true
     end
 
     local s = nil
@@ -99,13 +99,13 @@ spec.calcAction = function(mode, state)
             if not state.bear then
                 return "bear"
 
-            elseif not state.autoattack then
+            elseif not state.autoattack and not state.fsqueued then
                 return "attack"
 
             elseif not state.infectedblood and not state.fsqueued then
                 return "festeringstrike"
 
-            elseif (state.rage20 and not state.fsqueued) or (state.rage35 and state.fsqueued) then
+            elseif (state.fsqueued and state.rage40) or (not state.fsqueued and state.rage20) then
                 return "swipe"
 
             end
