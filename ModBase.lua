@@ -4,7 +4,11 @@ end
 
 Faceroll.options = {}
 Faceroll.classic = false
-if WOW_PROJECT_ID == WOW_PROJECT_CLASSIC then
+Faceroll.ascension = false
+if WOW_PROJECT_ID == nil then
+    Faceroll.classic = true
+    Faceroll.ascension = true
+elseif WOW_PROJECT_ID == WOW_PROJECT_CLASSIC then
     Faceroll.classic = true
 end
 Faceroll.leftCombat = 0
@@ -186,50 +190,79 @@ Faceroll.resetBuffs = function()
         buff.stacks = 0
     end
 
-    for i=1,100 do
-        local aura = C_UnitAuras.GetAuraDataByIndex("player", i)
-        if aura ~= nil and buffs[aura.name] ~= nil then
-            print("Faceroll: Rediscovered Buff: " .. Faceroll.textColor(aura.name, "ffffaa"))
-            local buff = buffs[aura.name]
-            if buff.harmful then
-                if aura.isHarmful then
+    if not Faceroll.ascension then
+        for i=1,100 do
+            local aura = C_UnitAuras.GetAuraDataByIndex("player", i)
+            if aura ~= nil and buffs[aura.name] ~= nil then
+                print("Faceroll: Rediscovered Buff: " .. Faceroll.textColor(aura.name, "ffffaa"))
+                local buff = buffs[aura.name]
+                if buff.harmful then
+                    if aura.isHarmful then
+                        buff.id = aura.auraInstanceID
+                    end
+                else
                     buff.id = aura.auraInstanceID
-                end
-            else
-                buff.id = aura.auraInstanceID
-                buff.expirationTime = aura.expirationTime
-                buff.stacks = aura.applications
+                    buff.expirationTime = aura.expirationTime
+                    buff.stacks = aura.applications
 
-                local auraRemaining = aura.expirationTime - GetTime()
-                local rtbRemaining = math.max(Faceroll.rtbEnd - GetTime(), 0)
-                buff.remain = auraRemaining > rtbRemaining + Faceroll.rtbDelay
-                buff.cto = rtbRemaining > auraRemaining + Faceroll.rtbDelay
+                    local auraRemaining = aura.expirationTime - GetTime()
+                    local rtbRemaining = math.max(Faceroll.rtbEnd - GetTime(), 0)
+                    buff.remain = auraRemaining > rtbRemaining + Faceroll.rtbDelay
+                    buff.cto = rtbRemaining > auraRemaining + Faceroll.rtbDelay
+                end
             end
         end
     end
 end
 
+Faceroll.ascensionFindAura = function(reqUnit, reqName, reqFilter)
+    for auraIndex=1,40 do
+        local name, rank, icon, stacks, dispelType, duration, expirationTime, source, isStealable, nameplateShowPersonal, spellId, canApplyAura, isBossDebuff, castByPlayer, nameplateShowAll, timeMod = UnitAura(reqUnit, auraIndex, reqFilter)
+        if name == reqName then
+            -- DevTools_Dump({UnitAura("player", auraIndex, reqFilter)})
+            return { ["duration"]=duration, ["stacks"]=stacks, ["expirationTime"]=expirationTime, }
+        end
+    end
+    return nil
+end
+
 Faceroll.getBuff = function(buffName)
-    return buffs[buffName]
+    if Faceroll.ascension then
+        return Faceroll.ascensionFindAura("player", buffName, "HELPFUL")
+    elseif buffs[buffName].id ~= 0 then
+        return buffs[buffName]
+    end
+    return nil
+end
+
+Faceroll.getDot = function(dotName)
+    if Faceroll.ascension then
+        return Faceroll.ascensionFindAura("target", dotName, "HARMFUL|PLAYER")
+    else
+        local name, _, stacks, _, duration, expirationTime = AuraUtil.FindAuraByName(spellName, "target", "HARMFUL|PLAYER")
+        if name ~= nil then
+            return { ["duration"]=duration, ["stacks"]=stacks, ["expirationTime"]=expirationTime, }
+        end
+    end
+    return nil
 end
 
 Faceroll.isBuffActive = function(buffName)
-    if buffs[buffName].id ~= 0 then
-        return true
-    end
-    return false
+    return (Faceroll.getBuff(buffName ~= nil))
 end
 
 Faceroll.getBuffStacks = function(buffName)
-    if buffs[buffName].id ~= 0 then
-        return buffs[buffName].stacks
+    local buff = Faceroll.getBuff(buffName)
+    if buff then
+        return buff.stacks
     end
     return 0
 end
 
 Faceroll.getBuffRemaining = function(buffName)
-    if buffs[buffName].id ~= 0 then
-        local remaining = math.max(buffs[buffName].expirationTime - GetTime(), 0)
+    local buff = Faceroll.getBuff(buffName)
+    if buff then
+        local remaining = math.max(buff.expirationTime - GetTime(), 0)
         return remaining
     end
     return 0
@@ -254,6 +287,19 @@ if builtinGSC == nil then
     end
 end
 
+local builtinISU = nil
+if C_Spell ~= nil then
+    builtinISU = C_Spell.IsSpellUsable
+end
+if builtinISU == nil then
+    builtinISU = function(spellName)
+        local isuResult = IsUsableSpell(spellName)
+        if isuResult == 1 then
+            return true
+        end
+        return false
+    end
+end
 
 Faceroll.spellCooldown = function(spellName)
     local cd = builtinGSC(spellName)
@@ -283,7 +329,7 @@ Faceroll.spellChargesSoon = function(spellName, count, seconds)
 end
 
 Faceroll.isSpellAvailable = function(spellName, ignoreUsable)
-    if not C_Spell.IsSpellUsable(spellName) and not ignoreUsable then
+    if not builtinISU(spellName) and not ignoreUsable then
         return false
     end
     if builtinGSC(spellName).duration > 1.5 then
@@ -304,10 +350,10 @@ Faceroll.hasManaForSpell = function(spellName)
 end
 
 Faceroll.isDotActive = function(spellName)
-    local name, _, _, _, fullDuration, expirationTime = AuraUtil.FindAuraByName(spellName, "target", "HARMFUL|PLAYER")
-    if name ~= nil and fullDuration > 0 then
-        local remainingDuration = expirationTime - GetTime()
-        local normalizedDuration = remainingDuration / fullDuration
+    local dot = Faceroll.getDot(spellName)
+    if dot ~= nil and dot.duration > 0 then
+        local remainingDuration = dot.expirationTime - GetTime()
+        local normalizedDuration = remainingDuration / dot.duration
         if normalizedDuration < 0 then
             normalizedDuration = 0
         end
@@ -317,24 +363,11 @@ Faceroll.isDotActive = function(spellName)
 end
 
 Faceroll.dotStacks = function(spellName)
-    local name, _, stacks, _, fullDuration, expirationTime = AuraUtil.FindAuraByName(spellName, "target", "HARMFUL|PLAYER")
-    if name ~= nil and fullDuration > 0 then
-        return stacks
+    local dot = Faceroll.getDot(spellName)
+    if dot ~= nil and dot.duration > 0 then
+        return dot.stacks
     end
     return 0
-end
-
-Faceroll.isHotActive = function(spellName, target)
-    local name, _, _, _, fullDuration, expirationTime = AuraUtil.FindAuraByName(spellName, target, "HELPFUL")
-    if name ~= nil and fullDuration > 0 then
-        local remainingDuration = expirationTime - GetTime()
-        local normalizedDuration = remainingDuration / fullDuration
-        if normalizedDuration < 0 then
-            normalizedDuration = 0
-        end
-        return normalizedDuration
-    end
-    return -1
 end
 
 Faceroll.targetingEnemy = function()
@@ -386,6 +419,10 @@ Faceroll.rtbDelay = 0.1
 Faceroll.rtbNeedsAPressAfterKIR = false
 
 Faceroll.onPlayerAura = function(info)
+    if Faceroll.ascension then
+        return
+    end
+
     if info.addedAuras then
         for _, aura in pairs(info.addedAuras) do
             for _, buff in pairs(buffs) do

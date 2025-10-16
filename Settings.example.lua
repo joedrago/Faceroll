@@ -5,32 +5,33 @@ end
 -----------------------------------------------------------------------------------------
 -- Activated specs. Put your most commonly used specs closer to the top.
 
-Faceroll.enableSpec("VDH")
-Faceroll.enableSpec("HDH")
+-- Ascension
+Faceroll.enableSpec("MOS")
+Faceroll.enableSpec("APB")
+
+-- Classic
 Faceroll.enableSpec("CM")
-Faceroll.enableSpec("DW")
 Faceroll.enableSpec("CW")
 Faceroll.enableSpec("CP")
-Faceroll.enableSpec("PAL")
 Faceroll.enableSpec("CR")
-Faceroll.enableSpec("FDK")
 
-Faceroll.enableSpec("AM")
-
-Faceroll.enableSpec("BM")
-Faceroll.enableSpec("MM")
-Faceroll.enableSpec("SV")
-
-Faceroll.enableSpec("RET")
+-- Retail
+-- Faceroll.enableSpec("VDH")
+-- Faceroll.enableSpec("HDH")
+-- Faceroll.enableSpec("DW")
+-- Faceroll.enableSpec("PAL")
+-- Faceroll.enableSpec("FDK")
+-- Faceroll.enableSpec("AM")
+-- Faceroll.enableSpec("BM")
+-- Faceroll.enableSpec("MM")
+-- Faceroll.enableSpec("SV")
+-- Faceroll.enableSpec("RET")
 -- Faceroll.enableSpec("PP")
 -- Faceroll.enableSpec("HP")
-
 -- Faceroll.enableSpec("SUB")
-
 -- Faceroll.enableSpec("CD")
-
-Faceroll.enableSpec("DB")
-Faceroll.enableSpec("OWL")
+-- Faceroll.enableSpec("DB")
+-- Faceroll.enableSpec("OWL")
 
 -----------------------------------------------------------------------------------------
 -- Keybinds

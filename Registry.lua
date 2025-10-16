@@ -150,7 +150,16 @@ end
 Faceroll.activeSpec = function()
     local _, playerClass = UnitClass("player")
     local specIndex = "CLASSIC"
-    if not Faceroll.classic then
+    if Faceroll.ascension then
+        specIndex = "ASCENSION"
+        local mysticLego = MysticEnchantUtil.GetLegendaryEnchantID("player")
+        if mysticLego ~= nil then
+            local mysticLegoName = GetSpellInfo(mysticLego)
+            if mysticLegoName ~= nil then
+                specIndex = mysticLegoName
+            end
+        end
+    elseif not Faceroll.classic then
         if GetSpecialization ~= nil then
             specIndex = GetSpecialization()
         end

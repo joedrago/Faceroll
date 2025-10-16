@@ -292,7 +292,7 @@ local function onEvent(self, event, arg1, arg2, ...)
         if source == UnitGUID("player") then
             Faceroll.onPlayerSpellEvent(spellEvent, spellID)
         end
-        if Faceroll.classic then
+        if Faceroll.classic or Faceroll.ascension then
             -- Classic seems to get fewer other events, just blast here
             updateBits()
         end
@@ -313,7 +313,7 @@ eventFrame:RegisterEvent("PLAYER_REGEN_ENABLED")
 eventFrame:RegisterEvent("PLAYER_STARTED_MOVING")
 eventFrame:RegisterEvent("PLAYER_STOPPED_MOVING")
 eventFrame:SetScript("OnEvent", onEvent)
-if Faceroll.classic then
+if Faceroll.classic or Faceroll.ascension then
     eventFrame:RegisterEvent("UNIT_POWER_UPDATE")
     eventFrame:RegisterEvent("BAG_UPDATE")
     eventFrame:RegisterEvent("ACTIONBAR_UPDATE_STATE")
