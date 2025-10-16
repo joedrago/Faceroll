@@ -153,7 +153,14 @@ local function hideBits()
     end
 end
 
-local function updateBits()
+local function updateBits(who)
+    if Faceroll.debugLastUpdateEventsEnabled then
+        if Faceroll.debugLastUpdateWho[who] == nil then
+            Faceroll.debugLastUpdateWho[who] = 0
+        end
+        Faceroll.debugLastUpdateWho[who] = Faceroll.debugLastUpdateWho[who] + 1
+    end
+
     local spec = Faceroll.activeSpec()
     if spec and spec.calcState then
         local state = spec.calcState(Faceroll.createState(spec))
@@ -186,7 +193,7 @@ end
 local remainingTicks = 0
 local function tick()
     -- print("tick! " .. remainingTicks)
-    updateBits()
+    updateBits("tick")
 
     remainingTicks = remainingTicks - 1
     if remainingTicks > 0 then
@@ -206,17 +213,17 @@ local function toggleOption(option)
         Faceroll.options[option] = true
     end
     enabledFrameUpdate()
-    updateBits()
+    updateBits("toggleOption")
 end
 local function setOptionTrue(option)
     Faceroll.options[option] = true
     enabledFrameUpdate()
-    updateBits()
+    updateBits("setOptionTrue")
 end
 local function setOptionFalse(option)
     Faceroll.options[option] = nil
     enabledFrameUpdate()
-    updateBits()
+    updateBits("setOptionFalse")
 end
 local function toggleDebug()
     Faceroll.debug = Faceroll.debug + 1
@@ -224,7 +231,7 @@ local function toggleDebug()
         Faceroll.debug = 0
     end
     Faceroll.updateDebugOverlay()
-    updateBits()
+    updateBits("toggleDebug")
 end
 
 -----------------------------------------------------------------------------------------
@@ -238,7 +245,7 @@ local function init()
     activeFrameCreate()
 
     createBits()
-    updateBits()
+    updateBits("init()")
 
     print("Faceroll: Initialized")
 end
@@ -259,34 +266,39 @@ local function onEvent(self, event, arg1, arg2, ...)
         Faceroll.resetBuffs()
     elseif event == "PLAYER_TARGET_CHANGED" then
         Faceroll.targetChanged = true
-        updateBits()
-    elseif event == "UNIT_SPELLCAST_SUCCEEDED"
-        or event == "UNIT_POWER_UPDATE"
-        or event == "UNIT_PET"
-        or event == "PLAYER_REGEN_DISABLED"
-        or event == "BAG_UPDATE"
-        or event == "UNIT_SPELLCAST_CHANNEL_STOP"
-        or event == "ACTIONBAR_UPDATE_STATE"
-    then
-        updateBits()
+        updateBits("PLAYER_TARGET_CHANGED")
+    elseif event == "UNIT_SPELLCAST_SUCCEEDED" then
+        updateBits("UNIT_SPELLCAST_SUCCEEDED")
+    elseif event == "UNIT_POWER_UPDATE" then
+        updateBits("UNIT_POWER_UPDATE")
+    elseif event == "UNIT_PET" then
+        updateBits("UNIT_PET")
+    elseif event == "PLAYER_REGEN_DISABLED" then
+        updateBits("PLAYER_REGEN_DISABLED")
+    elseif event == "BAG_UPDATE" then
+        updateBits("BAG_UPDATE")
+    elseif event == "UNIT_SPELLCAST_CHANNEL_STOP" then
+        updateBits("UNIT_SPELLCAST_CHANNEL_STOP")
+    elseif event == "ACTIONBAR_UPDATE_STATE" then
+        updateBits("ACTIONBAR_UPDATE_STATE")
     elseif event == "PLAYER_REGEN_ENABLED" then
         Faceroll.leftCombat = GetTime()
-        updateBits()
+        updateBits("PLAYER_REGEN_ENABLED")
     elseif event == "PLAYER_STARTED_MOVING" then
         Faceroll.moving = true
-        updateBits()
+        updateBits("PLAYER_STARTED_MOVING")
     elseif event == "PLAYER_STOPPED_MOVING" then
         Faceroll.moving = false
         Faceroll.movingStopped = GetTime()
         C_Timer.After(0.6, function()
-            updateBits()
+            updateBits("PLAYER_STOPPED_MOVING")
         end)
-        updateBits()
+        updateBits("PLAYER_STOPPED_MOVING")
     elseif event == "UNIT_AURA" then
         if arg1 == "player" then
             Faceroll.onPlayerAura(arg2)
         end
-        updateBits()
+        updateBits("UNIT_AURA")
     elseif event == "COMBAT_LOG_EVENT_UNFILTERED" then
         local _, spellEvent, _, source, _, _, _, _, _, _, _, spellID = CombatLogGetCurrentEventInfo()
         if source == UnitGUID("player") then
@@ -294,7 +306,7 @@ local function onEvent(self, event, arg1, arg2, ...)
         end
         if Faceroll.classic or Faceroll.ascension then
             -- Classic seems to get fewer other events, just blast here
-            updateBits()
+            updateBits("COMBAT_LOG_EVENT_UNFILTERED")
         end
     end
 end

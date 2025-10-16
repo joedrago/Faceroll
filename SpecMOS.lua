@@ -7,8 +7,6 @@ end
 
 local spec = Faceroll.createSpec("MOS", "777799", "HERO-Master of Shadows")
 
-spec.buffs = {}
-
 -----------------------------------------------------------------------------------------
 -- States
 
@@ -23,7 +21,10 @@ spec.states = {
     "shadowstep",
 
     "- Buffs -",
-    "sliceanddice",
+    "shadowtrance",
+
+    "- Dots -",
+    "gloomblade",
 
     "- Combat -",
     "targetingenemy",
@@ -49,13 +50,12 @@ spec.calcState = function(state)
         state.cp5 = true
     end
 
-    if Faceroll.isSpellAvailable("Shadowstep") then
-        state.shadowstep = true
+    if Faceroll.isBuffActive("Shadow Trance") then
+        state.shadowtrance = true
     end
 
-    local snd = Faceroll.getBuffRemaining("Slice and Dice")
-    if snd > 5 then
-        state.sliceanddice = true
+    if Faceroll.isDotActive("Gloomblade") > 0.25 then
+        state.gloomblade = true
     end
 
     -- Combat
@@ -78,7 +78,6 @@ spec.calcState = function(state)
 
     if Faceroll.debug ~= Faceroll.DEBUG_OFF then
         local o = ""
-        o = o .. "SND: " .. snd .. "\n"
         o = o .. "CP : " .. cp .. "\n"
         o = o .. "\n"
         Faceroll.setDebugText(o)
@@ -95,10 +94,13 @@ spec.actions = {
     "sinisterstrike",
     "eviscerate",
     "shadowstep",
+    "crimsontempest",
+    "gloomblade",
+    "shadowbolt",
 }
 
 spec.calcAction = function(mode, state)
-    if mode == Faceroll.MODE_ST then
+    if mode == Faceroll.MODE_ST or mode == Faceroll.MODE_AOE then
         -- Single Target
 
         if state.targetingenemy then
@@ -106,20 +108,27 @@ spec.calcAction = function(mode, state)
             -- if not state.combat and state.shadowstep then
             --     return "shadowstep"
 
-            if state.combat and not state.autoattack then
+            if state.shadowtrance then
+                return "shadowbolt"
+
+            elseif state.combat and not state.autoattack then
                 return "attack"
 
             elseif state.cp5 then
-                return "eviscerate"
+                if mode == Faceroll.MODE_AOE then
+                    return "crimsontempest"
+                else
+                    return "eviscerate"
+                end
+
+            elseif not state.gloomblade then
+                return "gloomblade"
 
             else --if state.energy45 then
                 return "sinisterstrike"
 
             end
         end
-
-    elseif mode == Faceroll.MODE_AOE then
-        -- AOE
 
     end
 

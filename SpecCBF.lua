@@ -5,7 +5,7 @@ if Faceroll == nil then
     _, Faceroll = ...
 end
 
-local spec = Faceroll.createSpec("APB", "997799", "HERO-Plague Bearer")
+local spec = Faceroll.createSpec("CBF", "997799", "HERO-Corrupted Bear Form")
 
 spec.buffs = {}
 
@@ -19,7 +19,7 @@ spec.states = {
 
     "- State -",
     "bear",
-    "fsqueued",
+    "maulqueued",
 
     "- Debuffs -",
     "infectedblood",
@@ -51,13 +51,13 @@ spec.calcState = function(state)
         state.bear = true
     end
 
-    if IsCurrentSpell("Festering Strike") then
-        state.fsqueued = true
+    if IsCurrentSpell("Maul") then
+        state.maulqueued = true
     end
 
-    if Faceroll.isDotActive("Infected Blood") > 0 then
-        state.infectedblood = true
-    end
+    -- if Faceroll.isDotActive("Infected Blood") > 0 then
+    --     state.infectedblood = true
+    -- end
 
     -- Combat
     if Faceroll.targetingEnemy() then
@@ -87,7 +87,6 @@ spec.actions = {
     "bear",
     "attack",
     "swipe",
-    "festeringstrike",
 }
 
 spec.calcAction = function(mode, state)
@@ -99,13 +98,13 @@ spec.calcAction = function(mode, state)
             if not state.bear then
                 return "bear"
 
-            elseif not state.autoattack and not state.fsqueued then
+            elseif not state.autoattack and not state.maulqueued then
                 return "attack"
 
-            elseif not state.infectedblood and not state.fsqueued then
-                return "festeringstrike"
+            -- elseif not state.infectedblood and not state.maulqueued then
+            --     return "festeringstrike"
 
-            elseif (state.fsqueued and state.rage40) or (not state.fsqueued and state.rage20) then
+            elseif (state.maulqueued and state.rage40) or (not state.maulqueued and state.rage20) then
                 return "swipe"
 
             end

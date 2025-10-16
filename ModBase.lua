@@ -33,6 +33,9 @@ Faceroll.debugUpdateText = ""
 Faceroll.debugLastUpdateBitsCounter = 0
 Faceroll.debugLastUpdateBitsTime = 0
 
+Faceroll.debugLastUpdateEventsEnabled = false
+Faceroll.debugLastUpdateWho = {}
+
 Faceroll.updateDebugOverlay = function()
     if Faceroll.debugOverlay == nil then
         return
@@ -59,6 +62,21 @@ Faceroll.updateDebugOverlay = function()
             Faceroll.debugUpdateText = string.format("Updates/sec: %.2f\n", updatesPerSec)
             Faceroll.debugLastUpdateBitsTime = now
             Faceroll.debugLastUpdateBitsCounter = Faceroll.updateBitsCounter
+
+            if Faceroll.debugLastUpdateEventsEnabled then
+                local REALLY_BAD = 50
+                if updatesPerSec > REALLY_BAD then
+                    print("---")
+                end
+
+                for who,count in pairs(Faceroll.debugLastUpdateWho) do
+                    Faceroll.debugUpdateText = Faceroll.debugUpdateText .. who .. ": " .. count .. "\n"
+                    if updatesPerSec > REALLY_BAD then
+                        print("BAD: " .. who .. ": " .. count .. "\n")
+                    end
+                end
+                Faceroll.debugLastUpdateWho = {}
+            end
         end
 
         if Faceroll.debug == Faceroll.DEBUG_MINIMAL then
@@ -248,7 +266,7 @@ Faceroll.getDot = function(dotName)
 end
 
 Faceroll.isBuffActive = function(buffName)
-    return (Faceroll.getBuff(buffName ~= nil))
+    return (Faceroll.getBuff(buffName) ~= nil)
 end
 
 Faceroll.getBuffStacks = function(buffName)

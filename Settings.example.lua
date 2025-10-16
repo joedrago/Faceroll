@@ -7,7 +7,9 @@ end
 
 -- Ascension
 Faceroll.enableSpec("MOS")
+Faceroll.enableSpec("CBF")
 Faceroll.enableSpec("APB")
+Faceroll.enableSpec("ALS")
 
 -- Classic
 Faceroll.enableSpec("CM")
