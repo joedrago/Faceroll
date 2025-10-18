@@ -31,5 +31,7 @@ SpecMOS.lua
 SpecAPB.lua
 SpecALS.lua
 SpecCBF.lua
+SpecLUC.lua
+SpecACA.lua
 Settings.lua
 ModMain.lua
