@@ -27,6 +27,7 @@ spec.states = {
     "- Abilities -",
     "charge",
     "enrage",
+    "regen",
 
     "- Debuffs -",
     "rend",
@@ -53,7 +54,7 @@ spec.calcState = function(state)
 
     for i = 1, GetNumShapeshiftForms() do
         local icon, name, active = GetShapeshiftFormInfo(i)
-        if active and name == "Bear Form" then
+        if active and (name == "Bear Form" or name == "Dire Bear Form") then
             state.bear = true
         end
     end
@@ -67,6 +68,9 @@ spec.calcState = function(state)
     end
     if Faceroll.isSpellAvailable("Enrage") then
         state.enrage = true
+    end
+    if Faceroll.isSpellAvailable("Frenzied Regeneration") then
+        state.regen = true
     end
 
     if Faceroll.isDotActive("Rend (Carnage)") > 0 then
@@ -121,6 +125,7 @@ spec.actions = {
     "charge",
     "lacerate",
     "enrage",
+    "regen",
 }
 
 spec.calcAction = function(mode, state)
@@ -138,14 +143,16 @@ spec.calcAction = function(mode, state)
             elseif not state.autoattack and not state.maulqueued then
                 return "attack"
 
+            elseif state.regen then
+                return "regen"
+
             elseif state.enrage then
                 return "enrage"
 
-            elseif not state.rend then
-                return "rend"
-
             elseif mode == Faceroll.MODE_ST then
-                if not state.laceratemax or state.lacerateending then
+                if not state.rend then
+                    return "rend"
+                elseif not state.laceratemax or state.lacerateending then
                     return "lacerate"
                 else
                     return "maul"
