@@ -8,6 +8,7 @@ end
 -- Ascension
 Faceroll.enableSpec("MOS")
 Faceroll.enableSpec("ACA")
+Faceroll.enableSpec("EVO")
 Faceroll.enableSpec("ATW")
 Faceroll.enableSpec("CBF")
 Faceroll.enableSpec("APB")
