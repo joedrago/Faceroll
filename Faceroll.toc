@@ -33,5 +33,6 @@ SpecALS.lua
 SpecCBF.lua
 SpecLUC.lua
 SpecACA.lua
+SpecATW.lua
 Settings.lua
 ModMain.lua
