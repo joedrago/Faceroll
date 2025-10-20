@@ -5,7 +5,7 @@ if Faceroll == nil then
     _, Faceroll = ...
 end
 
-local spec = Faceroll.createSpec("ALS", "993333", "HERO-Lava Sweep")
+local spec = Faceroll.createSpec("LS", "ffaa66", "HERO-Lava Sweep")
 
 spec.buffs = {}
 

@@ -5,11 +5,13 @@ end
 -----------------------------------------------------------------------------------------
 -- Activated specs. Put your most commonly used specs closer to the top.
 
--- Ascension
+-- Ascension Main Specs
+Faceroll.enableSpec("LS")
+Faceroll.enableSpec("CI")
+
+-- Ascension Alt Specs
 Faceroll.enableSpec("MOS")
-Faceroll.enableSpec("ACA")
 Faceroll.enableSpec("DR")
-Faceroll.enableSpec("ALS")
 Faceroll.enableSpec("EVO")
 Faceroll.enableSpec("ATW")
 Faceroll.enableSpec("CBF")

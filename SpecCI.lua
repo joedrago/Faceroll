@@ -5,7 +5,7 @@ if Faceroll == nil then
     _, Faceroll = ...
 end
 
-local spec = Faceroll.createSpec("ACA", "993333", "HERO-Carnage Incarnate")
+local spec = Faceroll.createSpec("CI", "bb3333", "HERO-Carnage Incarnate")
 
 spec.options = {
     "solo",
