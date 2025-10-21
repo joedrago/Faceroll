@@ -164,7 +164,7 @@ spec.calcAction = function(mode, state)
 
             end
 
-        elseif not state.combat and state.firetotem then
+        elseif not state.combat then -- and state.firetotem then
             return "destroytotems"
 
         end

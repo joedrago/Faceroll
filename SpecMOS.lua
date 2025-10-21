@@ -35,7 +35,7 @@ spec.states = {
 }
 
 spec.calcState = function(state)
-    local energy = UnitPower("PLAYER", Enum.PowerType.Energy)
+    local energy = UnitPower("PLAYER", 3)
     local cp = GetComboPoints("PLAYER", "TARGET")
 
     if energy >= 35 then
