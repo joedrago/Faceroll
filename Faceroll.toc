@@ -26,6 +26,7 @@ SpecEVO.lua
 SpecFDK.lua
 SpecHDH.lua
 SpecHP.lua
+SpecLOTA.lua
 SpecLS.lua
 SpecLUC.lua
 SpecMM.lua

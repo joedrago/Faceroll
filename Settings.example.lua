@@ -10,6 +10,7 @@ Faceroll.enableSpec("LS")
 Faceroll.enableSpec("CI")
 
 -- Ascension Alt Specs
+Faceroll.enableSpec("LOTA")
 Faceroll.enableSpec("TV")
 Faceroll.enableSpec("DG")
 Faceroll.enableSpec("MOS")
