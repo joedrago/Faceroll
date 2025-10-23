@@ -7,6 +7,10 @@ end
 
 local spec = Faceroll.createSpec("LOTA", "ffaaff", "HERO-Legacy of the Arcanist")
 
+spec.options = {
+    "automd",
+}
+
 local NO_METEOR_FIRE   = 984394
 local NO_METEOR_NATURE = 984268
 local NO_METEOR_ARCANE = 984267
@@ -28,6 +32,7 @@ spec.states = {
     "fireblast",
     "arcaneorb",
     "barrage",
+    "misdirection",
 
     "- Dots -",
     "moonfiredot",
@@ -38,6 +43,9 @@ spec.states = {
     "moonkinform",
     "targetingenemy",
     "combat",
+
+    "- options -",
+    "automd",
 }
 
 spec.calcState = function(state)
@@ -70,6 +78,9 @@ spec.calcState = function(state)
     end
     if Faceroll.isSpellAvailable("Arcane Barrage") then
         state.barrage = true
+    end
+    if state.automd and Faceroll.isSpellAvailable("Misdirection") and UnitExists("focus") and not UnitIsDeadOrGhost("focus") then
+        state.misdirection = true
     end
 
     if Faceroll.isDotActive("Moonfire") >= 0.1 then
@@ -112,6 +123,7 @@ spec.actions = {
     "arcaneorb",
     "livingbomb",
     "moonkinform",
+    "misdirection",
 }
 
 spec.calcAction = function(mode, state)
@@ -120,6 +132,10 @@ spec.calcAction = function(mode, state)
     if st or aoe then
         if not state.moonkinform then
             return "moonkinform"
+        end
+
+        if state.misdirection then
+            return "misdirection"
         end
 
         if state.targetingenemy then
@@ -170,7 +186,10 @@ spec.calcAction = function(mode, state)
 
             -- Burn meteor-sending spells if we have a "backup" sender
             if state.barrage then
-                return "barrage" -- we'll just moonfire if this isn't up
+                return "barrage" -- we'll just moonfire
+            end
+            if state.sunfire and state.fireblast then
+                return "fireblast" -- we'll just sunfire
             end
             return "icelance" -- no CD on icelance, why not
         end
