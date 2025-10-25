@@ -18,6 +18,7 @@ SpecCM.lua
 SpecCP.lua
 SpecCR.lua
 SpecCW.lua
+SpecDA.lua
 SpecDB.lua
 SpecDG.lua
 SpecDR.lua
@@ -37,6 +38,7 @@ SpecPP.lua
 SpecRET.lua
 SpecSUB.lua
 SpecSV.lua
+SpecTS.lua
 SpecTV.lua
 SpecVDH.lua
 Settings.lua

@@ -6,20 +6,22 @@ end
 -- Activated specs. Put your most commonly used specs closer to the top.
 
 -- Ascension Main Specs
-Faceroll.enableSpec("LS")
-Faceroll.enableSpec("CI")
+Faceroll.enableSpec("LOTA")
 
 -- Ascension Alt Specs
-Faceroll.enableSpec("LOTA")
-Faceroll.enableSpec("TV")
-Faceroll.enableSpec("DG")
-Faceroll.enableSpec("MOS")
-Faceroll.enableSpec("DR")
-Faceroll.enableSpec("EVO")
-Faceroll.enableSpec("ATW")
-Faceroll.enableSpec("CBF")
-Faceroll.enableSpec("APB")
-Faceroll.enableSpec("LUC")
+Faceroll.enableSpec("TS")
+-- Faceroll.enableSpec("CI")
+-- Faceroll.enableSpec("DA")
+-- Faceroll.enableSpec("LS")
+-- Faceroll.enableSpec("TV")
+-- Faceroll.enableSpec("DG")
+-- Faceroll.enableSpec("MOS")
+-- Faceroll.enableSpec("DR")
+-- Faceroll.enableSpec("EVO")
+-- Faceroll.enableSpec("ATW")
+-- Faceroll.enableSpec("CBF")
+-- Faceroll.enableSpec("APB")
+-- Faceroll.enableSpec("LUC")
 
 -- Classic
 Faceroll.enableSpec("CM")
