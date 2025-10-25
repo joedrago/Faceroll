@@ -234,6 +234,24 @@ local function toggleDebug()
     updateBits("toggleDebug")
 end
 
+local function dumpKeybinds()
+    local spec = Faceroll.activeSpec()
+    if spec and spec.actions then
+        for actionIndex,action in ipairs(spec.actions) do
+            local key = Faceroll.keys[action]
+            if key == nil then
+                key = Faceroll.keys[actionIndex]
+            end
+            if key == nil then
+                key = "UNKNOWN"
+            end
+            print(Faceroll.textColor("[frk] ", "333333") .. Faceroll.textColor(action, "aaffff") .. " " .. Faceroll.textColor(key, "ffffaa"))
+        end
+    else
+        print("Faceroll [/frk]: No active spec!")
+    end
+end
+
 -----------------------------------------------------------------------------------------
 -- init() - the entry point
 
@@ -357,3 +375,5 @@ SLASH_FRF1 = '/frf'
 SlashCmdList["FRD"] = toggleDebug
 SLASH_FRDEBUG1 = '/frdebug'
 SlashCmdList["FRDEBUG"] = toggleDebug
+SLASH_FRK1 = '/frk'
+SlashCmdList["FRK"] = dumpKeybinds
