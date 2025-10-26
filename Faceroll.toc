@@ -13,6 +13,7 @@ SpecATW.lua
 SpecBM.lua
 SpecCBF.lua
 SpecCD.lua
+SpecCS.lua
 SpecCI.lua
 SpecCM.lua
 SpecCP.lua
