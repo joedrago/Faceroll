@@ -9,9 +9,10 @@ end
 Faceroll.enableSpec("LOTA")
 
 -- Ascension Alt Specs
+Faceroll.enableSpec("CI")
+Faceroll.enableSpec("CBF")
+Faceroll.enableSpec("DA")
 Faceroll.enableSpec("TS")
--- Faceroll.enableSpec("CI")
--- Faceroll.enableSpec("DA")
 -- Faceroll.enableSpec("LS")
 -- Faceroll.enableSpec("TV")
 -- Faceroll.enableSpec("DG")

@@ -26,6 +26,8 @@ spec.states = {
     "immolationaura",
     "charge",
 
+    "potion",
+
     -- "- Debuffs -",
     -- "rend",
     -- "lacerateending",
@@ -70,6 +72,16 @@ spec.calcState = function(state)
         state.charge = true
     end
 
+    local potionStart = GetActionCooldown(1)
+    if potionStart > 0 then
+        local potionRemaining = GetTime() - potionStart
+        if potionRemaining < 1.6 then -- mana potion in slot 1
+            state.potion = true
+        end
+    else
+        state.potion = true
+    end
+
     -- Combat
     if Faceroll.targetingEnemy() then
         state.targetingenemy = true
@@ -96,6 +108,7 @@ spec.actions = {
     "shadowcleave",
     "immolationaura",
     "charge",
+    "potion",
 }
 
 spec.calcAction = function(mode, state)
@@ -112,6 +125,9 @@ spec.calcAction = function(mode, state)
 
             elseif not state.autoattack and not state.scqueued then
                 return "attack"
+
+            elseif state.potion then
+                return "potion"
 
             elseif state.immolationaura then
                 return "immolationaura"

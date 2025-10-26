@@ -1,5 +1,5 @@
 -----------------------------------------------------------------------------------------
--- Ascension WoW Plague Bearer
+-- Ascension WoW Corrupted Bear Form
 
 if Faceroll == nil then
     _, Faceroll = ...
@@ -7,7 +7,9 @@ end
 
 local spec = Faceroll.createSpec("CBF", "997799", "HERO-Corrupted Bear Form")
 
-spec.buffs = {}
+spec.options = {
+    "solo",
+}
 
 -----------------------------------------------------------------------------------------
 -- States
@@ -20,14 +22,26 @@ spec.states = {
     "- State -",
     "bear",
     "maulqueued",
+    "solo",
+
+    "- Abilities -",
+    "charge",
+    "enrage",
+    "regen",
+    "taintedswipe",
+    "shadowtrance",
 
     "- Debuffs -",
-    "infectedblood",
+    "taintedwound",
+    "lacerateending",
+    "laceratemax",
+    "corruption",
 
     "- Combat -",
     "targetingenemy",
     "combat",
     "autoattack",
+    "melee",
 }
 
 spec.calcState = function(state)
@@ -41,40 +55,62 @@ spec.calcState = function(state)
         state.rage40 = true
     end
 
-    local s = nil
     for i = 1, GetNumShapeshiftForms() do
-        if select(3, GetShapeshiftFormInfo(i)) then
-            s = i
+        local icon, name, active = GetShapeshiftFormInfo(i)
+        if active and (name == "Bear Form" or name == "Dire Bear Form") then
+            state.bear = true
         end
-    end
-    if s ~= nil then
-        state.bear = true
     end
 
     if IsCurrentSpell("Maul") then
         state.maulqueued = true
     end
 
-    -- if Faceroll.isDotActive("Infected Blood") > 0 then
-    --     state.infectedblood = true
-    -- end
+    if Faceroll.isSpellAvailable("Charge") then
+        state.charge = true
+    end
+    if Faceroll.isSpellAvailable("Enrage") then
+        state.enrage = true
+    end
+    if Faceroll.isSpellAvailable("Frenzied Regeneration") then
+        state.regen = true
+    end
+    if Faceroll.isBuffActive("Tainted Swipe") then
+        state.taintedswipe = true
+    end
+    if Faceroll.isBuffActive("Shadow Trance") then
+        state.shadowtrance = true
+    end
+
+    if Faceroll.isDotActive("Tainted Wound") > 0 then
+        state.taintedwound = true
+    end
+    if Faceroll.isDotActive("Lacerate") < 0.2 then
+        state.lacerateending = true
+    end
+    local maxLacerateStacks = 5
+    if state.solo then
+        maxLacerateStacks = 1
+    end
+    if Faceroll.dotStacks("Lacerate") >= maxLacerateStacks then
+        state.laceratemax = true
+    end
+    if Faceroll.isDotActive("Corruption") > 0 then
+        state.corruption = true
+    end
 
     -- Combat
     if Faceroll.targetingEnemy() then
         state.targetingenemy = true
-
-        -- local targethp = UnitHealth("target")
-        -- local targethpmax = UnitHealthMax("target")
-        -- local targethpnorm = targethp / targethpmax
-        -- if targethpnorm <= 0.40 then
-        --     state.target40 = true
-        -- end
     end
     if UnitAffectingCombat("player") then
         state.combat = true
     end
     if IsCurrentSpell(6603) then -- Autoattack
         state.autoattack = true
+    end
+    if IsSpellInRange("Lacerate", "target") == 1 then
+        state.melee = true
     end
 
     return state
@@ -87,6 +123,12 @@ spec.actions = {
     "bear",
     "attack",
     "swipe",
+    "maul",
+    "charge",
+    "lacerate",
+    "enrage",
+    "regen",
+    "shadowbolt",
 }
 
 spec.calcAction = function(mode, state)
@@ -98,13 +140,33 @@ spec.calcAction = function(mode, state)
             if not state.bear then
                 return "bear"
 
+            elseif state.shadowtrance then
+                return "shadowbolt"
+
+            elseif not state.melee and state.charge then
+                return "charge"
+
             elseif not state.autoattack and not state.maulqueued then
                 return "attack"
 
-            -- elseif not state.infectedblood and not state.maulqueued then
-            --     return "festeringstrike"
+            elseif state.regen then
+                return "regen"
 
-            elseif (state.maulqueued and state.rage40) or (not state.maulqueued and state.rage20) then
+            elseif state.enrage then
+                return "enrage"
+
+            elseif not state.taintedwound and state.taintedswipe then
+                return "swipe"
+
+            elseif mode == Faceroll.MODE_ST then
+                if not state.laceratemax or state.lacerateending then
+                    return "lacerate"
+                elseif state.corruption then
+                    return "swipe"
+                else
+                    return "maul"
+                end
+            else
                 return "swipe"
 
             end
