@@ -289,14 +289,6 @@ Faceroll.getBuffRemaining = function(buffName)
     return 0
 end
 
-Faceroll.spellCharges = function(spellName)
-    local chargeInfo = C_Spell.GetSpellCharges(spellName)
-    if chargeInfo == nil then
-        return 0
-    end
-    return chargeInfo.currentCharges
-end
-
 local builtinGSC = nil
 if C_Spell ~= nil then
     builtinGSC = C_Spell.GetSpellCooldown
@@ -320,6 +312,29 @@ if builtinISU == nil then
         end
         return false
     end
+end
+
+local builtinGSCharges = nil
+if C_Spell ~= nil then
+    builtinGSCharges = C_Spell.GetSpellCharges
+end
+if builtinGSCharges ~= nil then
+    builtinGSCharges = function(spellName)
+        local chargeInfo = C_Spell.GetSpellCharges(spellName)
+        if chargeInfo == nil then
+            return 0
+        end
+        return chargeInfo.currentCharges, chargeInfo.maxCharges
+    end
+else
+    builtinGSCharges = function(spellName)
+        local chargeCount, maxCharges = GetSpellCharges(C_Spell:GetSpellID(spellName))
+        return chargeCount, maxCharges
+    end
+end
+
+Faceroll.spellCharges = function(spellName)
+    return builtinGSCharges(spellName)
 end
 
 Faceroll.spellCooldown = function(spellName)
@@ -353,6 +368,14 @@ Faceroll.isSpellAvailable = function(spellName, ignoreUsable)
     if not builtinISU(spellName) and not ignoreUsable then
         return false
     end
+    local currentCharges, maxCharges = Faceroll.spellCharges(spellName)
+    if maxCharges > 0 then
+        if Faceroll.spellCharges(spellName) > 0 then
+            return true
+        end
+        return false
+    end
+
     if builtinGSC(spellName).duration > 1.5 then
         return false
     end
