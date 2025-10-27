@@ -14,7 +14,7 @@ spec.buffs = {
 -----------------------------------------------------------------------------------------
 -- States
 
-spec.states = {
+spec.overlay = {
     "holypower5",
     "crusaderstrike",
     "divinetoll",

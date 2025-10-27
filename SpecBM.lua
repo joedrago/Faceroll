@@ -16,7 +16,7 @@ spec.buffs = {
 -----------------------------------------------------------------------------------------
 -- States
 
-spec.states = {
+spec.overlay = {
     "- Spells -",
     "bestialwrath",
     "killcommand",

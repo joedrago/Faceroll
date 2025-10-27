@@ -12,7 +12,7 @@ spec.buffs = {}
 -----------------------------------------------------------------------------------------
 -- States
 
-spec.states = {
+spec.overlay = {
     "- Abilities -",
     "charge",
     "absolutezero",

@@ -34,7 +34,7 @@ local CONJURED_WATER_NAME = "Conjured Crystal Water"
 -----------------------------------------------------------------------------------------
 -- States
 
-spec.states = {
+spec.overlay = {
     "- Combat -",
     "targetingenemy",
     "combat",

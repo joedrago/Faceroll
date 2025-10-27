@@ -29,7 +29,6 @@ Faceroll.DEBUG_LAST = 2
 Faceroll.debug = Faceroll.DEBUG_OFF
 Faceroll.debugOverlay = nil
 Faceroll.debugState = ""
-Faceroll.debugText = ""
 Faceroll.debugLines = {}
 Faceroll.debugUpdateText = ""
 Faceroll.debugLastUpdateBitsCounter = 0
@@ -45,13 +44,6 @@ Faceroll.updateDebugOverlay = function()
 
     if Faceroll.debug ~= Faceroll.DEBUG_OFF then
         local o = "\124cff444444      - Faceroll -      \124r\n\n"
-
-        local spec = Faceroll.activeSpec()
-        if spec and (Faceroll.debug ~= Faceroll.DEBUG_MINIMAL) then
-            local bitCount = #spec.bits.names
-            local actionCount = #spec.actions
-            o = o .. " \124cff" .. spec.color .. spec.name .. "\124r: \124cffffffaa".. bitCount .. "\124r sts, \124cffffffaa" .. actionCount .. "\124r acts\n\n"
-        end
 
         local updatesSince = Faceroll.updateBitsCounter - Faceroll.debugLastUpdateBitsCounter
         local now = GetTime()
@@ -88,7 +80,7 @@ Faceroll.updateDebugOverlay = function()
             for _,line in ipairs(Faceroll.debugLines) do
                 debugLines = debugLines .. line .. "\n"
             end
-            o = o .. Faceroll.debugState .. "\n" .. debugLines .. Faceroll.debugText .. Faceroll.debugUpdateText
+            o = o .. Faceroll.debugState .. "\n" .. debugLines .. Faceroll.debugUpdateText
         end
 
         Faceroll.debugOverlay:setText(o)
@@ -104,11 +96,6 @@ end
 
 Faceroll.addDebugLine = function(line)
     table.insert(Faceroll.debugLines, line)
-end
-
-Faceroll.setDebugText = function(text)
-    Faceroll.debugText = text
-    Faceroll.updateDebugOverlay()
 end
 
 Faceroll.setDebugState = function(spec, state)
@@ -134,13 +121,15 @@ Faceroll.setDebugState = function(spec, state)
     local o = ""
 
     if Faceroll.debug ~= Faceroll.DEBUG_MINIMAL then
-        for _,k in ipairs(spec.states) do
+        for _,k in ipairs(spec.overlay) do
             local v = state[k]
             if Faceroll.isSeparatorName(k) then
                 if strlenutf8(o) > 0 then
                     o = o .. "\n"
                 end
                 o = o .. "\124cffffffaa" .. pad(k, 18) .. "\124r\n"
+            elseif type(v) == "string" then
+                o = o .. pad(k, 18) .. "  : " .. Faceroll.textColor(v, "ffaaff") .. "\n"
             else
                 o = o .. pad(k, 18) .. "  : " .. bt(v) .. "\n"
             end

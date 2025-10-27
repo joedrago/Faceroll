@@ -15,7 +15,7 @@ spec.buffs = {
 -----------------------------------------------------------------------------------------
 -- States
 
-spec.states = {
+spec.overlay = {
     "- Buffs -",
     "metamorphosisbuff",
     "immolationaurabuff",

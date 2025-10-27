@@ -22,7 +22,7 @@ spec.buffs = {
 -----------------------------------------------------------------------------------------
 -- States
 
-spec.states = {
+spec.overlay = {
     -- player/base class state
     "combat",
     "cp6",

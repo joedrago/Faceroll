@@ -14,7 +14,7 @@ spec.options = {
 -----------------------------------------------------------------------------------------
 -- States
 
-spec.states = {
+spec.overlay = {
     "- Abilities -",
     "shadowarrow",
     "bloodarrow",

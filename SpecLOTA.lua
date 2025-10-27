@@ -19,7 +19,7 @@ local NO_METEOR_FROST  = 984266
 -----------------------------------------------------------------------------------------
 -- States
 
-spec.states = {
+spec.overlay = {
     "- options -",
     "automd",
 

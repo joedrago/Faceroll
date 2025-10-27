@@ -17,7 +17,7 @@ spec.buffs = {
 -----------------------------------------------------------------------------------------
 -- States
 
-spec.states = {
+spec.overlay = {
     "- Buffs -",
     "innerfire",
     "renewbuff",

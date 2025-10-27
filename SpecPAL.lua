@@ -21,7 +21,7 @@ spec.buffs = {
 -----------------------------------------------------------------------------------------
 -- States
 
-spec.states = {
+spec.overlay = {
     "- State -",
     "combat",
     "targetingenemy",

@@ -18,7 +18,7 @@ spec.buffs = {
 -----------------------------------------------------------------------------------------
 -- States
 
-spec.states = {
+spec.overlay = {
     "trickshots",
     "streamline",
     "preciseshots",

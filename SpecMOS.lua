@@ -10,7 +10,7 @@ local spec = Faceroll.createSpec("MOS", "777799", "HERO-Master of Shadows")
 -----------------------------------------------------------------------------------------
 -- States
 
-spec.states = {
+spec.overlay = {
     "- Resources -",
     "energy35",
     "energy45",

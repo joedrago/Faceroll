@@ -11,50 +11,8 @@ Faceroll.availableSpecs = {}
 Faceroll.activeSpecsByIndex = {}
 Faceroll.activeSpecsByKey = {}
 
-local function bitsUnpack(self, rawBits)
-    local unpacked = {}
-    local currBit = 1
-    for _, name in pairs(self.names) do
-        local v = false
-        if Faceroll.bitand(rawBits, currBit) ~= 0 then
-            v = true
-        end
-        unpacked[name] = v
-        currBit = currBit * 2
-    end
-    return unpacked
-end
-
-local function bitsPack(self, state)
-    local value = 0
-    local currBit = 1
-    for _, name in pairs(self.names) do
-        if state[name] then
-            value = value + currBit
-        end
-        currBit = currBit * 2
-    end
-    return value
-end
-
 Faceroll.isSeparatorName = function(name)
     return (string.find(name, "^[- ]") ~= nil)
-end
-
-Faceroll.createBits = function(unfilteredNames)
-    local names = {}
-    for _,name in ipairs(unfilteredNames) do
-        if not Faceroll.isSeparatorName(name) then
-            table.insert(names, name)
-        end
-    end
-
-    local bits = {
-        ["names"]=names,
-        ["unpack"]=bitsUnpack,
-        ["pack"]=bitsPack,
-    }
-    return bits
 end
 
 Faceroll.createSpec = function(name, color, specKey)
@@ -65,7 +23,7 @@ Faceroll.createSpec = function(name, color, specKey)
         ["calcState"]=nil,
         ["calcAction"]=nil,
         ["buffs"]=nil,
-        ["states"]={},
+        ["overlay"]={},
         ["actions"]={},
         ["options"]={},
         ["keys"]={},
@@ -89,11 +47,7 @@ Faceroll.enableSpec = function(specName)
                 print("WARNING: Multiple specs for the same key active! Overriding preexisting spec key: " .. spec.key)
             end
             Faceroll.activeSpecsByKey[spec.key] = spec
-            spec.bits = Faceroll.createBits(spec.states)
-            local bitCount = #spec.bits.names
-            local actionCount = #spec.actions
-
-            print("Enabling Spec: " .. spec.name .. " (" .. Faceroll.SPEC_LAST .. "), ".. bitCount .. "/28 bits, " .. actionCount .. " actions")
+            -- print("Enabling Spec: " .. spec.name .. " (" .. Faceroll.SPEC_LAST .. "), ".. bitCount .. "/28 bits, " .. actionCount .. " actions")
             return
         end
     end
@@ -101,7 +55,7 @@ Faceroll.enableSpec = function(specName)
 end
 
 Faceroll.createState = function(spec)
-    local state = spec.bits:unpack(0)
+    local state = {}
     for _,name in ipairs(spec.options) do
         if Faceroll.options[name] ~= nil then
             state[name] = true
