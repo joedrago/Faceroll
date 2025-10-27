@@ -150,7 +150,12 @@ local function actionKey(spec, mode, state)
     if action == nil then
         return Faceroll.BRIDGE_KEY_NONE
     end
-    return spec.keys[action]
+    local key = spec.keys[action]
+    if key == nil then
+        print("Faceroll: Unknown action: " .. action)
+        return Faceroll.BRIDGE_KEY_NONE
+    end
+    return key
 end
 
 local function updateBits(who)

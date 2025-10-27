@@ -37,6 +37,7 @@ SpecMOS.lua
 SpecOWL.lua
 SpecPAL.lua
 SpecPP.lua
+SpecPW.lua
 SpecRET.lua
 SpecSUB.lua
 SpecSV.lua
