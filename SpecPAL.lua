@@ -85,13 +85,6 @@ spec.calcState = function(state)
         state.justjudged = true
     end
 
-    if Faceroll.debug ~= Faceroll.DEBUG_OFF then
-        local o = ""
-        o = o .. "judgeCD: " .. judgeCD .. "\n"
-        o = o .. "\n"
-        Faceroll.setDebugText(o)
-    end
-
     return state
 end
 

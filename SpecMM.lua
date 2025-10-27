@@ -71,21 +71,6 @@ spec.calcState = function(state)
         state.streamlinedeadzone = true
     end
 
-    if Faceroll.debug ~= Faceroll.DEBUG_OFF then
-        local o = ""
-        local dztext = "F"
-        if Faceroll.deadzoneActive(streamlineDeadzone) then
-            dztext = "T"
-        end
-        o = o .. "Aimed Deadzone   :\n"
-        o = o .. "active           : " .. dztext .. "\n"
-        o = o .. "spellName        : " .. streamlineDeadzone.spellName .. "\n"
-        o = o .. "castTimeRemaining: " .. streamlineDeadzone.castTimeRemaining .. "\n"
-        o = o .. "duration         : " .. streamlineDeadzone.duration .. "\n"
-        o = o .. "endTime          : " .. streamlineDeadzone.endTime .. "\n"
-        Faceroll.setDebugText(o)
-    end
-
     return state
 end
 

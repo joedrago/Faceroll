@@ -40,18 +40,6 @@ function sendKeyToWow(keyName)
 end
 
 -----------------------------------------------------------------------------------------
--- Discover the list of Spec*.lua files to give to ActMain
-
-Faceroll.load = {}
-for file in hs.fs.dir("Faceroll") do
-    if string.find(file, "^Spec") then
-        file = string.gsub(file, "^Spec", "")
-        file = string.gsub(file, ".lua$", "")
-        table.insert(Faceroll.load, file)
-    end
-end
-
------------------------------------------------------------------------------------------
 -- Shared code
 
 require("faceroll/ActMain")

@@ -2,11 +2,12 @@ if Faceroll == nil then
     _, Faceroll = ...
 end
 
+Faceroll.activateKeybinds()
+
 -----------------------------------------------------------------------------------------
 -- The little "OFF" / "SV" text and the options list above it
 
 local enabledFrame = nil
-local enabledSpec = Faceroll.SPEC_OFF
 local optionsFrame = nil
 
 local function enabledFrameCreate()
@@ -23,7 +24,12 @@ local function enabledFrameCreate()
 
 local function enabledFrameUpdate()
     if enabledFrame ~= nil and optionsFrame ~= nil then
-        local spec = Faceroll.activeSpecsByIndex[enabledSpec]
+        local spec = nil
+        if Faceroll.active then
+            spec = Faceroll.activeSpec()
+        else
+            spec = Faceroll.activeSpecsByIndex[Faceroll.SPEC_OFF]
+        end
 
         enabledFrame:setText(Faceroll.textColor(spec.name, spec.color))
 
@@ -33,7 +39,7 @@ local function enabledFrameUpdate()
         end
 
         local optionsText = ""
-        if enabledSpec > 0 then
+        if Faceroll.active then
             for _,name in ipairs(spec.options) do
                 if Faceroll.optionsFrameShowAll then
                     local color = optionsFrameColor
@@ -50,20 +56,6 @@ local function enabledFrameUpdate()
         end
         optionsFrame:setText(Faceroll.textColor(optionsText, optionsFrameColor))
     end
-
-end
-
-function enabledFrameCycle()
-    enabledSpec = enabledSpec + 1
-    if enabledSpec > Faceroll.SPEC_LAST then
-        enabledSpec = Faceroll.SPEC_LAST
-    end
-    enabledFrameUpdate()
-end
-
-function enabledFrameReset()
-    enabledSpec = 0
-    enabledFrameUpdate()
 end
 
 -----------------------------------------------------------------------------------------
@@ -153,6 +145,14 @@ local function hideBits()
     end
 end
 
+local function actionKey(spec, mode, state)
+    local action = spec.calcAction(mode, state)
+    if action == nil then
+        return Faceroll.BRIDGE_KEY_NONE
+    end
+    return spec.keys[action]
+end
+
 local function updateBits(who)
     if Faceroll.debugLastUpdateEventsEnabled then
         if Faceroll.debugLastUpdateWho[who] == nil then
@@ -163,15 +163,16 @@ local function updateBits(who)
 
     local spec = Faceroll.activeSpec()
     if spec and spec.calcState then
+        Faceroll.clearDebugLines()
         local state = spec.calcState(Faceroll.createState(spec))
-        local bits = spec.bits:pack(state)
-        local specIndex = spec.index
-        if specIndex ~= nil then
-            -- use the last 4 bits for the current specIndex
-            -- print("specIndex: " .. specIndex .. " oldBits: " .. bits)
-            bits = bits + (0x10000000 * specIndex)
-            -- print("specIndex: " .. specIndex .. " newBits: " .. bits)
-        end
+
+        local bridgeState = {}
+        bridgeState.key0 = actionKey(spec, Faceroll.MODE_ST, state)
+        bridgeState.key1 = actionKey(spec, Faceroll.MODE_AOE, state)
+        bridgeState.active = Faceroll.active
+        -- Faceroll.bridgeStateDump(bridgeState)
+        bits = Faceroll.bridgeStatePack(bridgeState)
+
         showBits(bits)
         Faceroll.setDebugState(spec, state)
     else
@@ -250,6 +251,24 @@ local function dumpKeybinds()
     else
         print("Faceroll [/frk]: No active spec!")
     end
+end
+
+function facerollActivateToggle()
+    Faceroll.active = not Faceroll.active
+    enabledFrameUpdate()
+    updateBits("activatetoggle")
+end
+
+function facerollActivate()
+    Faceroll.active = true
+    enabledFrameUpdate()
+    updateBits("activate")
+end
+
+function facerollDeactivate()
+    Faceroll.active = false
+    enabledFrameUpdate()
+    updateBits("deactivate")
 end
 
 -----------------------------------------------------------------------------------------
@@ -351,7 +370,7 @@ end
 
 DEFAULT_CHAT_FRAME.editBox:HookScript("OnShow", function()
     -- If this fires, someone is trying to type in chat!
-    enabledFrameReset()
+    facerollDeactivate()
 end)
 
 -----------------------------------------------------------------------------------------
@@ -359,21 +378,27 @@ end)
 
 SLASH_FR1 = '/fr'
 SlashCmdList["FR"] = activeFrameSet
-SLASH_FRON1 = '/fron'
-SlashCmdList["FRON"] = enabledFrameCycle
-SLASH_FROFF1 = '/froff'
-SlashCmdList["FROFF"] = enabledFrameReset
+
+SLASH_FRA1 = '/fra'
+SlashCmdList["FRA"] = facerollActivateToggle
+
 SLASH_FRTICK1 = '/frtick'
 SlashCmdList["FRTICK"] = tickReset
+
 SLASH_FRO1 = '/fro'
 SlashCmdList["FRO"] = toggleOption
+
 SLASH_FRT1 = '/frt'
 SlashCmdList["FRT"] = setOptionTrue
+
 SLASH_FRD1 = '/frd'
 SlashCmdList["FRF"] = setOptionFalse
+
 SLASH_FRF1 = '/frf'
 SlashCmdList["FRD"] = toggleDebug
+
 SLASH_FRDEBUG1 = '/frdebug'
 SlashCmdList["FRDEBUG"] = toggleDebug
+
 SLASH_FRK1 = '/frk'
 SlashCmdList["FRK"] = dumpKeybinds

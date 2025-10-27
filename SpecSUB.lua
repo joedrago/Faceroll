@@ -135,17 +135,6 @@ spec.calcState = function(state)
         return "\124cff777777F\124r"
     end
 
-    if Faceroll.debug ~= Faceroll.DEBUG_OFF then
-        local o = ""
-
-        o = o .. "SD: " .. bt(Faceroll.isBuffActive("shadowdance")) .. "\n"
-
-        local stAvailable = Faceroll.spellCooldown("Secret Technique") < 1.5
-        o = o .. "ST: " .. bt(stAvailable) .. "\n"
-
-        Faceroll.setDebugText(o)
-    end
-
     return state
 end
 

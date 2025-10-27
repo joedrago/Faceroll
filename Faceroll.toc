@@ -4,6 +4,7 @@
 ## Version: 1.0
 ## DefaultState: enabled
 ## Author: Joe Drago
+Bridge.lua
 Registry.lua
 ModFrame.lua
 ModBase.lua

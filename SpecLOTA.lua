@@ -20,11 +20,13 @@ local NO_METEOR_FROST  = 984266
 -- States
 
 spec.states = {
-    "- Meteors -",
-    "nofire",
-    "nonature",
-    "noarcane",
-    "nofrost",
+    "- options -",
+    "automd",
+
+    "- Combat -",
+    "moonkinform",
+    "targetingenemy",
+    "combat",
 
     "- Abilities -",
     "sunfire",
@@ -34,36 +36,32 @@ spec.states = {
     "barrage",
     "misdirection",
 
+    -- "- Buffs -",
+    -- "buffname",
+
     "- Dots -",
     "moonfiredot",
     "sunfiredot",
     "livingbombdot",
 
-    "- Combat -",
-    "moonkinform",
-    "targetingenemy",
-    "combat",
-
-    "- options -",
-    "automd",
+    "- Meteors -",
+    "nofire",
+    "nonature",
+    "noarcane",
+    "nofrost",
 }
 
 spec.calcState = function(state)
-    for auraIndex=1,40 do
-        local name, rank, icon, stacks, dispelType, duration, expirationTime, source, isStealable, nameplateShowPersonal, spellId = UnitAura("player", auraIndex, "HARMFUL")
-        if name ~= nil then
-            if     spellId == NO_METEOR_FIRE then
-                state.nofire = true
-            elseif spellId == NO_METEOR_NATURE then
-                state.nonature = true
-            elseif spellId == NO_METEOR_ARCANE then
-                state.noarcane = true
-            elseif spellId == NO_METEOR_FROST then
-                state.nofrost = true
-            end
-        end
+    -- Combat
+    state.moonkinform = Faceroll.inShapeshiftForm("Moonkin Form")
+    if Faceroll.targetingEnemy() then
+        state.targetingenemy = true
+    end
+    if UnitAffectingCombat("player") then
+        state.combat = true
     end
 
+    -- Abilities
     if Faceroll.isSpellAvailable("Sunfire") then
         state.sunfire = true
     end
@@ -83,6 +81,12 @@ spec.calcState = function(state)
         state.misdirection = true
     end
 
+    -- Buffs
+    -- if Faceroll.isBuffActive("Buff Name") then
+    --     state.buffname = true
+    -- end
+
+    -- Dots
     if Faceroll.isDotActive("Moonfire") >= 0.1 then
         state.moonfiredot = true
     end
@@ -93,18 +97,20 @@ spec.calcState = function(state)
         state.livingbombdot = true
     end
 
-    -- Combat
-    for i = 1, GetNumShapeshiftForms() do
-        local icon, name, active = GetShapeshiftFormInfo(i)
-        if active and name == "Moonkin Form" then
-            state.moonkinform = true
+    -- Meteors
+    for auraIndex=1,40 do
+        local name, rank, icon, stacks, dispelType, duration, expirationTime, source, isStealable, nameplateShowPersonal, spellId = UnitAura("player", auraIndex, "HARMFUL")
+        if name ~= nil then
+            if     spellId == NO_METEOR_FIRE then
+                state.nofire = true
+            elseif spellId == NO_METEOR_NATURE then
+                state.nonature = true
+            elseif spellId == NO_METEOR_ARCANE then
+                state.noarcane = true
+            elseif spellId == NO_METEOR_FROST then
+                state.nofrost = true
+            end
         end
-    end
-    if Faceroll.targetingEnemy() then
-        state.targetingenemy = true
-    end
-    if UnitAffectingCombat("player") then
-        state.combat = true
     end
 
     return state

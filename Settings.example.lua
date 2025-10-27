@@ -91,10 +91,6 @@ Faceroll.keys["reset1"] = "gamepad_down"
 Faceroll.keys["signal_st"] = "pad9"
 Faceroll.keys["signal_aoe"] = "pad6"
 
--- Keybinds which map to the macros "/fron" and "/froff"
-Faceroll.keys["fron"] = "["
-Faceroll.keys["froff"] = "]"
-
 -----------------------------------------------------------------------------------------
 -- Element positioning
 

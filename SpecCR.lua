@@ -61,14 +61,6 @@ spec.calcState = function(state)
         state.autoattack = true
     end
 
-    if Faceroll.debug ~= Faceroll.DEBUG_OFF then
-        local o = ""
-        o = o .. "Energy: " .. energy .. "\n"
-        o = o .. "CP    : " .. cp .. "\n"
-        o = o .. "\n"
-        Faceroll.setDebugText(o)
-    end
-
     return state
 end
 

@@ -4,30 +4,12 @@ end
 
 Faceroll.keys = {}
 
-Faceroll.MODE_NONE = 0
-Faceroll.MODE_ST = 1
-Faceroll.MODE_AOE = 2
-
 local nextSpec = 0
 Faceroll.SPEC_OFF = 0
 Faceroll.SPEC_LAST = 0
 Faceroll.availableSpecs = {}
 Faceroll.activeSpecsByIndex = {}
 Faceroll.activeSpecsByKey = {}
-
-Faceroll.bitand = function(a, b)
-    local result = 0
-    local bitval = 1
-    while a > 0 and b > 0 do
-      if a % 2 == 1 and b % 2 == 1 then -- test the rightmost bits
-          result = result + bitval      -- set the current bit
-      end
-      bitval = bitval * 2 -- shift left
-      a = math.floor(a/2) -- shift right
-      b = math.floor(b/2)
-    end
-    return result
-end
 
 local function bitsUnpack(self, rawBits)
     local unpacked = {}
@@ -137,10 +119,10 @@ Faceroll.activateKeybinds = function()
                     key = Faceroll.keys[index]
                 end
                 if key ~= nil then
-                    print("["..spec.name.."] " .. action .. " -> " .. key)
+                    -- print("["..spec.name.."] " .. action .. " -> " .. key)
                     spec.keys[action] = key
                 else
-                    print("["..spec.name.."] " .. action .. " -> UNMAPPED")
+                    -- print("["..spec.name.."] " .. action .. " -> UNMAPPED")
                 end
             end
         end

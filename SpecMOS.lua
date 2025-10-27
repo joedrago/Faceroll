@@ -89,13 +89,6 @@ spec.calcState = function(state)
         state.melee = true
     end
 
-    if Faceroll.debug ~= Faceroll.DEBUG_OFF then
-        local o = ""
-        o = o .. "CP : " .. cp .. "\n"
-        o = o .. "\n"
-        Faceroll.setDebugText(o)
-    end
-
     return state
 end
 

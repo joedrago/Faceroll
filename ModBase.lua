@@ -16,6 +16,7 @@ Faceroll.moving = false
 Faceroll.movingStopped = 0
 Faceroll.updateBitsCounter = 0
 Faceroll.targetChanged = false
+Faceroll.active = false
 
 -----------------------------------------------------------------------------------------
 -- Debug Overlay Shenanigans
@@ -29,6 +30,7 @@ Faceroll.debug = Faceroll.DEBUG_OFF
 Faceroll.debugOverlay = nil
 Faceroll.debugState = ""
 Faceroll.debugText = ""
+Faceroll.debugLines = {}
 Faceroll.debugUpdateText = ""
 Faceroll.debugLastUpdateBitsCounter = 0
 Faceroll.debugLastUpdateBitsTime = 0
@@ -48,7 +50,7 @@ Faceroll.updateDebugOverlay = function()
         if spec and (Faceroll.debug ~= Faceroll.DEBUG_MINIMAL) then
             local bitCount = #spec.bits.names
             local actionCount = #spec.actions
-            o = o .. "\124cff" .. spec.color .. spec.name .. "\124r: \124cffffffaa".. bitCount .. "\124r bits, \124cffffffaa" .. actionCount .. "\124r actions\n\n"
+            o = o .. " \124cff" .. spec.color .. spec.name .. "\124r: \124cffffffaa".. bitCount .. "\124r sts, \124cffffffaa" .. actionCount .. "\124r acts\n\n"
         end
 
         local updatesSince = Faceroll.updateBitsCounter - Faceroll.debugLastUpdateBitsCounter
@@ -82,7 +84,11 @@ Faceroll.updateDebugOverlay = function()
         if Faceroll.debug == Faceroll.DEBUG_MINIMAL then
             o = o .. Faceroll.debugState .. "\n"
         else
-            o = o .. Faceroll.debugState .. "\n" .. Faceroll.debugText .. Faceroll.debugUpdateText
+            local debugLines = ""
+            for _,line in ipairs(Faceroll.debugLines) do
+                debugLines = debugLines .. line .. "\n"
+            end
+            o = o .. Faceroll.debugState .. "\n" .. debugLines .. Faceroll.debugText .. Faceroll.debugUpdateText
         end
 
         Faceroll.debugOverlay:setText(o)
@@ -90,6 +96,14 @@ Faceroll.updateDebugOverlay = function()
     else
         Faceroll.debugOverlay.frame:Hide()
     end
+end
+
+Faceroll.clearDebugLines = function()
+    Faceroll.debugLines = {}
+end
+
+Faceroll.addDebugLine = function(line)
+    table.insert(Faceroll.debugLines, line)
 end
 
 Faceroll.setDebugText = function(text)
@@ -386,6 +400,17 @@ Faceroll.dotStacks = function(spellName)
         return dot.stacks
     end
     return 0
+end
+
+Faceroll.inShapeshiftForm = function(formName)
+    local inform = false
+    for i = 1, GetNumShapeshiftForms() do
+        local icon, name, active = GetShapeshiftFormInfo(i)
+        if active and name == formName then
+            inform = true
+        end
+    end
+    return inform
 end
 
 Faceroll.targetingEnemy = function()

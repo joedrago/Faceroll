@@ -92,16 +92,6 @@ spec.calcState = function(state)
         state.hammeroflightavailable = true
     end
 
-    if Faceroll.debug ~= Faceroll.DEBUG_OFF then
-        local o = ""
-        local hol = "N"
-        if holAvailable then
-            hol = "Y"
-        end
-        o = o .. "Hammer of Light: " .. hol .. "\n"
-        Faceroll.setDebugText(o)
-    end
-
     return state
 end
 
