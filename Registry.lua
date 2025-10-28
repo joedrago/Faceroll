@@ -105,4 +105,3 @@ Faceroll.activeSpec = function()
 end
 
 Faceroll.createSpec("OFF", "333333", "OFF")
-Faceroll.enableSpec("OFF")
