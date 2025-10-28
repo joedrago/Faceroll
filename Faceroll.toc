@@ -4,45 +4,56 @@
 ## Version: 1.0
 ## DefaultState: enabled
 ## Author: Joe Drago
+
+# Faceroll Core
 Bridge.lua
 Registry.lua
 ModFrame.lua
 ModBase.lua
-SpecAM.lua
-SpecAPB.lua
-SpecATW.lua
-SpecBM.lua
-SpecCBF.lua
-SpecCD.lua
-SpecCS.lua
-SpecCI.lua
-SpecCM.lua
-SpecCP.lua
-SpecCR.lua
-SpecCW.lua
-SpecDA.lua
-SpecDB.lua
-SpecDG.lua
-SpecDR.lua
-SpecDW.lua
-SpecEVO.lua
-SpecFDK.lua
-SpecHDH.lua
-SpecHP.lua
-SpecLOTA.lua
-SpecLS.lua
-SpecLUC.lua
-SpecMM.lua
-SpecMOS.lua
-SpecOWL.lua
-SpecPAL.lua
-SpecPP.lua
-SpecPW.lua
-SpecRET.lua
-SpecSUB.lua
-SpecSV.lua
-SpecTS.lua
-SpecTV.lua
-SpecVDH.lua
+
+# Ascension WoW Specs
+Ascension\SpecAPB.lua
+Ascension\SpecATS.lua
+Ascension\SpecATW.lua
+Ascension\SpecCBF.lua
+Ascension\SpecCI.lua
+Ascension\SpecCS.lua
+Ascension\SpecDA.lua
+Ascension\SpecDG.lua
+Ascension\SpecDR.lua
+Ascension\SpecEVO.lua
+Ascension\SpecLOTA.lua
+Ascension\SpecLS.lua
+Ascension\SpecLUC.lua
+Ascension\SpecMOS.lua
+Ascension\SpecPW.lua
+Ascension\SpecTS.lua
+Ascension\SpecTV.lua
+
+# Classic (Anniversary) Specs
+Classic\SpecCD.lua
+Classic\SpecCM.lua
+Classic\SpecCP.lua
+Classic\SpecCR.lua
+Classic\SpecCW.lua
+Classic\SpecPAL.lua
+
+# Retail Specs
+Retail\SpecAM.lua
+Retail\SpecBM.lua
+Retail\SpecDB.lua
+Retail\SpecDW.lua
+Retail\SpecFDK.lua
+Retail\SpecHDH.lua
+Retail\SpecHP.lua
+Retail\SpecMM.lua
+Retail\SpecOWL.lua
+Retail\SpecPP.lua
+Retail\SpecRET.lua
+Retail\SpecSUB.lua
+Retail\SpecSV.lua
+Retail\SpecVDH.lua
+
+# Faceroll Main
 Settings.lua
 ModMain.lua

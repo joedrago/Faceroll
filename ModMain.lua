@@ -2,7 +2,7 @@ if Faceroll == nil then
     _, Faceroll = ...
 end
 
-Faceroll.activateKeybinds()
+Faceroll.initSpecs()
 
 -----------------------------------------------------------------------------------------
 -- The little "OFF" / "SV" text and the options list above it
