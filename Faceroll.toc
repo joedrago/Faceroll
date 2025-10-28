@@ -5,13 +5,13 @@
 ## DefaultState: enabled
 ## Author: Joe Drago
 
-# Faceroll Core
+# -- Faceroll Core --
 Bridge.lua
 Registry.lua
 ModFrame.lua
 ModBase.lua
 
-# Ascension WoW Specs
+# -- Ascension WoW Specs --
 Ascension\SpecAPB.lua
 Ascension\SpecATS.lua
 Ascension\SpecATW.lua
@@ -30,7 +30,7 @@ Ascension\SpecPW.lua
 Ascension\SpecTS.lua
 Ascension\SpecTV.lua
 
-# Classic (Anniversary) Specs
+# -- Classic (Anniversary) Specs --
 Classic\SpecCD.lua
 Classic\SpecCM.lua
 Classic\SpecCP.lua
@@ -38,22 +38,22 @@ Classic\SpecCR.lua
 Classic\SpecCW.lua
 Classic\SpecPAL.lua
 
-# Retail Specs
-Retail\SpecAM.lua
-Retail\SpecBM.lua
-Retail\SpecDB.lua
-Retail\SpecDW.lua
-Retail\SpecFDK.lua
-Retail\SpecHDH.lua
-Retail\SpecHP.lua
-Retail\SpecMM.lua
-Retail\SpecOWL.lua
-Retail\SpecPP.lua
-Retail\SpecRET.lua
-Retail\SpecSUB.lua
-Retail\SpecSV.lua
-Retail\SpecVDH.lua
+# -- Retail Specs --
+# Retail\SpecAM.lua
+# Retail\SpecBM.lua
+# Retail\SpecDB.lua
+# Retail\SpecDW.lua
+# Retail\SpecFDK.lua
+# Retail\SpecHDH.lua
+# Retail\SpecHP.lua
+# Retail\SpecMM.lua
+# Retail\SpecOWL.lua
+# Retail\SpecPP.lua
+# Retail\SpecRET.lua
+# Retail\SpecSUB.lua
+# Retail\SpecSV.lua
+# Retail\SpecVDH.lua
 
-# Faceroll Main
+# -- Faceroll Main --
 Settings.lua
 ModMain.lua
