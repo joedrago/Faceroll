@@ -439,7 +439,7 @@ Faceroll.getDotRemainingNorm = function(spellName)
 end
 
 Faceroll.isDotActive = function(spellName)
-    return (Faceroll.getDotRemainingNorm() > 0)
+    return (Faceroll.getDotRemainingNorm(spellName) > 0)
 end
 
 Faceroll.getDotStacks = function(spellName)
