@@ -77,7 +77,7 @@ spec.calcState = function(state)
         state.judgement = true
     end
 
-    local judgeCD = Faceroll.spellCooldown("Judgement")
+    local judgeCD = Faceroll.getSpellCooldown("Judgement")
     if judgeCD > 7.5 then
         state.justjudged = true
     end

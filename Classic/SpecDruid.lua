@@ -147,19 +147,19 @@ spec.calcState = function(state)
 
     -- Debuffs --
 
-    if Faceroll.isDotActive("Moonfire") > 0.1 then
+    if Faceroll.getDotRemainingNorm("Moonfire") > 0.1 then
         state.moonfire = true
     end
 
-    if Faceroll.isDotActive("Demoralizing Roar") > 0.1 then
+    if Faceroll.getDotRemainingNorm("Demoralizing Roar") > 0.1 then
         state.roar = true
     end
 
-    if Faceroll.isDotActive("Rake") > 0.1 then
+    if Faceroll.getDotRemainingNorm("Rake") > 0.1 then
         state.rake = true
     end
 
-    if Faceroll.isDotActive("Faerie Fire (Feral)") > 0.1 then
+    if Faceroll.getDotRemainingNorm("Faerie Fire (Feral)") > 0.1 then
         state.fff = true
     end
 

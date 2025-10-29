@@ -58,10 +58,10 @@ spec.calcState = function(state)
         state.chaosboltdeadzone = true
     end
 
-    if Faceroll.isDotActive("Wither") > 0.3 then
+    if Faceroll.getDotRemainingNorm("Wither") > 0.3 then
         state.witherdot = true
     end
-    if Faceroll.isDotActive("Conflagrate") > 0.2 then
+    if Faceroll.getDotRemainingNorm("Conflagrate") > 0.2 then
         state.conflagratedot = true
     end
 
@@ -81,11 +81,11 @@ spec.calcState = function(state)
         state.cataclysmready = true
     end
 
-    if Faceroll.spellCooldown("Cataclysm") < 3 then
+    if Faceroll.getSpellCooldown("Cataclysm") < 3 then
         state.cataclysmsoon = true
     end
 
-    if Faceroll.spellCooldown("Cataclysm") > 25 then
+    if Faceroll.getSpellCooldown("Cataclysm") > 25 then
         state.cataclysmjustcast = true
     end
 

@@ -63,14 +63,14 @@ spec.calcState = function(state)
         state.frostbane = true
     end
 
-    if Faceroll.dotStacks("Razorice") >= 5 then
+    if Faceroll.getDotStacks("Razorice") >= 5 then
         state.razorice5 = true
     end
 
-    if Faceroll.spellCharges("Empower Rune Weapon") > 0 then
+    if Faceroll.getSpellCharges("Empower Rune Weapon") > 0 then
         state.erw1 = true
     end
-    if Faceroll.spellChargesSoon("Empower Rune Weapon", 2, 3) then
+    if Faceroll.getSpellChargesSoon("Empower Rune Weapon", 2, 3) then
         state.erw2soon = true
     end
 
@@ -82,7 +82,7 @@ spec.calcState = function(state)
         state.pillaroffrost = true
     end
 
-    if Faceroll.spellCooldown("Pillar of Frost") < 5 then
+    if Faceroll.getSpellCooldown("Pillar of Frost") < 5 then
         state.pillaroffrostsoon = true
     end
 

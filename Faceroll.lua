@@ -369,9 +369,6 @@ else
     end
 end
 
------------------------------------------------------------------------------------------
--- Queries
-
 Faceroll.ascensionFindAura = function(reqUnit, reqName, reqFilter)
     for auraIndex=1,40 do
         local name, rank, icon, stacks, dispelType, duration, expirationTime, source, isStealable, nameplateShowPersonal, spellId, canApplyAura, isBossDebuff, castByPlayer, nameplateShowAll, timeMod = UnitAura(reqUnit, auraIndex, reqFilter)
@@ -382,6 +379,9 @@ Faceroll.ascensionFindAura = function(reqUnit, reqName, reqFilter)
     end
     return nil
 end
+
+-----------------------------------------------------------------------------------------
+-- Queries
 
 Faceroll.getBuff = function(buffName)
     if Faceroll.ascension then
@@ -425,11 +425,54 @@ Faceroll.getBuffRemaining = function(buffName)
     return 0
 end
 
-Faceroll.spellCharges = function(spellName)
+Faceroll.getDotRemainingNorm = function(spellName)
+    local dot = Faceroll.getDot(spellName)
+    if dot ~= nil and dot.duration > 0 then
+        local remainingDuration = dot.expirationTime - GetTime()
+        local normalizedDuration = remainingDuration / dot.duration
+        if normalizedDuration < 0 then
+            normalizedDuration = 0
+        end
+        return normalizedDuration
+    end
+    return -1
+end
+
+Faceroll.isDotActive = function(spellName)
+    return (Faceroll.getDotRemainingNorm() > 0)
+end
+
+Faceroll.getDotStacks = function(spellName)
+    local dot = Faceroll.getDot(spellName)
+    if dot ~= nil and dot.duration > 0 then
+        return dot.stacks
+    end
+    return 0
+end
+
+Faceroll.isSpellAvailable = function(spellName, ignoreUsable)
+    if not builtinISU(spellName) and not ignoreUsable then
+        return false
+    end
+    local currentCharges, maxCharges = Faceroll.getSpellCharges(spellName)
+    if maxCharges > 0 then
+        if Faceroll.getSpellCharges(spellName) > 0 then
+            return true
+        end
+        return false
+    end
+
+    if builtinGSC(spellName).duration > 1.5 then
+        return false
+    end
+    return true
+end
+
+Faceroll.getSpellCharges = function(spellName)
     return builtinGSCharges(spellName)
 end
 
-Faceroll.spellCooldown = function(spellName)
+Faceroll.getSpellCooldown = function(spellName)
     local cd = builtinGSC(spellName)
     if cd == nil then
         return 0
@@ -442,7 +485,7 @@ Faceroll.spellCooldown = function(spellName)
     return 0
 end
 
-Faceroll.spellChargesSoon = function(spellName, count, seconds)
+Faceroll.getSpellChargesSoon = function(spellName, count, seconds)
     local chargeInfo = C_Spell.GetSpellCharges(spellName)
     if chargeInfo == nil then
         return false
@@ -450,25 +493,7 @@ Faceroll.spellChargesSoon = function(spellName, count, seconds)
     if chargeInfo.currentCharges < count - 1 then
         return false
     end
-    if Faceroll.spellCooldown(spellName) > seconds then
-        return false
-    end
-    return true
-end
-
-Faceroll.isSpellAvailable = function(spellName, ignoreUsable)
-    if not builtinISU(spellName) and not ignoreUsable then
-        return false
-    end
-    local currentCharges, maxCharges = Faceroll.spellCharges(spellName)
-    if maxCharges > 0 then
-        if Faceroll.spellCharges(spellName) > 0 then
-            return true
-        end
-        return false
-    end
-
-    if builtinGSC(spellName).duration > 1.5 then
+    if Faceroll.getSpellCooldown(spellName) > seconds then
         return false
     end
     return true
@@ -483,27 +508,6 @@ Faceroll.hasManaForSpell = function(spellName)
         end
     end
     return false
-end
-
-Faceroll.isDotActive = function(spellName)
-    local dot = Faceroll.getDot(spellName)
-    if dot ~= nil and dot.duration > 0 then
-        local remainingDuration = dot.expirationTime - GetTime()
-        local normalizedDuration = remainingDuration / dot.duration
-        if normalizedDuration < 0 then
-            normalizedDuration = 0
-        end
-        return normalizedDuration
-    end
-    return -1
-end
-
-Faceroll.dotStacks = function(spellName)
-    local dot = Faceroll.getDot(spellName)
-    if dot ~= nil and dot.duration > 0 then
-        return dot.stacks
-    end
-    return 0
 end
 
 Faceroll.inShapeshiftForm = function(formName)

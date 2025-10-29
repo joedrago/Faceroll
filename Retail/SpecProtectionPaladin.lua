@@ -62,7 +62,7 @@ spec.calcState = function(state)
     local hp = UnitHealth("player")
     local hpmax = UnitHealthMax("player")
     local hpnorm = hp / hpmax
-    if hpnorm < 0.6 and Faceroll.spellCharges("Shining Light") > 0 then
+    if hpnorm < 0.6 and Faceroll.getSpellCharges("Shining Light") > 0 then
         state.needsheal = true
     end
 

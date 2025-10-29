@@ -40,10 +40,10 @@ spec.calcState = function(state)
     if Faceroll.isBuffActive("Tip of the Spear") then
         state.tipofthespear = true
     end
-    if Faceroll.spellCharges("Wildfire Bomb") >= 2 then
+    if Faceroll.getSpellCharges("Wildfire Bomb") >= 2 then
         state.wildfirebomb2 = true
     end
-    if Faceroll.spellCharges("Wildfire Bomb") >= 1 then
+    if Faceroll.getSpellCharges("Wildfire Bomb") >= 1 then
         state.wildfirebomb1 = true
     end
     if Faceroll.isSpellAvailable("Butchery") then

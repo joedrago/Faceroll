@@ -19,10 +19,10 @@ spec.overlay = {
 }
 
 spec.calcState = function(state)
-    if Faceroll.isDotActive("Curse of Agony") > 0.1 then
+    if Faceroll.getDotRemainingNorm("Curse of Agony") > 0.1 then
         state.curseofagony = true
     end
-    if Faceroll.isDotActive("Corruption") > 0.1 then
+    if Faceroll.getDotRemainingNorm("Corruption") > 0.1 then
         state.corruption = true
     end
 

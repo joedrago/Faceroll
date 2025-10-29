@@ -62,7 +62,7 @@ spec.calcState = function(state)
         state.lightsdeliverancebuff = true
     end
 
-    if Faceroll.isDotActive("Expurgation") then
+    if Faceroll.getDotRemainingNorm("Expurgation") then
         state.expurgationdot = true
     end
 

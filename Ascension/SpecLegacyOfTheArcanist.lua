@@ -79,13 +79,13 @@ spec.calcState = function(state)
     end
 
     -- Dots
-    if Faceroll.isDotActive("Moonfire") >= 0.1 then
+    if Faceroll.getDotRemainingNorm("Moonfire") >= 0.1 then
         state.moonfiredot = true
     end
-    if Faceroll.isDotActive("Sunfire") >= 0.1 then
+    if Faceroll.getDotRemainingNorm("Sunfire") >= 0.1 then
         state.sunfiredot = true
     end
-    if Faceroll.isDotActive("Living Bomb") >= 0.1 then
+    if Faceroll.getDotRemainingNorm("Living Bomb") >= 0.1 then
         state.livingbombdot = true
     end
 

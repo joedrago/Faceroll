@@ -43,14 +43,14 @@ spec.overlay = {
 spec.calcState = function(state)
     -- Barbed Shot --
 
-    local barbedShotCharges = Faceroll.spellCharges("Barbed Shot")
-    local barbedShotTwoChargesSoon = Faceroll.spellChargesSoon("Barbed Shot", 2, 2.5)
-    local killCommandCharges = Faceroll.spellCharges("Kill Command")
+    local barbedShotCharges = Faceroll.getSpellCharges("Barbed Shot")
+    local barbedShotTwoChargesSoon = Faceroll.getSpellChargesSoon("Barbed Shot", 2, 2.5)
+    local killCommandCharges = Faceroll.getSpellCharges("Kill Command")
     if barbedShotCharges > 0 then
         if Faceroll.getBuffRemaining("Thrill of the Hunt") < 2
         or barbedShotTwoChargesSoon
         or barbedShotCharges > killCommandCharges
-        or Faceroll.spellCooldown("Bestial Wrath") < 5
+        or Faceroll.getSpellCooldown("Bestial Wrath") < 5
         then
             state.barbedshothighprio = true
         end

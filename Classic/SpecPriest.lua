@@ -65,7 +65,7 @@ spec.calcState = function(state)
     end
 
     -- Debuffs
-    if Faceroll.isDotActive("Shadow Word: Pain") > 0.1 then
+    if Faceroll.getDotRemainingNorm("Shadow Word: Pain") > 0.1 then
         state.pain = true
     end
 

@@ -70,7 +70,7 @@ spec.calcState = function(state)
     local hp = UnitHealth("player")
     local hpmax = UnitHealthMax("player")
     local hpnorm = hp / hpmax
-    if hpnorm < 0.6 and Faceroll.spellCharges("Frenzied Regeneration") > 0 and Faceroll.getBuffStacks("Frenzied Regeneration") < 2 then
+    if hpnorm < 0.6 and Faceroll.getSpellCharges("Frenzied Regeneration") > 0 and Faceroll.getBuffStacks("Frenzied Regeneration") < 2 then
         state.frenziedregeneration = true
     end
 

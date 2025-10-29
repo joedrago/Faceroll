@@ -82,20 +82,20 @@ spec.calcState = function(state)
         state.shadowtrance = true
     end
 
-    if Faceroll.isDotActive("Tainted Wound") > 0 then
+    if Faceroll.isDotActive("Tainted Wound") then
         state.taintedwound = true
     end
-    if Faceroll.isDotActive("Lacerate") < 0.2 then
+    if Faceroll.getDotRemainingNorm("Lacerate") < 0.2 then
         state.lacerateending = true
     end
     local maxLacerateStacks = 5
     if state.solo then
         maxLacerateStacks = 1
     end
-    if Faceroll.dotStacks("Lacerate") >= maxLacerateStacks then
+    if Faceroll.getDotStacks("Lacerate") >= maxLacerateStacks then
         state.laceratemax = true
     end
-    if Faceroll.isDotActive("Corruption") > 0 then
+    if Faceroll.isDotActive("Corruption") then
         state.corruption = true
     end
 

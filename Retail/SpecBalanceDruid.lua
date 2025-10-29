@@ -66,11 +66,11 @@ spec.calcState = function(state)
         state.woestacks = true
     end
 
-    if Faceroll.isDotActive("Moonfire") > 0.3 then
+    if Faceroll.getDotRemainingNorm("Moonfire") > 0.3 then
         state.moonfire = true
     end
 
-    if Faceroll.isDotActive("Sunfire") > 0.3 then
+    if Faceroll.getDotRemainingNorm("Sunfire") > 0.3 then
         state.sunfire = true
     end
 

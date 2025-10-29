@@ -73,11 +73,11 @@ spec.calcState = function(state)
         state.regen = true
     end
 
-    if Faceroll.isDotActive("Rend (Carnage)") > 0 then
+    if Faceroll.isDotActive("Rend (Carnage)") then
         state.rend = true
     end
 
-    if Faceroll.isDotActive("Lacerate") < 0.2 then
+    if Faceroll.getDotRemainingNorm("Lacerate") < 0.2 then
         state.lacerateending = true
     end
 
@@ -85,7 +85,7 @@ spec.calcState = function(state)
     if state.solo then
         maxLacerateStacks = 1
     end
-    if Faceroll.dotStacks("Lacerate") >= maxLacerateStacks then
+    if Faceroll.getDotStacks("Lacerate") >= maxLacerateStacks then
         state.laceratemax = true
     end
 

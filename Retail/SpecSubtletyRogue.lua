@@ -98,10 +98,10 @@ spec.calcState = function(state)
     if Faceroll.isSpellAvailable("Shadow Blades") then
         state.shadowblades_available = true
     end
-    if Faceroll.spellCharges("Symbols of Death") > 0 then
+    if Faceroll.getSpellCharges("Symbols of Death") > 0 then
         state.symbolsofdeath_available = true
     end
-    if Faceroll.spellCharges("Shadow Dance") > 0 then
+    if Faceroll.getSpellCharges("Shadow Dance") > 0 then
         state.shadowdance_available = true
     end
     if Faceroll.isSpellAvailable("Cold Blood") then
@@ -110,21 +110,21 @@ spec.calcState = function(state)
     if Faceroll.isSpellAvailable("flagellation") then
         state.flagellation_available = true
     end
-    if Faceroll.spellCooldown("flagellation") < 30 and Faceroll.spellCooldown("flagellation") > 1.5 then
+    if Faceroll.getSpellCooldown("flagellation") < 30 and Faceroll.getSpellCooldown("flagellation") > 1.5 then
         state.flagellation_soon = true
     end
     if Faceroll.isSpellAvailable("vanish") then
         state.vanish_available = true
     end
-    if Faceroll.spellCooldown("Secret Technique") < 1.5 then
+    if Faceroll.getSpellCooldown("Secret Technique") < 1.5 then
         state.secrettechnique_available = true
     end
-    if Faceroll.spellCooldown("Secret Technique") < 10 then
+    if Faceroll.getSpellCooldown("Secret Technique") < 10 then
         state.secrettechnique_soon = true
     end
 
     -- target debuffs
-    if Faceroll.isDotActive("Rupture") < .3 then
+    if Faceroll.getDotRemainingNorm("Rupture") < .3 then
         state.should_rupture = true
     end
 

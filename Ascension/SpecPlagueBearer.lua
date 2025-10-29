@@ -55,7 +55,7 @@ spec.calcState = function(state)
         state.fsqueued = true
     end
 
-    if Faceroll.isDotActive("Infected Blood") > 0 then
+    if Faceroll.isDotActive("Infected Blood") then
         state.infectedblood = true
     end
 

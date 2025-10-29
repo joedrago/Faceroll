@@ -68,16 +68,16 @@ spec.calcState = function(state)
         state.predator = true
     end
 
-    if Faceroll.isDotActive("Tainted Wound") > 0 then
+    if Faceroll.isDotActive("Tainted Wound") then
         state.taintedwound = true
     end
-    if Faceroll.isDotActive("Rake") > 0 then
+    if Faceroll.isDotActive("Rake") then
         state.rake = true
     end
-    if Faceroll.isDotActive("Rip") > 0 then
+    if Faceroll.isDotActive("Rip") then
         state.rip = true
     end
-    if Faceroll.isDotActive("Mangle (Cat)") > 0 then
+    if Faceroll.isDotActive("Mangle (Cat)") then
         state.mangle = true
     end
 

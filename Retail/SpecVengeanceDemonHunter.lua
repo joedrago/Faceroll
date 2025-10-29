@@ -71,10 +71,10 @@ spec.calcState = function(state)
     if Faceroll.isSpellAvailable("Felblade") then
         state.felblade = true
     end
-    if Faceroll.spellCharges("Fracture") then
+    if Faceroll.getSpellCharges("Fracture") then
         state.fracture = true
     end
-    if Faceroll.spellCharges("Demon Spikes") > 0 and not Faceroll.deadzoneActive(demonspikesDeadzone) then
+    if Faceroll.getSpellCharges("Demon Spikes") > 0 and not Faceroll.deadzoneActive(demonspikesDeadzone) then
         state.demonspikes = true
     end
 
@@ -99,7 +99,7 @@ spec.calcState = function(state)
         state.soulfragmentszero = true
     end
 
-    if Faceroll.isDotActive("Fiery Brand") <= 0 and Faceroll.isSpellAvailable("Fiery Brand") then
+    if Faceroll.getDotRemainingNorm("Fiery Brand") <= 0 and Faceroll.isSpellAvailable("Fiery Brand") then
         state.fierybrand = true
     end
 

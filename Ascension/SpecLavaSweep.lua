@@ -60,7 +60,7 @@ spec.calcState = function(state)
     if Faceroll.isSpellAvailable("Meteor") then
         state.meteor = true
     end
-    if Faceroll.isSpellAvailable("Flame Shock") and Faceroll.isDotActive("Flame Shock") < 0.1 then
+    if Faceroll.isSpellAvailable("Flame Shock") and Faceroll.getDotRemainingNorm("Flame Shock") < 0.1 then
         state.flameshock = true
     end
 

@@ -65,7 +65,7 @@ spec.calcState = function(state)
     if Faceroll.isSpellAvailable("Eye Beam", true) then
         state.eyebeam = true
     end
-    if Faceroll.spellCooldown("Eye Beam") <= 3 then
+    if Faceroll.getSpellCooldown("Eye Beam") <= 3 then
         state.eyebeamsoon = true
     end
     if Faceroll.isSpellAvailable("Blade Dance") then
@@ -75,7 +75,7 @@ spec.calcState = function(state)
         state.felblade = true
     end
 
-    local immoCharges = Faceroll.spellCharges("Immolation Aura")
+    local immoCharges = Faceroll.getSpellCharges("Immolation Aura")
     if immoCharges >= 2 then
         state.immocharges2 = true
     end

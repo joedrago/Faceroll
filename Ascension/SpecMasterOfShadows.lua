@@ -63,7 +63,7 @@ spec.calcState = function(state)
         state.windfury = true
     end
 
-    if Faceroll.isDotActive("Gloomblade") > 0.25 then
+    if Faceroll.getDotRemainingNorm("Gloomblade") > 0.25 then
         state.gloomblade = true
     end
 

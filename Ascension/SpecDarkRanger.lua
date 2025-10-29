@@ -53,7 +53,7 @@ spec.calcState = function(state)
         state.artillery = true
     end
 
-    if Faceroll.isDotActive("Shadow Word: Pain") > 0 then
+    if Faceroll.isDotActive("Shadow Word: Pain") then
         state.pain = true
     end
 
