@@ -871,8 +871,22 @@ local function onLoaded()
 
     createBits()
     updateBits("init()")
+end
 
-    print("Faceroll: Initialized")
+-----------------------------------------------------------------------------------------
+-- Babysit zone boundaries to maintain Faceroll active state, if necessary
+
+local lastTimeChatDisabledFaceroll = 0
+
+function onPlayerEnteringWorld()
+    if lastTimeChatDisabledFaceroll > 0 then
+        local timeSinceChatDisable = GetTime() - lastTimeChatDisabledFaceroll
+        if timeSinceChatDisable < 0.1 then
+            -- print("Faceroll: Restoring active state on zone boundary.")
+            facerollActivate()
+        end
+    end
+    lastTimeChatDisabledFaceroll = 0
 end
 
 -----------------------------------------------------------------------------------------
@@ -888,6 +902,7 @@ local function onEvent(self, event, arg1, arg2, ...)
         eventFrame:UnregisterEvent("PLAYER_LOGIN")
         onLoaded()
     elseif event == "PLAYER_ENTERING_WORLD" then
+        onPlayerEnteringWorld()
         updateBits("PLAYER_ENTERING_WORLD")
     elseif event == "PLAYER_TARGET_CHANGED" then
         Faceroll.targetChanged = true
@@ -951,6 +966,12 @@ end
 
 DEFAULT_CHAT_FRAME.editBox:HookScript("OnShow", function()
     -- If this fires, someone is trying to type in chat!
+    if Faceroll.active then
+        -- Keep track of when this fires, and if a PLAYER_ENTERING_WORLD fires
+        -- shortly afterwards, this was probably spurious and we can restore the
+        -- active state.
+        lastTimeChatDisabledFaceroll = GetTime()
+    end
     facerollDeactivate()
 end)
 
