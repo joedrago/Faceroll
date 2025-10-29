@@ -15,6 +15,15 @@ Faceroll.MODE_NONE = 0
 Faceroll.MODE_ST = 1
 Faceroll.MODE_AOE = 2
 
+-- This lets us know we're actually looking at the wabits panel.
+-- 165 is a neat little checkerboard pattern:
+--
+--     1010
+--     0101
+--
+-- If the magic is anything but this, zero out the state.
+Faceroll.BRIDGE_MAGIC = 165
+
 Faceroll.BRIDGE_FLAG_ACTIVE = 0x1
 
 Faceroll.BRIDGE_KEY_NONE = ""
@@ -124,16 +133,25 @@ Faceroll.bridgeStatePack = function(bridgeState)
         flags = flags + Faceroll.BRIDGE_FLAG_ACTIVE
     end
 
-    local bits = (mode0 * 0x01000000) + (mode1 * 0x00010000) + flags
+    local bits = (Faceroll.BRIDGE_MAGIC * 0x01000000) + (mode0 * 0x00010000) + (mode1 * 0x00000100) + flags
     return bits
 end
 
 Faceroll.bridgeStateUnpack = function(bits)
     local bridgeState = {}
 
-    bridgeState._mode0 = math.floor(Faceroll.bitand(bits, 0xff000000) / 0x01000000)
-    bridgeState._mode1 = math.floor(Faceroll.bitand(bits, 0x00ff0000) / 0x00010000)
-    bridgeState._flags = math.floor(Faceroll.bitand(bits, 0x0000ffff))
+    bridgeState._magic = math.floor(Faceroll.bitand(bits, 0xff000000) / 0x01000000)
+    bridgeState._mode0 = math.floor(Faceroll.bitand(bits, 0x00ff0000) / 0x00010000)
+    bridgeState._mode1 = math.floor(Faceroll.bitand(bits, 0x0000ff00) / 0x00000100)
+    bridgeState._flags = math.floor(Faceroll.bitand(bits, 0x000000ff))
+
+    if bridgeState._magic ~= Faceroll.BRIDGE_MAGIC then
+        -- We're probably not looking at wabits, pretend the screen is black
+        bridgeState._mode0 = 0
+        bridgeState._mode1 = 0
+        bridgeState._flags = 0
+        -- print("Magic mismatch, ignoring state")
+    end
 
     bridgeState.key0 = Faceroll.bridgeKeyName(bridgeState._mode0)
     bridgeState.key1 = Faceroll.bridgeKeyName(bridgeState._mode1)
