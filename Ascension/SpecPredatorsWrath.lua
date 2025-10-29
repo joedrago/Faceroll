@@ -1,5 +1,5 @@
 -----------------------------------------------------------------------------------------
--- Ascension WoW Corrupted Bear Form
+-- Ascension WoW Predator's Wrath
 
 if Faceroll == nil then
     _, Faceroll = ...

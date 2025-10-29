@@ -1,5 +1,5 @@
 -----------------------------------------------------------------------------------------
--- Ascension WoW Icebound
+-- Ascension WoW Thermal Void
 
 if Faceroll == nil then
     _, Faceroll = ...

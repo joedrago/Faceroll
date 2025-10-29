@@ -1,5 +1,5 @@
 -----------------------------------------------------------------------------------------
--- Ascension WoW Lava Sweep
+-- Ascension WoW Legacy of the Arcanist
 
 if Faceroll == nil then
     _, Faceroll = ...
