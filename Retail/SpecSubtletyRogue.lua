@@ -58,7 +58,7 @@ spec.calcState = function(state)
     -- print("energy " .. energy .. " cp " .. cp)
 
     -- player/base class state
-    if UnitAffectingCombat("player") then
+    if Faceroll.inCombat() then
         state.combat = true
     end
     if cp >= 6 then

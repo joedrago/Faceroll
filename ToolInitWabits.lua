@@ -1,4 +1,4 @@
-print("init_wabits.lua startup")
+print("ToolInitWabits.lua startup")
 
 Faceroll = {}
 

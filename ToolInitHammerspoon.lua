@@ -1,4 +1,4 @@
-print("init_hammerspoon")
+print("ToolInitHammerspoon")
 
 package.path = package.path .. ";" .. hs.configdir .. "/Faceroll/?.lua"
 
@@ -42,7 +42,7 @@ end
 -----------------------------------------------------------------------------------------
 -- Shared code
 
-require("faceroll/ActMain")
+require("faceroll/Tool")
 
 -----------------------------------------------------------------------------------------
 -- Window listener stuff

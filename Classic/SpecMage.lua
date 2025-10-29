@@ -87,7 +87,7 @@ spec.calcState = function(state)
         state.targetingenemy = true
     end
 
-    if UnitAffectingCombat("player") then
+    if Faceroll.inCombat() then
         state.combat = true
     end
 

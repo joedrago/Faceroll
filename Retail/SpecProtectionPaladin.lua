@@ -98,7 +98,7 @@ spec.calcState = function(state)
         state.consecration = true
     end
 
-    if UnitAffectingCombat("player") then
+    if Faceroll.inCombat() then
         state.incombat = true
     end
 

@@ -66,7 +66,7 @@ spec.calcState = function(state)
     if Faceroll.targetingEnemy() then
         state.targetingenemy = true
     end
-    if UnitAffectingCombat("player") then
+    if Faceroll.inCombat() then
         state.combat = true
     end
     -- if IsCurrentSpell(6603) then -- Autoattack

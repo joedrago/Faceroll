@@ -1,1 +1,1 @@
-require("init_wabits")
+require("ToolInitWabits")

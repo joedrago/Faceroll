@@ -2,6 +2,10 @@ if Faceroll == nil then
     _, Faceroll = ...
 end
 
+-----------------------------------------------------------------------------------------
+-- Faceroll Globals
+
+Faceroll.keys = {}
 Faceroll.options = {}
 Faceroll.classic = false
 Faceroll.ascension = false
@@ -17,6 +21,158 @@ Faceroll.movingStopped = 0
 Faceroll.updateBitsCounter = 0
 Faceroll.targetChanged = false
 Faceroll.active = false
+
+local nextSpec = 0
+Faceroll.SPEC_OFF = 0
+Faceroll.SPEC_LAST = 0
+Faceroll.availableSpecs = {}
+Faceroll.activeSpecsByIndex = {}
+Faceroll.activeSpecsByKey = {}
+
+-----------------------------------------------------------------------------------------
+-- Helpers
+
+Faceroll.textColor = function(text, color)
+    return "\124cff" .. color .. text .. "\124r"
+end
+
+Faceroll.isSeparatorName = function(name)
+    return (string.find(name, "^[- ]") ~= nil)
+end
+
+-----------------------------------------------------------------------------------------
+-- Spec Management
+
+Faceroll.createSpec = function(name, color, specKey)
+    local spec = {
+        ["name"]=name,
+        ["color"]=color,
+        ["key"]=specKey,
+        ["calcState"]=nil,
+        ["calcAction"]=nil,
+        ["buffs"]=nil,
+        ["overlay"]={},
+        ["actions"]={},
+        ["options"]={},
+        ["keys"]={},
+        ["index"]=nil,
+    }
+    table.insert(Faceroll.availableSpecs, spec)
+    return spec
+end
+
+Faceroll.createState = function(spec)
+    local state = {}
+    for _,name in ipairs(spec.options) do
+        if Faceroll.options[name] ~= nil then
+            state[name] = true
+        end
+    end
+    return state
+end
+
+Faceroll.initSpecs = function()
+    for _, spec in ipairs(Faceroll.availableSpecs) do
+        Faceroll.activeSpecsByIndex[nextSpec] = spec
+        nextSpec = nextSpec + 1
+        spec.index = #Faceroll.activeSpecsByIndex
+        Faceroll.SPEC_LAST = #Faceroll.activeSpecsByIndex
+        if Faceroll.activeSpecsByKey[spec.key] ~= nil then
+            print("WARNING: Multiple specs for the same key active! Overriding preexisting spec key: " .. spec.key)
+        end
+        Faceroll.activeSpecsByKey[spec.key] = spec
+        -- print("Enabling Spec: " .. spec.name .. " (" .. Faceroll.SPEC_LAST .. "), ".. bitCount .. "/28 bits, " .. actionCount .. " actions")
+    end
+
+    for _, spec in ipairs(Faceroll.activeSpecsByIndex) do
+        if spec.actions ~= nil then
+            for index, action in ipairs(spec.actions) do
+                local key = Faceroll.keys[action]
+                if key == nil then
+                    key = Faceroll.keys[index]
+                end
+                if key ~= nil then
+                    -- print("["..spec.name.."] " .. action .. " -> " .. key)
+                    spec.keys[action] = key
+                else
+                    -- print("["..spec.name.."] " .. action .. " -> UNMAPPED")
+                end
+            end
+        end
+    end
+
+    print("Faceroll.activateSpecs(): " .. #Faceroll.activeSpecsByIndex .. " available specs.")
+end
+
+Faceroll.activeSpec = function()
+    local _, playerClass = UnitClass("player")
+    local specIndex = "CLASSIC"
+    if Faceroll.ascension then
+        specIndex = "ASCENSION"
+        local mysticLego = MysticEnchantUtil.GetLegendaryEnchantID("player")
+        if mysticLego ~= nil then
+            local mysticLegoName = GetSpellInfo(mysticLego)
+            if mysticLegoName ~= nil then
+                specIndex = mysticLegoName
+            end
+        end
+    elseif not Faceroll.classic then
+        if GetSpecialization ~= nil then
+            specIndex = GetSpecialization()
+        end
+    end
+    if playerClass == nil or specIndex == nil then
+        return nil
+    end
+    local specKey = playerClass .. "-" .. specIndex
+    local spec = Faceroll.activeSpecsByKey[specKey]
+    return spec
+end
+
+Faceroll.createSpec("OFF", "333333", "OFF")
+
+-----------------------------------------------------------------------------------------
+-- Generic "Frame" Creation (UI Elements)
+
+local FONTS = {
+    ["firamono"]="Interface\\AddOns\\Faceroll\\fonts\\FiraMono-Medium.ttf",
+    ["forcedsquare"]="Interface\\AddOns\\Faceroll\\fonts\\FORCED SQUARE.ttf",
+}
+
+Faceroll.createFrame = function(
+    width, height,
+    corner, x, y,
+    strata, alpha,
+    justify, font, fontSize)
+
+    local frFrame = {}
+
+    local frame = CreateFrame("Frame")
+    frame:SetPoint(corner, x, y)
+    frame:SetWidth(width)
+    frame:SetHeight(height)
+    frame:SetFrameStrata(strata)
+    local text = frame:CreateFontString(nil, "ARTWORK")
+    text:SetFont(FONTS[font], fontSize, "OUTLINE")
+    text:SetPoint(justify, 0,0)
+    if justify == "TOPLEFT" then
+        text:SetJustifyH("LEFT")
+        text:SetJustifyV("TOP")
+    end
+    frame.texture = frame:CreateTexture()
+    frame.texture:SetTexture("Interface/BUTTONS/WHITE8X8")
+    frame.texture:SetVertexColor(0.0, 0.0, 0.0, alpha)
+    frame.texture:SetAllPoints(text)
+    text:Show()
+    frame:Show()
+
+    frFrame.frame = frame
+    frFrame.text = text
+    frFrame.setText = function(self, text)
+        self.text:SetText(text)
+    end
+    return frFrame
+end
 
 -----------------------------------------------------------------------------------------
 -- Debug Overlay Shenanigans
@@ -167,127 +323,7 @@ Faceroll.debugInit = function()
 end
 
 -----------------------------------------------------------------------------------------
--- Helpers
-
-Faceroll.textColor = function(text, color)
-    return "\124cff" .. color .. text .. "\124r"
-end
-
------------------------------------------------------------------------------------------
--- Buff Tracking
-
-local buffs = {}
-
-Faceroll.trackBuffs = function(newBuffs)
-    for _, name in ipairs(newBuffs) do
-        local extraSettings = nil
-        if type(name) == "table" then
-            extraSettings = name
-            name = name.name
-        end
-        buffs[name] = { ["name"]=name }
-        buffs[name].id = 0
-        buffs[name].remain = false
-        buffs[name].cto = false
-        buffs[name].expirationTime = 0
-        buffs[name].stacks = 0
-
-        if extraSettings ~= nil and extraSettings.harmful ~= nil then
-            buffs[name].harmful = extraSettings.harmful
-        end
-        if extraSettings ~= nil and extraSettings.spellid ~= nil then
-            buffs[name].spellid = extraSettings.spellid
-        end
-    end
-end
-
-Faceroll.resetBuffs = function()
-    print("Faceroll: Reset Buffs")
-    for _, buff in pairs(buffs) do
-        buff.id = 0
-        buff.remain = false
-        buff.cto = false
-        buff.expirationTime = 0
-        buff.stacks = 0
-    end
-
-    if not Faceroll.ascension then
-        for i=1,100 do
-            local aura = C_UnitAuras.GetAuraDataByIndex("player", i)
-            if aura ~= nil and buffs[aura.name] ~= nil then
-                print("Faceroll: Rediscovered Buff: " .. Faceroll.textColor(aura.name, "ffffaa"))
-                local buff = buffs[aura.name]
-                if buff.harmful then
-                    if aura.isHarmful then
-                        buff.id = aura.auraInstanceID
-                    end
-                else
-                    buff.id = aura.auraInstanceID
-                    buff.expirationTime = aura.expirationTime
-                    buff.stacks = aura.applications
-
-                    local auraRemaining = aura.expirationTime - GetTime()
-                    local rtbRemaining = math.max(Faceroll.rtbEnd - GetTime(), 0)
-                    buff.remain = auraRemaining > rtbRemaining + Faceroll.rtbDelay
-                    buff.cto = rtbRemaining > auraRemaining + Faceroll.rtbDelay
-                end
-            end
-        end
-    end
-end
-
-Faceroll.ascensionFindAura = function(reqUnit, reqName, reqFilter)
-    for auraIndex=1,40 do
-        local name, rank, icon, stacks, dispelType, duration, expirationTime, source, isStealable, nameplateShowPersonal, spellId, canApplyAura, isBossDebuff, castByPlayer, nameplateShowAll, timeMod = UnitAura(reqUnit, auraIndex, reqFilter)
-        if name == reqName then
-            -- DevTools_Dump({UnitAura("player", auraIndex, reqFilter)})
-            return { ["duration"]=duration, ["stacks"]=stacks, ["expirationTime"]=expirationTime, }
-        end
-    end
-    return nil
-end
-
-Faceroll.getBuff = function(buffName)
-    if Faceroll.ascension then
-        return Faceroll.ascensionFindAura("player", buffName, "HELPFUL")
-    elseif buffs[buffName].id ~= 0 then
-        return buffs[buffName]
-    end
-    return nil
-end
-
-Faceroll.getDot = function(dotName)
-    if Faceroll.ascension then
-        return Faceroll.ascensionFindAura("target", dotName, "HARMFUL|PLAYER")
-    else
-        local name, _, stacks, _, duration, expirationTime = AuraUtil.FindAuraByName(spellName, "target", "HARMFUL|PLAYER")
-        if name ~= nil then
-            return { ["duration"]=duration, ["stacks"]=stacks, ["expirationTime"]=expirationTime, }
-        end
-    end
-    return nil
-end
-
-Faceroll.isBuffActive = function(buffName)
-    return (Faceroll.getBuff(buffName) ~= nil)
-end
-
-Faceroll.getBuffStacks = function(buffName)
-    local buff = Faceroll.getBuff(buffName)
-    if buff then
-        return buff.stacks
-    end
-    return 0
-end
-
-Faceroll.getBuffRemaining = function(buffName)
-    local buff = Faceroll.getBuff(buffName)
-    if buff then
-        local remaining = math.max(buff.expirationTime - GetTime(), 0)
-        return remaining
-    end
-    return 0
-end
+-- Shims for builtin functions that maybe don't exist in some versions
 
 local builtinGSC = nil
 if C_Spell ~= nil then
@@ -331,6 +367,62 @@ else
         local chargeCount, maxCharges = GetSpellCharges(C_Spell:GetSpellID(spellName))
         return chargeCount, maxCharges
     end
+end
+
+-----------------------------------------------------------------------------------------
+-- Queries
+
+Faceroll.ascensionFindAura = function(reqUnit, reqName, reqFilter)
+    for auraIndex=1,40 do
+        local name, rank, icon, stacks, dispelType, duration, expirationTime, source, isStealable, nameplateShowPersonal, spellId, canApplyAura, isBossDebuff, castByPlayer, nameplateShowAll, timeMod = UnitAura(reqUnit, auraIndex, reqFilter)
+        if name == reqName then
+            -- DevTools_Dump({UnitAura("player", auraIndex, reqFilter)})
+            return { ["duration"]=duration, ["stacks"]=stacks, ["expirationTime"]=expirationTime, }
+        end
+    end
+    return nil
+end
+
+Faceroll.getBuff = function(buffName)
+    if Faceroll.ascension then
+        return Faceroll.ascensionFindAura("player", buffName, "HELPFUL")
+    else
+        print("FIXME: Faceroll.getBuff("..buffName..")")
+    end
+    return nil
+end
+
+Faceroll.getDot = function(dotName)
+    if Faceroll.ascension then
+        return Faceroll.ascensionFindAura("target", dotName, "HARMFUL|PLAYER")
+    else
+        local name, _, stacks, _, duration, expirationTime = AuraUtil.FindAuraByName(spellName, "target", "HARMFUL|PLAYER")
+        if name ~= nil then
+            return { ["duration"]=duration, ["stacks"]=stacks, ["expirationTime"]=expirationTime, }
+        end
+    end
+    return nil
+end
+
+Faceroll.isBuffActive = function(buffName)
+    return (Faceroll.getBuff(buffName) ~= nil)
+end
+
+Faceroll.getBuffStacks = function(buffName)
+    local buff = Faceroll.getBuff(buffName)
+    if buff then
+        return buff.stacks
+    end
+    return 0
+end
+
+Faceroll.getBuffRemaining = function(buffName)
+    local buff = Faceroll.getBuff(buffName)
+    if buff then
+        local remaining = math.max(buff.expirationTime - GetTime(), 0)
+        return remaining
+    end
+    return 0
 end
 
 Faceroll.spellCharges = function(spellName)
@@ -429,6 +521,16 @@ Faceroll.targetingEnemy = function()
     return UnitExists("target") and not UnitIsDead("target") and not UnitIsFriend("player", "target")
 end
 
+Faceroll.inCombat = function()
+    if UnitAffectingCombat("player") then
+        return true
+    end
+    return false
+end
+
+-----------------------------------------------------------------------------------------
+-- Dead Zones
+
 -- Spellcasting "dead zones", aka windows of time where we should consider this spell unavailable/dead
 -- This is useful for when we don't want to cast a spell *twice* but we don't know we shouldn't
 -- press it until some dot appears or travel time finishes, etc.
@@ -463,122 +565,3 @@ Faceroll.deadzoneUpdate = function(deadzone)
 end
 
 -----------------------------------------------------------------------------------------
--- Buff Events
-
--- HACK: Roll The Bones tracking -- I haven't figured out if/how I want to move
--- this tracking to FacerollSpecOUT.lua yet, but for now, we'll just have it here.
--- It is harmless to track for other specs.
-Faceroll.rtbStart = 0
-Faceroll.rtbEnd = 0
-Faceroll.rtbDelay = 0.1
-Faceroll.rtbNeedsAPressAfterKIR = false
-
-Faceroll.onPlayerAura = function(info)
-    if Faceroll.ascension then
-        return
-    end
-
-    if info.addedAuras then
-        for _, aura in pairs(info.addedAuras) do
-            for _, buff in pairs(buffs) do
-                if aura.name == buff.name then -- and ((not buff.spellid) or (buff.spellid == aura.spellId)) then
-                    -- print("Detected: " .. buff.name)
-                    if buff.harmful then
-                        if aura.isHarmful then
-                            buff.id = aura.auraInstanceID
-                        end
-                    else
-                        buff.id = aura.auraInstanceID
-                        buff.expirationTime = aura.expirationTime
-                        buff.stacks = aura.applications
-
-                        local auraRemaining = aura.expirationTime - GetTime()
-                        local rtbRemaining = math.max(Faceroll.rtbEnd - GetTime(), 0)
-                        buff.remain = auraRemaining > rtbRemaining + Faceroll.rtbDelay
-                        buff.cto = rtbRemaining > auraRemaining + Faceroll.rtbDelay
-                    end
-                end
-            end
-        end
-    end
-
-    if info.updatedAuraInstanceIDs then
-		for _, v in pairs(info.updatedAuraInstanceIDs) do
-			local aura = C_UnitAuras.GetAuraDataByAuraInstanceID("player", v)
-            if aura ~= nil then
-                for _, buff in pairs(buffs) do
-                    if aura.name == buff.name then -- and ((not buff.spellid) or (buff.spellid == aura.spellId)) then
-                        buff.id = aura.auraInstanceID
-                        buff.expirationTime = aura.expirationTime
-                        buff.stacks = aura.applications
-
-                        local auraRemaining = aura.expirationTime - GetTime()
-                        local rtbRemaining = math.max(Faceroll.rtbEnd - GetTime(), 0)
-                        buff.remain = auraRemaining > rtbRemaining + Faceroll.rtbDelay
-                        buff.cto = rtbRemaining > auraRemaining + Faceroll.rtbDelay
-                    end
-                end
-            end
-        end
-	end
-
-	if info.removedAuraInstanceIDs then
-		for _, id in pairs(info.removedAuraInstanceIDs) do
-            for _, buff in pairs(buffs) do
-                if buff.id == id then
-                    -- print("Lost: " .. buff.name)
-                    buff.id = 0
-                    buff.expirationTime = 0
-                    buff.stacks = 0
-                    buff.remain = false
-                    buff.cto = false
-                end
-            end
-        end
-	end
-end
-
--- HACK: Hammer of Light tracking. I really should move this and RtB to their
--- proper places. This is ugly.
-Faceroll.holExpirationTime = 0
-
-Faceroll.onPlayerSpellEvent = function(spellEvent, spellID)
-    if spellEvent == "SPELL_AURA_REMOVED" and spellID == 433674 then
-        -- free cast from Light's Deliverance
-        Faceroll.holExpirationTime = GetTime() + 20
-    elseif spellEvent == "SPELL_CAST_SUCCESS" then
-        if spellID == 255937 then
-            -- regular cast from wake of the ashes
-            Faceroll.holExpirationTime = GetTime() + 20
-        elseif spellEvent == "SPELL_CAST_SUCCESS" then
-            if spellID == 387174 then
-                -- regular cast from wake of the ashes
-                Faceroll.holExpirationTime = GetTime() + 20
-            elseif spellID == 429826 or spellID == 427453 then
-                -- hide on Hammer of Light cast
-                Faceroll.holExpirationTime = 0
-            end
-        end
-    end
-
-    if spellID == 381989 then -- keep it rolling
-        if spellEvent == "SPELL_CAST_SUCCESS" then
-            -- print("Keep it rolling! - " .. spellEvent)
-            Faceroll.rtbNeedsAPressAfterKIR = true
-        end
-    elseif spellID == 315508 then -- roll the bones
-        if spellEvent == "SPELL_CAST_SUCCESS" then
-            -- print("Roll the bones! - " .. spellEvent)
-            Faceroll.rtbNeedsAPressAfterKIR = false
-        elseif spellEvent == "SPELL_AURA_APPLIED" then
-            Faceroll.rtbStart = GetTime()
-            Faceroll.rtbEnd = Faceroll.rtbStart + 30
-        elseif spellEvent == "SPELL_AURA_REFRESH" then
-            Faceroll.rtbStart = GetTime()
-            Faceroll.rtbEnd = 30 + Faceroll.rtbStart + math.min(Faceroll.rtbEnd - Faceroll.rtbStart, 9)
-        elseif spellEvent == "SPELL_AURA_REMOVED" then
-            Faceroll.rtbStart = 0
-            Faceroll.rtbEnd = 0
-        end
-    end
-end

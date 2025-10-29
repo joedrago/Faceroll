@@ -2,6 +2,12 @@ if Faceroll == nil then
     _, Faceroll = ...
 end
 
+-- This file represents the activeFlag/modeKey marshaling bridge. It must be
+-- loaded very, very early by both "sides" of Faceroll.
+
+-- WARNING: Everything in this file *must* be loadable by both WoW *and*
+--          Hammerspoon/wabits. You have been warned!
+
 -----------------------------------------------------------------------------------------
 -- Bridge Constants
 
@@ -33,7 +39,7 @@ end
 -----------------------------------------------------------------------------------------
 -- Bridge Key Transport
 
--- In order for a ST/AOE key choice to be sent across the bridge,
+-- In order for an ST/AOE key choice to be sent across the bridge,
 -- its name must be in this list.
 Faceroll.bridgeKeyTable = {
     "7",

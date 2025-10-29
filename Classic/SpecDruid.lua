@@ -79,7 +79,7 @@ spec.calcState = function(state)
         state.melee = true
     end
 
-    if UnitAffectingCombat("player") then
+    if Faceroll.inCombat() then
         state.combat = true
     end
 

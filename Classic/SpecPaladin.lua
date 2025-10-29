@@ -45,7 +45,7 @@ spec.options = {
 local healDeadzone = Faceroll.deadzoneCreate("Holy Light", 1.5, 0.5)
 
 spec.calcState = function(state)
-    if UnitAffectingCombat("player") then
+    if Faceroll.inCombat() then
         state.combat = true
     end
 

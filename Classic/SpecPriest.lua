@@ -90,7 +90,7 @@ spec.calcState = function(state)
     end
 
     -- Combat
-    if UnitAffectingCombat("player") then
+    if Faceroll.inCombat() then
         state.combat = true
     end
     local hp = UnitHealth("player")

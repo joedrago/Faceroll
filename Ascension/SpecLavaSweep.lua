@@ -92,7 +92,7 @@ spec.calcState = function(state)
     if Faceroll.targetingEnemy() then
         state.targetingenemy = true
     end
-    if UnitAffectingCombat("player") then
+    if Faceroll.inCombat() then
         state.combat = true
     end
     if IsSpellInRange("Lava Sweep", "target") == 1 then

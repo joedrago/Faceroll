@@ -2,6 +2,9 @@ if Faceroll == nil then
     _, Faceroll = ...
 end
 
+-- WARNING: Everything in this file *must* be loadable by both WoW *and*
+--          Hammerspoon/wabits. You have been warned!
+
 -----------------------------------------------------------------------------------------
 -- Keybinds
 

@@ -2,6 +2,9 @@ if Faceroll == nil then
     _, Faceroll = ...
 end
 
+-----------------------------------------------------------------------------------------
+-- Prepare all of the Spec*.lua files we just loaded
+
 Faceroll.initSpecs()
 
 -----------------------------------------------------------------------------------------
@@ -187,6 +190,9 @@ local function updateBits(who)
     Faceroll.updateBitsCounter = Faceroll.updateBitsCounter + 1
 end
 
+-----------------------------------------------------------------------------------------
+-- Options (/fro)
+
 Faceroll.setOption = function(option, enabled)
     if enabled then
         Faceroll.options[option] = true
@@ -195,6 +201,31 @@ Faceroll.setOption = function(option, enabled)
     end
     enabledFrameUpdate()
 end
+
+local function toggleOption(option)
+    if Faceroll.options[option] ~= nil then
+        Faceroll.options[option] = nil
+    else
+        Faceroll.options[option] = true
+    end
+    enabledFrameUpdate()
+    updateBits("toggleOption")
+end
+
+local function setOptionTrue(option)
+    Faceroll.options[option] = true
+    enabledFrameUpdate()
+    updateBits("setOptionTrue")
+end
+
+local function setOptionFalse(option)
+    Faceroll.options[option] = nil
+    enabledFrameUpdate()
+    updateBits("setOptionFalse")
+end
+
+-----------------------------------------------------------------------------------------
+-- Extra ticks (/frtick)
 
 local remainingTicks = 0
 local function tick()
@@ -212,25 +243,10 @@ local function tickReset()
     end
     remainingTicks = 20
 end
-local function toggleOption(option)
-    if Faceroll.options[option] ~= nil then
-        Faceroll.options[option] = nil
-    else
-        Faceroll.options[option] = true
-    end
-    enabledFrameUpdate()
-    updateBits("toggleOption")
-end
-local function setOptionTrue(option)
-    Faceroll.options[option] = true
-    enabledFrameUpdate()
-    updateBits("setOptionTrue")
-end
-local function setOptionFalse(option)
-    Faceroll.options[option] = nil
-    enabledFrameUpdate()
-    updateBits("setOptionFalse")
-end
+
+-----------------------------------------------------------------------------------------
+-- Debug Overlay Toggle (/frd)
+
 local function toggleDebug()
     Faceroll.debug = Faceroll.debug + 1
     if Faceroll.debug > Faceroll.DEBUG_LAST then
@@ -239,6 +255,9 @@ local function toggleDebug()
     Faceroll.updateDebugOverlay()
     updateBits("toggleDebug")
 end
+
+-----------------------------------------------------------------------------------------
+-- Keybind dumping (/frk)
 
 local function dumpKeybinds()
     local spec = Faceroll.activeSpec()
@@ -257,6 +276,9 @@ local function dumpKeybinds()
         print("Faceroll [/frk]: No active spec!")
     end
 end
+
+-----------------------------------------------------------------------------------------
+-- Faceroll Activation (default: F5)
 
 function facerollActivateToggle()
     Faceroll.active = not Faceroll.active
@@ -277,7 +299,7 @@ function facerollDeactivate()
 end
 
 -----------------------------------------------------------------------------------------
--- init() - the entry point
+-- init() - the entry point which doesn't fire until we're loaded/logged-in
 
 local function init()
     Faceroll.debugInit()
@@ -305,7 +327,7 @@ local function onEvent(self, event, arg1, arg2, ...)
         eventFrame:UnregisterEvent("PLAYER_LOGIN")
         init()
     elseif event == "PLAYER_ENTERING_WORLD" then
-        Faceroll.resetBuffs()
+        updateBits("PLAYER_ENTERING_WORLD")
     elseif event == "PLAYER_TARGET_CHANGED" then
         Faceroll.targetChanged = true
         updateBits("PLAYER_TARGET_CHANGED")
@@ -337,15 +359,8 @@ local function onEvent(self, event, arg1, arg2, ...)
         end)
         updateBits("PLAYER_STOPPED_MOVING")
     elseif event == "UNIT_AURA" then
-        if arg1 == "player" then
-            Faceroll.onPlayerAura(arg2)
-        end
         updateBits("UNIT_AURA")
     elseif event == "COMBAT_LOG_EVENT_UNFILTERED" then
-        local _, spellEvent, _, source, _, _, _, _, _, _, _, spellID = CombatLogGetCurrentEventInfo()
-        if source == UnitGUID("player") then
-            Faceroll.onPlayerSpellEvent(spellEvent, spellID)
-        end
         if Faceroll.classic or Faceroll.ascension then
             -- Classic seems to get fewer other events, just blast here
             updateBits("COMBAT_LOG_EVENT_UNFILTERED")

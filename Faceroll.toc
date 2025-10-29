@@ -7,9 +7,7 @@
 
 # -- Faceroll Core --
 Bridge.lua
-Registry.lua
-ModFrame.lua
-ModBase.lua
+Core.lua
 
 # -- Ascension WoW Specs --
 Ascension\SpecArcaneThunderSeer.lua
@@ -56,4 +54,4 @@ Classic\SpecWarlock.lua
 
 # -- Faceroll Main --
 Settings.lua
-ModMain.lua
+Main.lua
