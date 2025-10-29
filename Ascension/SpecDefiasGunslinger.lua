@@ -25,19 +25,6 @@ spec.overlay = {
     "raptorstrike",
     "raptorqueued",
 
-    -- "- Procs -",
-    -- "eruption",
-    -- "maelstrom",
-    -- "hotstreak",
-
-    -- "- Totems -",
-    -- "searingtotem",
-    -- "magmatotem",
-    -- "firetotem",
-
-    -- "- Dots -",
-    -- "flameshock",
-
     "- Combat -",
     "targetingenemy",
     "combat",
@@ -74,30 +61,6 @@ spec.calcState = function(state)
     if IsCurrentSpell("Raptor Strike") then
         state.raptorqueued = true
     end
-
-    -- if Faceroll.getBuffStacks("Eruption") >= 3 then
-    --     state.eruption = true
-    -- end
-    -- if Faceroll.getBuffStacks("Maelstrom Weapon") >= 5 then
-    --     state.maelstrom = true
-    -- end
-    -- if Faceroll.isBuffActive("Hot Streak") then
-    --     state.hotstreak = true
-    -- end
-
-
-    -- for i=1,4 do
-    --     local haveTotem, totemName, startTime, duration = GetTotemInfo(i)
-    --     if type(totemName) == "string" then
-    --         if string.find(totemName, "Searing Totem") == 1 then
-    --             state.searingtotem = true
-    --             state.firetotem = true
-    --         elseif string.find(totemName, "Magma Totem") == 1 then
-    --             state.magmatotem = true
-    --             state.firetotem = true
-    --         end
-    --     end
-    -- end
 
     -- Combat
     if Faceroll.targetingEnemy() then

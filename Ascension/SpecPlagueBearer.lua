@@ -62,13 +62,6 @@ spec.calcState = function(state)
     -- Combat
     if Faceroll.targetingEnemy() then
         state.targetingenemy = true
-
-        -- local targethp = UnitHealth("target")
-        -- local targethpmax = UnitHealthMax("target")
-        -- local targethpnorm = targethp / targethpmax
-        -- if targethpnorm <= 0.40 then
-        --     state.target40 = true
-        -- end
     end
     if UnitAffectingCombat("player") then
         state.combat = true

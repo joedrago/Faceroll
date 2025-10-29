@@ -40,10 +40,6 @@ spec.overlay = {
 }
 
 spec.calcState = function(state)
-    -- if IsCurrentSpell("Heroic Strike") then
-    --     state.hsqueued = true
-    -- end
-
     if Faceroll.isSpellAvailable("Charge") then
         state.charge = true
     end
@@ -75,10 +71,6 @@ spec.calcState = function(state)
     else
         state.potion = true
     end
-
-    -- if Faceroll.isDotActive("Tainted Wound") > 0 then
-    --     state.taintedwound = true
-    -- end
 
     -- Combat
     if Faceroll.targetingEnemy() then

@@ -36,9 +36,6 @@ spec.overlay = {
     "barrage",
     "misdirection",
 
-    -- "- Buffs -",
-    -- "buffname",
-
     "- Dots -",
     "moonfiredot",
     "sunfiredot",
@@ -80,11 +77,6 @@ spec.calcState = function(state)
     if state.automd and Faceroll.isSpellAvailable("Misdirection") and UnitExists("focus") and not UnitIsDeadOrGhost("focus") then
         state.misdirection = true
     end
-
-    -- Buffs
-    -- if Faceroll.isBuffActive("Buff Name") then
-    --     state.buffname = true
-    -- end
 
     -- Dots
     if Faceroll.isDotActive("Moonfire") >= 0.1 then

@@ -45,9 +45,6 @@ spec.options = {
 local healDeadzone = Faceroll.deadzoneCreate("Holy Light", 1.5, 0.5)
 
 spec.calcState = function(state)
-    -- local energy = UnitPower("PLAYER", Enum.PowerType.Energy)
-    -- local cp = UnitPower("PLAYER", Enum.PowerType.ComboPoints)
-
     if UnitAffectingCombat("player") then
         state.combat = true
     end

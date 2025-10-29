@@ -13,10 +13,6 @@ spec.options = {}
 -- States
 
 spec.overlay = {
-    -- "- Resources -",
-    -- "rage20",
-    -- "rage40",
-
     "- State -",
     "demonform",
     "scqueued",
@@ -28,11 +24,6 @@ spec.overlay = {
 
     "potion",
 
-    -- "- Debuffs -",
-    -- "rend",
-    -- "lacerateending",
-    -- "laceratemax",
-
     "- Combat -",
     "targetingenemy",
     "combat",
@@ -41,16 +32,6 @@ spec.overlay = {
 }
 
 spec.calcState = function(state)
-    -- local rage = UnitPower("PLAYER", Enum.PowerType.Rage)
-    -- local cp = GetComboPoints("PLAYER", "TARGET")
-
-    -- if rage >= 20 then
-    --     state.rage20 = true
-    -- end
-    -- if rage >= 40 then
-    --     state.rage40 = true
-    -- end
-
     for i = 1, GetNumShapeshiftForms() do
         local icon, name, active = GetShapeshiftFormInfo(i)
         if active and (name == "Dark Apotheosis") then

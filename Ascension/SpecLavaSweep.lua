@@ -95,9 +95,6 @@ spec.calcState = function(state)
     if UnitAffectingCombat("player") then
         state.combat = true
     end
-    -- if IsCurrentSpell(6603) then -- Autoattack
-    --     state.autoattack = true
-    -- end
     if IsSpellInRange("Lava Sweep", "target") == 1 then
         state.melee = true
     end

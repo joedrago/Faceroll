@@ -7,9 +7,7 @@ end
 
 local spec = Faceroll.createSpec("DR", "aa66aa", "HERO-Dark Ranger")
 
-spec.options = {
-    -- "solo",
-}
+spec.options = {}
 
 -----------------------------------------------------------------------------------------
 -- States
