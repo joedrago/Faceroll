@@ -5,9 +5,8 @@
 ## DefaultState: enabled
 ## Author: Joe Drago
 
-# -- Faceroll Core --
 Bridge.lua
-Core.lua
+Faceroll.lua
 
 # -- Ascension WoW Specs --
 Ascension\SpecArcaneThunderSeer.lua
@@ -52,6 +51,5 @@ Classic\SpecWarlock.lua
 # Retail\SpecSurvivalHunter.lua
 # Retail\SpecVengeanceDemonHunter.lua
 
-# -- Faceroll Main --
 Settings.lua
-Main.lua
+Startup.lua
