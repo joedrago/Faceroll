@@ -10,6 +10,7 @@ Faceroll.lua
 
 # -- Ascension WoW Specs --
 Ascension\SpecArcaneThunderSeer.lua
+Ascension\SpecBloodAndGuts.lua
 Ascension\SpecCarnageIncarnate.lua
 Ascension\SpecConsecratedStrikes.lua
 Ascension\SpecCorruptedBearForm.lua
