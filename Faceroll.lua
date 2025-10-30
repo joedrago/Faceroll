@@ -277,6 +277,8 @@ Faceroll.setDebugState = function(spec, state)
                     o = o .. "\n"
                 end
                 o = o .. "\124cffffffaa" .. pad(k, 18) .. "\124r\n"
+            elseif type(v) == "number" then
+                o = o .. pad(k, 18) .. "  : " .. Faceroll.textColor(v, "ffffaa") .. "\n"
             elseif type(v) == "string" then
                 o = o .. pad(k, 18) .. "  : " .. Faceroll.textColor(v, "ffaaff") .. "\n"
             else
@@ -310,7 +312,7 @@ end
 Faceroll.debugInit = function()
     Faceroll.debugOverlay = Faceroll.createFrame(200, 220,                  -- size
                                                     "TOPLEFT", 0, 0,           -- position
-                                                    "TOOLTIP", 0.9,            -- strata/alpha
+                                                    "TOOLTIP", 0.7,            -- strata/alpha
                                                     "TOPLEFT", "firamono", 13) -- text
     Faceroll.updateDebugOverlay()
 end
