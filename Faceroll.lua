@@ -23,11 +23,8 @@ Faceroll.targetChanged = false
 Faceroll.active = false
 
 local nextSpec = 0
-Faceroll.SPEC_OFF = 0
-Faceroll.SPEC_LAST = 0
 Faceroll.availableSpecs = {}
-Faceroll.activeSpecsByIndex = {}
-Faceroll.activeSpecsByKey = {}
+Faceroll.activeSpecs = {}
 
 -----------------------------------------------------------------------------------------
 -- Helpers
@@ -75,18 +72,14 @@ end
 
 Faceroll.startup = function()
     for _, spec in ipairs(Faceroll.availableSpecs) do
-        Faceroll.activeSpecsByIndex[nextSpec] = spec
-        nextSpec = nextSpec + 1
-        spec.index = #Faceroll.activeSpecsByIndex
-        Faceroll.SPEC_LAST = #Faceroll.activeSpecsByIndex
-        if Faceroll.activeSpecsByKey[spec.key] ~= nil then
+        if Faceroll.activeSpecs[spec.key] ~= nil then
             print("WARNING: Multiple specs for the same key active! Overriding preexisting spec key: " .. spec.key)
         end
-        Faceroll.activeSpecsByKey[spec.key] = spec
+        Faceroll.activeSpecs[spec.key] = spec
         -- print("Enabling Spec: " .. spec.name .. " (" .. Faceroll.SPEC_LAST .. "), ".. bitCount .. "/28 bits, " .. actionCount .. " actions")
     end
 
-    for _, spec in ipairs(Faceroll.activeSpecsByIndex) do
+    for _, spec in ipairs(Faceroll.availableSpecs) do
         if spec.actions ~= nil then
             for index, action in ipairs(spec.actions) do
                 local key = Faceroll.keys[action]
@@ -103,7 +96,7 @@ Faceroll.startup = function()
         end
     end
 
-    print("Faceroll.startup(): " .. #Faceroll.activeSpecsByIndex .. " available specs.")
+    print("Faceroll.startup(): " .. #Faceroll.availableSpecs .. " available specs.")
 end
 
 Faceroll.activeSpec = function()
@@ -127,7 +120,7 @@ Faceroll.activeSpec = function()
         return nil
     end
     local specKey = playerClass .. "-" .. specIndex
-    local spec = Faceroll.activeSpecsByKey[specKey]
+    local spec = Faceroll.activeSpecs[specKey]
     return spec
 end
 
@@ -584,15 +577,16 @@ local function enabledFrameCreate()
                                         Faceroll.optionsFrameAnchor, Faceroll.optionsFrameX, Faceroll.optionsFrameY,
                                         "TOOLTIP", 0.0,
                                         "BOTTOM", "firamono", Faceroll.optionsFrameFontSize)
-                                    end
+end
 
 local function enabledFrameUpdate()
     if enabledFrame ~= nil and optionsFrame ~= nil then
         local spec = nil
         if Faceroll.active then
             spec = Faceroll.activeSpec()
-        else
-            spec = Faceroll.activeSpecsByIndex[Faceroll.SPEC_OFF]
+        end
+        if spec == nil then
+            spec = Faceroll.activeSpecs["OFF"]
         end
 
         enabledFrame:setText(Faceroll.textColor(spec.name, spec.color))
@@ -841,14 +835,12 @@ end
 -----------------------------------------------------------------------------------------
 -- Faceroll Activation (default: F5)
 
-function facerollActivateToggle()
-    Faceroll.active = not Faceroll.active
-    enabledFrameUpdate()
-    updateBits("activatetoggle")
-end
-
 function facerollActivate()
-    Faceroll.active = true
+    if Faceroll.activeSpec() ~= nil then
+        Faceroll.active = true
+    else
+        Faceroll.active = false
+    end
     enabledFrameUpdate()
     updateBits("activate")
 end
@@ -857,6 +849,14 @@ function facerollDeactivate()
     Faceroll.active = false
     enabledFrameUpdate()
     updateBits("deactivate")
+end
+
+function facerollActivateToggle()
+    if Faceroll.active then
+        facerollDeactivate()
+    else
+        facerollActivate()
+    end
 end
 
 -----------------------------------------------------------------------------------------
