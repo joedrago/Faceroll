@@ -84,26 +84,24 @@ spec.actions = {
 }
 
 spec.calcAction = function(mode, state)
-    if mode == Faceroll.MODE_ST or mode == Faceroll.MODE_AOE then
-        -- Single Target
+    local st = (mode == Faceroll.MODE_ST)
+    local aoe = (mode == Faceroll.MODE_AOE)
 
-        if state.targetingenemy then
+    if state.targetingenemy then
 
-            if not state.bear then
-                return "bear"
+        if not state.bear then
+            return "bear"
 
-            elseif not state.autoattack and not state.fsqueued then
-                return "attack"
+        elseif not state.autoattack and not state.fsqueued then
+            return "attack"
 
-            elseif not state.infectedblood and not state.fsqueued then
-                return "festeringstrike"
+        elseif not state.infectedblood and not state.fsqueued then
+            return "festeringstrike"
 
-            elseif (state.fsqueued and state.rage40) or (not state.fsqueued and state.rage20) then
-                return "swipe"
+        elseif (state.fsqueued and state.rage40) or (not state.fsqueued and state.rage20) then
+            return "swipe"
 
-            end
         end
-
     end
 
     return nil

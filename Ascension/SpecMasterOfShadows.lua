@@ -101,40 +101,38 @@ spec.actions = {
 }
 
 spec.calcAction = function(mode, state)
-    if mode == Faceroll.MODE_ST or mode == Faceroll.MODE_AOE then
-        -- Single Target
+    local st = (mode == Faceroll.MODE_ST)
+    local aoe = (mode == Faceroll.MODE_AOE)
 
-        if state.targetingenemy then
-            if state.shadowtrance then
-                return "shadowbolt"
+    if state.targetingenemy then
+        if state.shadowtrance then
+            return "shadowbolt"
 
-            -- state.combat and
-            elseif not state.autoattack then
-                return "attack"
+        -- state.combat and
+        elseif not state.autoattack then
+            return "attack"
 
-            elseif state.melee then
-                -- stuff that doesn't make sense if you're not in melee range
+        elseif state.melee then
+            -- stuff that doesn't make sense if you're not in melee range
 
-                if state.cp5 then
-                    if mode == Faceroll.MODE_AOE then
-                        return "crimsontempest"
-                    else
-                        return "eviscerate"
-                    end
-
-                elseif (mode == Faceroll.MODE_AOE) and state.shadowflame then
-                    return "shadowflame"
-
-                elseif not state.gloomblade then
-                    return "gloomblade"
-
-                else --if state.energy45 then
-                    return "sinisterstrike"
+            if state.cp5 then
+                if mode == Faceroll.MODE_AOE then
+                    return "crimsontempest"
+                else
+                    return "eviscerate"
                 end
 
-            end
-        end
+            elseif (mode == Faceroll.MODE_AOE) and state.shadowflame then
+                return "shadowflame"
 
+            elseif not state.gloomblade then
+                return "gloomblade"
+
+            else --if state.energy45 then
+                return "sinisterstrike"
+            end
+
+        end
     end
 
     return nil

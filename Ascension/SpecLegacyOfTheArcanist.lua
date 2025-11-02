@@ -127,70 +127,70 @@ spec.actions = {
 spec.calcAction = function(mode, state)
     local st = (mode == Faceroll.MODE_ST)
     local aoe = (mode == Faceroll.MODE_AOE)
-    if st or aoe then
-        if not state.moonkinform then
-            return "moonkinform"
-        end
 
-        if state.misdirection then
-            return "misdirection"
-        end
-
-        if state.targetingenemy then
-            -- Meteor: Fire
-            if not state.nofire then
-                if state.sunfiredot then
-                    if state.fireblast then
-                        return "fireblast"
-                    end
-                    if state.sunfire then
-                        return "sunfire"
-                    end
-                else
-                    if state.sunfire then
-                        return "sunfire"
-                    end
-                    if state.fireblast then
-                        return "fireblast"
-                    end
-                end
-            end
-
-            -- Meteor: Nature
-            if not state.nonature and state.earthshock then
-                return "earthshock"
-            end
-
-            -- Meteor: Arcane
-            if not state.noarcane then
-                if state.moonfiredot and state.barrage then
-                    return "barrage"
-                end
-                return "moonfire"
-            end
-
-            -- Meteor: Frost
-            if not state.nofrost then
-                return "icelance"
-            end
-
-            -- Stuff less important than meteors
-            if state.arcaneorb then
-                return "arcaneorb"
-            end
-            if not state.livingbombdot then
-                return "livingbomb"
-            end
-
-            -- Burn meteor-sending spells if we have a "backup" sender
-            if state.barrage then
-                return "barrage" -- we'll just moonfire
-            end
-            if state.sunfire and state.fireblast then
-                return "fireblast" -- we'll just sunfire
-            end
-            return "icelance" -- no CD on icelance, why not
-        end
+    if not state.moonkinform then
+        return "moonkinform"
     end
+
+    if state.misdirection then
+        return "misdirection"
+    end
+
+    if state.targetingenemy then
+        -- Meteor: Fire
+        if not state.nofire then
+            if state.sunfiredot then
+                if state.fireblast then
+                    return "fireblast"
+                end
+                if state.sunfire then
+                    return "sunfire"
+                end
+            else
+                if state.sunfire then
+                    return "sunfire"
+                end
+                if state.fireblast then
+                    return "fireblast"
+                end
+            end
+        end
+
+        -- Meteor: Nature
+        if not state.nonature and state.earthshock then
+            return "earthshock"
+        end
+
+        -- Meteor: Arcane
+        if not state.noarcane then
+            if state.moonfiredot and state.barrage then
+                return "barrage"
+            end
+            return "moonfire"
+        end
+
+        -- Meteor: Frost
+        if not state.nofrost then
+            return "icelance"
+        end
+
+        -- Stuff less important than meteors
+        if state.arcaneorb then
+            return "arcaneorb"
+        end
+        if not state.livingbombdot then
+            return "livingbomb"
+        end
+
+        -- Burn meteor-sending spells if we have a "backup" sender
+        if state.barrage then
+            return "barrage" -- we'll just moonfire
+        end
+        if state.sunfire and state.fireblast then
+            return "fireblast" -- we'll just sunfire
+        end
+        return "icelance" -- no CD on icelance, why not
+    end
+
     return nil
 end

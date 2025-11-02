@@ -85,36 +85,36 @@ spec.actions = {
 }
 
 spec.calcAction = function(mode, state)
-    if mode == Faceroll.MODE_ST or mode == Faceroll.MODE_AOE then
+    local st = (mode == Faceroll.MODE_ST)
+    local aoe = (mode == Faceroll.MODE_AOE)
 
-        if state.targetingenemy then
-            if state.artillery then
-                return "artillery"
+    if state.targetingenemy then
+        if state.artillery then
+            return "artillery"
 
-            elseif state.shadowtrance then
-                return "shadowbolt"
+        elseif state.shadowtrance then
+            return "shadowbolt"
 
-            elseif (mode == Faceroll.MODE_AOE) and state.explosiveshot then
-                return "explosiveshot"
+        elseif (mode == Faceroll.MODE_AOE) and state.explosiveshot then
+            return "explosiveshot"
 
-            elseif state.bloodarrow then
-                return "bloodarrow"
+        elseif state.bloodarrow then
+            return "bloodarrow"
 
-            elseif state.blackarrow then
-                return "blackarrow"
+        elseif state.blackarrow then
+            return "blackarrow"
 
-            elseif not state.pain then
-                return "pain"
+        elseif not state.pain then
+            return "pain"
 
-            elseif state.shadowarrow then
-                return "shadowarrow"
+        elseif state.shadowarrow then
+            return "shadowarrow"
 
-            elseif state.explosiveshot then
-                return "explosiveshot"
+        elseif state.explosiveshot then
+            return "explosiveshot"
 
-            end
         end
-
     end
+
     return nil
 end

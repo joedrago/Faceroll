@@ -93,26 +93,24 @@ spec.actions = {
 spec.calcAction = function(mode, state)
     local st = (mode == Faceroll.MODE_ST)
     local aoe = (mode == Faceroll.MODE_AOE)
-    if st or aoe then
-        if state.targetingenemy then
-            if not state.melee and state.charge then
-                return "charge"
 
-            elseif state.energyL50 and state.raptorstrike and not state.raptorqueued then
-                return "raptorstrike"
+    if state.targetingenemy then
+        if not state.melee and state.charge then
+            return "charge"
 
-            elseif state.mongoosebite then
-                return "mongoosebite"
+        elseif state.energyL50 and state.raptorstrike and not state.raptorqueued then
+            return "raptorstrike"
 
-            elseif state.grapeshot and state.cp5 then
-                return "grapeshot"
+        elseif state.mongoosebite then
+            return "mongoosebite"
 
-            else
-                return "pistolshot"
+        elseif state.grapeshot and state.cp5 then
+            return "grapeshot"
 
-            end
+        else
+            return "pistolshot"
+
         end
-
     end
 
     return nil

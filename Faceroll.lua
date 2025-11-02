@@ -47,6 +47,7 @@ Faceroll.createSpec = function(name, color, specKey)
         ["key"]=specKey,
         ["calcState"]=nil,
         ["calcAction"]=nil,
+        ["melee"]=nil,
         ["buffs"]=nil,
         ["overlay"]={},
         ["actions"]={},
@@ -67,7 +68,59 @@ Faceroll.createState = function(spec)
             state[name] = true
         end
     end
+
+    -- Add in standard state for each wow version
+    if Faceroll.ascension then
+        -- Combat
+        if Faceroll.targetingEnemy() then
+            state.targetingenemy = true
+        end
+        if Faceroll.inCombat() then
+            state.combat = true
+        end
+        if IsCurrentSpell(6603) then -- Autoattack
+            state.autoattack = true
+        end
+        if spec.melee ~= nil then
+            if IsSpellInRange(spec.melee, "target") == 1 then
+                state.melee = true
+            end
+        end
+
+        -- Resources
+        state.mana = UnitPower("PLAYER", 0)
+        state.rage = UnitPower("PLAYER", 1)
+        state.energy = UnitPower("PLAYER", 3)
+        state.combopoints = GetComboPoints("PLAYER", "TARGET")
+    end
+
     return state
+end
+
+Faceroll.createOverlay = function(extras)
+    local overlay = {}
+
+    -- Add in standard state for each wow version
+    if Faceroll.ascension then
+        overlay = {
+            "- Combat -",
+            "targetingenemy",
+            "combat",
+            "autoattack",
+            "melee",
+
+            "- Resources -",
+            "mana",
+            "rage",
+            "energy",
+            "combopoints",
+        }
+    end
+
+    for _,extra in ipairs(extras) do
+        table.insert(overlay, extra)
+    end
+    return overlay
 end
 
 Faceroll.startup = function()
@@ -443,6 +496,13 @@ Faceroll.getDotStacks = function(spellName)
         return dot.stacks
     end
     return 0
+end
+
+Faceroll.isSpellQueued = function(spellName) -- "on next melee" stuff like Heroic Strikd
+    if IsCurrentSpell(spellName) then
+        return true
+    end
+    return false
 end
 
 Faceroll.isSpellAvailable = function(spellName, ignoreUsable)

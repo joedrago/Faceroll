@@ -75,26 +75,24 @@ spec.actions = {
 spec.calcAction = function(mode, state)
     local st = (mode == Faceroll.MODE_ST)
     local aoe = (mode == Faceroll.MODE_AOE)
-    if st or aoe then
-        if not state.moonkinform then
-            return "moonkinform"
-        end
+    if not state.moonkinform then
+        return "moonkinform"
+    end
 
-        if state.targetingenemy then
-            if state.arcaneoverload then
-                if state.chainlightning then
-                    return "chainlightning"
-                else
-                    return "lightningbolt"
-                end
-            elseif state.arcaneorb then
-                return "arcaneorb"
-            elseif not state.moonfiredot then
-                return "moonfire"
+    if state.targetingenemy then
+        if state.arcaneoverload then
+            if state.chainlightning then
+                return "chainlightning"
             else
-                return "arcanemissiles"
-
+                return "lightningbolt"
             end
+        elseif state.arcaneorb then
+            return "arcaneorb"
+        elseif not state.moonfiredot then
+            return "moonfire"
+        else
+            return "arcanemissiles"
+
         end
     end
     return nil

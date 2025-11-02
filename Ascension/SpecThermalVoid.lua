@@ -112,46 +112,44 @@ spec.actions = {
 spec.calcAction = function(mode, state)
     local st = (mode == Faceroll.MODE_ST)
     local aoe = (mode == Faceroll.MODE_AOE)
-    if st or aoe then
-        if state.targetingenemy then
 
-            if not state.melee and state.charge then
-                return "charge"
+    if state.targetingenemy then
 
-            elseif state.barrier then
-                return "barrier"
+        if not state.melee and state.charge then
+            return "charge"
 
-            elseif state.potion then
-                return "potion"
+        elseif state.barrier then
+            return "barrier"
 
-            elseif state.absolutezero then
-                return "absolutezero"
+        elseif state.potion then
+            return "potion"
 
-            elseif state.frostblast then
-                return "frostblast"
+        elseif state.absolutezero then
+            return "absolutezero"
 
-            elseif not state.seal then
-                return "seal"
+        elseif state.frostblast then
+            return "frostblast"
 
-            elseif state.seal and state.judgement then
-                return "judgement"
+        elseif not state.seal then
+            return "seal"
 
-            elseif state.invocation then
-                return "invocation"
+        elseif state.seal and state.judgement then
+            return "judgement"
 
-            elseif state.coneofcold then
-                return "coneofcold"
+        elseif state.invocation then
+            return "invocation"
 
-            elseif state.frozenorb then
-                return "frozenorb"
+        elseif state.coneofcold then
+            return "coneofcold"
 
-            elseif aoe then
-                return "blizzard"
+        elseif state.frozenorb then
+            return "frozenorb"
 
-            else
-                return "frostbolt"
+        elseif aoe then
+            return "blizzard"
 
-            end
+        else
+            return "frostbolt"
 
         end
 

@@ -116,46 +116,41 @@ spec.actions = {
 spec.calcAction = function(mode, state)
     local st = (mode == Faceroll.MODE_ST)
     local aoe = (mode == Faceroll.MODE_AOE)
-    if st or aoe then
-        -- Single Target
 
-        if state.lightningshield then
-            return "lightningshield"
-        end
-
-        if state.targetingenemy then
-
-            if not state.melee and state.charge then
-                return "charge"
-
-            elseif not state.autoattack and not state.hsqueued then
-                return "attack"
-
-            elseif state.thunderclap and state.melee and state.rage20 then
-                return "thunderclap"
-
-            elseif state.instantlb and aoe and state.chainlightning then
-                return "chainlightning"
-
-            elseif state.instantlb and st then
-                return "lightningbolt"
-
-            elseif state.lightningblade and st then
-                return "lightningblade"
-
-            elseif state.thunderslam and state.melee and aoe then
-                return "thunderslam"
-
-            -- elseif state.rage35 and not state.hsqueued then
-            --     return "heroicstrike"
-
-            elseif state.rage40 then
-                return "strike"
-
-            end
-        end
-
+    if state.lightningshield then
+        return "lightningshield"
     end
 
+    if state.targetingenemy then
+
+        if not state.melee and state.charge then
+            return "charge"
+
+        elseif not state.autoattack and not state.hsqueued then
+            return "attack"
+
+        elseif state.thunderclap and state.melee and state.rage20 then
+            return "thunderclap"
+
+        elseif state.instantlb and aoe and state.chainlightning then
+            return "chainlightning"
+
+        elseif state.instantlb and st then
+            return "lightningbolt"
+
+        elseif state.lightningblade and st then
+            return "lightningblade"
+
+        elseif state.thunderslam and state.melee and aoe then
+            return "thunderslam"
+
+        -- elseif state.rage35 and not state.hsqueued then
+        --     return "heroicstrike"
+
+        elseif state.rage40 then
+            return "strike"
+
+        end
+    end
     return nil
 end

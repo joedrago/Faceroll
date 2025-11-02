@@ -49,27 +49,15 @@ spec.actions = {
 }
 
 spec.calcAction = function(mode, state)
-    if mode == Faceroll.MODE_ST  then
-        -- Single Target
-
-        if state.targetingenemy then
-            if state.lightningbolt then
-                return "lightningbolt"
-            end
+    local st = (mode == Faceroll.MODE_ST)
+    local aoe = (mode == Faceroll.MODE_AOE)
+    if state.targetingenemy then
+        if aoe and state.chainlightning then
+            return "chainlightning"
         end
-
-    elseif mode == Faceroll.MODE_AOE then
-
-        if state.targetingenemy then
-            if state.chainlightning then
-                return "chainlightning"
-            end
-            if state.lightningbolt then
-                return "lightningbolt"
-            end
+        if state.lightningbolt then
+            return "lightningbolt"
         end
-
     end
-
     return nil
 end

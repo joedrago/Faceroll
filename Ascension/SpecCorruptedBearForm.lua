@@ -132,46 +132,44 @@ spec.actions = {
 }
 
 spec.calcAction = function(mode, state)
-    if mode == Faceroll.MODE_ST or mode == Faceroll.MODE_AOE then
-        -- Single Target
+    local st = (mode == Faceroll.MODE_ST)
+    local aoe = (mode == Faceroll.MODE_AOE)
 
-        if state.targetingenemy then
+    if state.targetingenemy then
 
-            if not state.bear then
-                return "bear"
+        if not state.bear then
+            return "bear"
 
-            elseif state.shadowtrance then
-                return "shadowbolt"
+        elseif state.shadowtrance then
+            return "shadowbolt"
 
-            elseif not state.melee and state.charge then
-                return "charge"
+        elseif not state.melee and state.charge then
+            return "charge"
 
-            elseif not state.autoattack and not state.maulqueued then
-                return "attack"
+        elseif not state.autoattack and not state.maulqueued then
+            return "attack"
 
-            elseif state.regen then
-                return "regen"
+        elseif state.regen then
+            return "regen"
 
-            elseif state.enrage then
-                return "enrage"
+        elseif state.enrage then
+            return "enrage"
 
-            elseif not state.taintedwound and state.taintedswipe then
+        elseif not state.taintedwound and state.taintedswipe then
+            return "swipe"
+
+        elseif mode == Faceroll.MODE_ST then
+            if not state.laceratemax or state.lacerateending then
+                return "lacerate"
+            elseif state.corruption then
                 return "swipe"
-
-            elseif mode == Faceroll.MODE_ST then
-                if not state.laceratemax or state.lacerateending then
-                    return "lacerate"
-                elseif state.corruption then
-                    return "swipe"
-                else
-                    return "maul"
-                end
             else
-                return "swipe"
-
+                return "maul"
             end
-        end
+        else
+            return "swipe"
 
+        end
     end
 
     return nil

@@ -1,31 +1,36 @@
 -----------------------------------------------------------------------------------------
--- Ascension WoW Lucifur
+-- Ascension WoW White Walker
 
 if Faceroll == nil then
     _, Faceroll = ...
 end
 
-local spec = Faceroll.createSpec("LUC", "ff7744", "HERO-Lucifur")
-spec.melee = "Claw"
+local spec = Faceroll.createSpec("WW", "aaaaff", "HERO-White Walker")
+
+spec.melee = "Sinister Strike"
+spec.options = {}
 
 -----------------------------------------------------------------------------------------
 -- States
 
 spec.overlay = Faceroll.createOverlay({
-    "- State -",
-    "cat",
+    "- Buffs -",
+    "sliceanddice",
 
     "- Abilities -",
     "charge",
 })
 
 spec.calcState = function(state)
-    state.cat = Faceroll.inShapeshiftForm("Cat Form")
+    -- Buffs
+    if Faceroll.getBuffRemaining("Slice and Dice") > 2 then
+        state.sliceanddice = true
+    end
 
+    -- Abilities
     if Faceroll.isSpellAvailable("Charge") then
         state.charge = true
     end
-
     return state
 end
 
@@ -33,39 +38,25 @@ end
 -- Actions
 
 spec.actions = {
-    "cat",
-    "attack",
-    "claw",
-    "swipe",
     "charge",
-    "bite",
+    "attack",
+    "sinisterstrike",
 }
 
 spec.calcAction = function(mode, state)
     local st = (mode == Faceroll.MODE_ST)
     local aoe = (mode == Faceroll.MODE_AOE)
-
     if state.targetingenemy then
-        if not state.cat then
-            return "cat"
-
-        elseif not state.melee and state.charge then
+        if not state.melee and state.charge then
             return "charge"
 
         elseif not state.autoattack then
             return "attack"
 
-        elseif aoe then
-            return "swipe"
-
-        elseif state.combopoints >= 3 then
-            return "bite"
-
         else
-            return "claw"
+            return "sinisterstrike"
 
         end
     end
-
     return nil
 end

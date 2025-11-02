@@ -123,48 +123,46 @@ spec.actions = {
 spec.calcAction = function(mode, state)
     local st = (mode == Faceroll.MODE_ST)
     local aoe = (mode == Faceroll.MODE_AOE)
-    if st or aoe then
-        if state.targetingenemy then
 
-            if not state.melee and state.charge then
-                return "charge"
+    if state.targetingenemy then
 
-            elseif state.lavasweep then
-                return "lavasweep"
+        if not state.melee and state.charge then
+            return "charge"
 
-            elseif state.meteor then
-                return "meteor"
+        elseif state.lavasweep then
+            return "lavasweep"
 
-            elseif state.hotstreak then
-                return "pyroblast"
+        elseif state.meteor then
+            return "meteor"
 
-            elseif not state.searingtotem and st then
-                return "searingtotem"
+        elseif state.hotstreak then
+            return "pyroblast"
 
-            elseif not state.magmatotem and aoe then
-                return "magmatotem"
+        elseif not state.searingtotem and st then
+            return "searingtotem"
 
-            elseif state.sundering then
-                return "sundering"
+        elseif not state.magmatotem and aoe then
+            return "magmatotem"
 
-            elseif state.maelstrom then
-                return "fireball"
+        elseif state.sundering then
+            return "sundering"
 
-            elseif state.fireblast then
-                return "fireblast"
+        elseif state.maelstrom then
+            return "fireball"
 
-            elseif state.flameshock then
-                return "flameshock"
+        elseif state.fireblast then
+            return "fireblast"
 
-            elseif state.firetotem and state.ragefirenova then
-                return "ragefirenova"
+        elseif state.flameshock then
+            return "flameshock"
 
-            end
-
-        elseif not state.combat then -- and state.firetotem then
-            return "destroytotems"
+        elseif state.firetotem and state.ragefirenova then
+            return "ragefirenova"
 
         end
+
+    elseif not state.combat then -- and state.firetotem then
+        return "destroytotems"
 
     end
 

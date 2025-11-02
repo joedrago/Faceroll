@@ -118,49 +118,45 @@ spec.actions = {
 spec.calcAction = function(mode, state)
     local st = (mode == Faceroll.MODE_ST)
     local aoe = (mode == Faceroll.MODE_AOE)
-    if st or aoe then
-        -- Single Target
 
-        if not state.cat then
-            return "cat"
+    if not state.cat then
+        return "cat"
 
-        elseif state.targetingenemy then
-            if state.predator then
-                return "wrath"
+    elseif state.targetingenemy then
+        if state.predator then
+            return "wrath"
 
-            elseif not state.melee and state.charge then
-                return "charge"
+        elseif not state.melee and state.charge then
+            return "charge"
 
-            elseif not state.autoattack and not state.maulqueued then
-                return "attack"
+        elseif not state.autoattack and not state.maulqueued then
+            return "attack"
 
-            elseif not state.taintedwound and state.taintedswipe then
-                return "swipe"
+        elseif not state.taintedwound and state.taintedswipe then
+            return "swipe"
 
-            elseif not state.mangle then
-                return "mangle"
+        elseif not state.mangle then
+            return "mangle"
 
-            elseif state.cp5 then
-                -- if not state.slice then
-                --     return "slice"
-                if not state.rip then
-                    return "rip"
-                else
-                    return "bite"
-                end
-
-            elseif aoe then
-                return "swipe"
+        elseif state.cp5 then
+            -- if not state.slice then
+            --     return "slice"
+            if not state.rip then
+                return "rip"
             else
-                if not state.rake then
-                    return "rake"
-                else
-                    return "claw"
-                end
-
+                return "bite"
             end
-        end
 
+        elseif aoe then
+            return "swipe"
+        else
+            if not state.rake then
+                return "rake"
+            else
+                return "claw"
+            end
+
+        end
     end
 
     return nil

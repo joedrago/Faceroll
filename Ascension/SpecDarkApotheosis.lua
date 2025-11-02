@@ -7,51 +7,36 @@ end
 
 local spec = Faceroll.createSpec("DA", "ffaaff", "HERO-Dark Apotheosis")
 
-spec.options = {}
-
 -----------------------------------------------------------------------------------------
 -- States
 
-spec.overlay = {
+spec.overlay = Faceroll.createOverlay({
     "- State -",
     "demonform",
     "scqueued",
 
+    "- Buffs -",
+    "shadowtrance",
+
     "- Abilities -",
     "shadowcleave",
     "immolationaura",
-    "charge",
+    "meteor",
+    "shadowflame",
 
     "potion",
-
-    "- Combat -",
-    "targetingenemy",
-    "combat",
-    "autoattack",
-    "melee",
-}
+})
 
 spec.calcState = function(state)
-    for i = 1, GetNumShapeshiftForms() do
-        local icon, name, active = GetShapeshiftFormInfo(i)
-        if active and (name == "Dark Apotheosis") then
-            state.demonform = true
-        end
-    end
+    state.demonform = Faceroll.inShapeshiftForm("Dark Apotheosis")
+    state.scqueued = Faceroll.isSpellQueued("Shadow Cleave")
 
-    if IsCurrentSpell("Shadow Cleave") then
-        state.scqueued = true
-    end
+    state.shadowtrance = Faceroll.isBuffActive("Shadow Trance") or Faceroll.isBuffActive("Backlash")
 
-    if Faceroll.isSpellAvailable("Shadow Cleave") then
-        state.shadowcleave = true
-    end
-    if Faceroll.isSpellAvailable("Immolation Aura (Dark Apotheosis)") then
-        state.immolationaura = true
-    end
-    if Faceroll.isSpellAvailable("Demon Charge") then
-        state.charge = true
-    end
+    state.shadowcleave = Faceroll.isSpellAvailable("Shadow Cleave")
+    state.immolationaura = Faceroll.isSpellAvailable("Immolation Aura (Dark Apotheosis)")
+    state.meteor = Faceroll.isSpellAvailable("Meteor")
+    state.shadowflame = Faceroll.isSpellAvailable("Shadowflame")
 
     local potionStart = GetActionCooldown(1)
     if potionStart > 0 then
@@ -62,21 +47,6 @@ spec.calcState = function(state)
     else
         state.potion = true
     end
-
-    -- Combat
-    if Faceroll.targetingEnemy() then
-        state.targetingenemy = true
-    end
-    if Faceroll.inCombat() then
-        state.combat = true
-    end
-    if IsCurrentSpell(6603) then -- Autoattack
-        state.autoattack = true
-    end
-    if IsSpellInRange("Demon Charge", "target") ~= 1 then
-        state.melee = true
-    end
-
     return state
 end
 
@@ -88,37 +58,47 @@ spec.actions = {
     "attack",
     "shadowcleave",
     "immolationaura",
-    "charge",
     "potion",
+    "meteor",
+    "shadowflame",
+    "incinerate",
+    "shadowbolt",
 }
 
 spec.calcAction = function(mode, state)
-    if mode == Faceroll.MODE_ST or mode == Faceroll.MODE_AOE then
-        -- Single Target
+    local st = (mode == Faceroll.MODE_ST)
+    local aoe = (mode == Faceroll.MODE_AOE)
 
-        if state.targetingenemy then
+    if state.targetingenemy then
 
-            if not state.demonform then
-                return "demonform"
+        if not state.demonform then
+            return "demonform"
 
-            elseif not state.melee and state.charge then
-                return "charge"
+        elseif not state.autoattack and not state.scqueued then
+            return "attack"
 
-            elseif not state.autoattack and not state.scqueued then
-                return "attack"
+        elseif state.potion then
+            return "potion"
 
-            elseif state.potion then
-                return "potion"
+        elseif state.shadowtrance then
+            return "shadowbolt"
 
-            elseif state.immolationaura then
-                return "immolationaura"
+        elseif state.immolationaura then
+            return "immolationaura"
 
-            elseif state.shadowcleave and not state.scqueued then
-                return "shadowcleave"
+        elseif state.meteor then
+            return "meteor"
 
-            end
+        elseif state.shadowflame then
+            return "shadowflame"
+
+        elseif state.shadowcleave and not state.scqueued then
+            return "shadowcleave"
+
+        else
+            return "incinerate"
+
         end
-
     end
 
     return nil

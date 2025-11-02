@@ -5,8 +5,9 @@ if Faceroll == nil then
     _, Faceroll = ...
 end
 
-local spec = Faceroll.createSpec("CI", "bb3333", "HERO-Carnage Incarnate")
+local spec = Faceroll.createSpec("LSL", "3333bb", "HERO-Lei Shen's Legacy")
 
+spec.melee = "Stormstrike"
 spec.options = {
     "solo",
 }
@@ -14,44 +15,26 @@ spec.options = {
 -----------------------------------------------------------------------------------------
 -- States
 
-spec.overlay = {
-    "- Resources -",
-    "rage20",
-    "rage40",
-
+spec.overlay = Faceroll.createOverlay({
     "- State -",
     "bear",
     "maulqueued",
     "solo",
 
+    "- Buffs -",
+    "thunderhide",
+
     "- Abilities -",
     "charge",
     "enrage",
     "regen",
+    "voltaicbite",
+    "stormsmash",
 
-    "- Debuffs -",
-    "rend",
-    "lacerateending",
-    "laceratemax",
-
-    "- Combat -",
-    "targetingenemy",
-    "combat",
-    "autoattack",
-    "melee",
-}
+    "potion",
+})
 
 spec.calcState = function(state)
-    local rage = UnitPower("PLAYER", Enum.PowerType.Rage)
-    local cp = GetComboPoints("PLAYER", "TARGET")
-
-    if rage >= 20 then
-        state.rage20 = true
-    end
-    if rage >= 40 then
-        state.rage40 = true
-    end
-
     for i = 1, GetNumShapeshiftForms() do
         local icon, name, active = GetShapeshiftFormInfo(i)
         if active and (name == "Bear Form" or name == "Dire Bear Form") then
@@ -63,6 +46,10 @@ spec.calcState = function(state)
         state.maulqueued = true
     end
 
+    if Faceroll.isBuffActive("Thunder Hide") then
+        state.thunderhide = true
+    end
+
     if Faceroll.isSpellAvailable("Feral Charge - Bear") then
         state.charge = true
     end
@@ -72,35 +59,27 @@ spec.calcState = function(state)
     if Faceroll.isSpellAvailable("Frenzied Regeneration") then
         state.regen = true
     end
-
-    if Faceroll.isDotActive("Rend (Carnage)") then
-        state.rend = true
+    if Faceroll.isSpellAvailable("Voltaic Bite") then
+        state.voltaicbite = true
+    end
+    if Faceroll.isSpellAvailable("Storm Smash") then
+        state.stormsmash = true
     end
 
-    if Faceroll.getDotRemainingNorm("Lacerate") < 0.2 then
-        state.lacerateending = true
+    local potionStart = GetActionCooldown(1)
+    if potionStart > 0 then
+        local potionRemaining = GetTime() - potionStart
+        if potionRemaining < 1.6 then -- mana potion in slot 1
+            state.potion = true
+        end
+    else
+        state.potion = true
     end
-
-    local maxLacerateStacks = 5
-    if state.solo then
-        maxLacerateStacks = 1
-    end
-    if Faceroll.getDotStacks("Lacerate") >= maxLacerateStacks then
-        state.laceratemax = true
-    end
-
-    -- Combat
-    if Faceroll.targetingEnemy() then
-        state.targetingenemy = true
-    end
-    if Faceroll.inCombat() then
-        state.combat = true
-    end
-    if IsCurrentSpell(6603) then -- Autoattack
-        state.autoattack = true
-    end
-    if IsSpellInRange("Rend (Carnage)", "target") == 1 then
-        state.melee = true
+    local hp = UnitHealth("player")
+    local hpmax = UnitHealthMax("player")
+    local hpnorm = hp / hpmax
+    if hpnorm >= 0.8 then
+        state.potion = false
     end
 
     return state
@@ -112,12 +91,14 @@ end
 spec.actions = {
     "bear",
     "attack",
-    "swipe",
-    "rend",
-    "maul",
     "charge",
-    "lacerate",
+    "swipe",
+    "thunderhide",
+    "voltaicbite",
+    "potion",
     "enrage",
+    "maul",
+    "stormsmash",
     "regen",
 }
 
@@ -125,10 +106,17 @@ spec.calcAction = function(mode, state)
     local st = (mode == Faceroll.MODE_ST)
     local aoe = (mode == Faceroll.MODE_AOE)
 
+    if state.potion then
+        return "potion"
+    end
+
     if state.targetingenemy then
 
         if not state.bear then
             return "bear"
+
+        elseif not state.thunderhide then
+            return "thunderhide"
 
         elseif not state.melee and state.charge then
             return "charge"
@@ -142,14 +130,15 @@ spec.calcAction = function(mode, state)
         elseif state.enrage then
             return "enrage"
 
-        elseif mode == Faceroll.MODE_ST then
-            if not state.rend then
-                return "rend"
-            elseif not state.laceratemax or state.lacerateending then
-                return "lacerate"
-            else
-                return "maul"
-            end
+        elseif state.stormsmash and state.melee then
+            return "stormsmash"
+
+        elseif st and state.voltaicbite then
+            return "voltaicbite"
+
+        elseif st and not state.maulqueued then
+            return "maul"
+
         else
             return "swipe"
 

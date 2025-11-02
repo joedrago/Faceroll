@@ -105,39 +105,37 @@ spec.actions = {
 }
 
 spec.calcAction = function(mode, state)
-    if mode == Faceroll.MODE_ST or mode == Faceroll.MODE_AOE then
-        -- Single Target
+    local st = (mode == Faceroll.MODE_ST)
+    local aoe = (mode == Faceroll.MODE_AOE)
 
-        if state.potion and state.autopot then
-            return "potion"
+    if state.potion and state.autopot then
+        return "potion"
 
-        elseif state.targetingenemy then
+    elseif state.targetingenemy then
 
-            if not state.melee and state.charge then
-                return "charge"
+        if not state.melee and state.charge then
+            return "charge"
 
-            elseif not state.autoattack and not state.hsqueued then
-                return "attack"
+        elseif not state.autoattack and not state.hsqueued then
+            return "attack"
 
-            elseif state.executionsentence then
-                return "executionsentence"
+        elseif state.executionsentence then
+            return "executionsentence"
 
-            elseif state.lightshammer then
-                return "lightshammer"
+        elseif state.lightshammer then
+            return "lightshammer"
 
-            elseif state.artofwar then
-                return "exorcistslash"
+        elseif state.artofwar then
+            return "exorcistslash"
 
-            elseif state.divinestorm then
-                return "divinestorm"
+        elseif state.divinestorm then
+            return "divinestorm"
 
-            elseif state.judgement then
-                return "judgement"
+        elseif state.judgement then
+            return "judgement"
 
-            else
-                return "crusaderstrike"
-
-            end
+        else
+            return "crusaderstrike"
 
         end
 

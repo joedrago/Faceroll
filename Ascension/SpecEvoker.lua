@@ -72,9 +72,9 @@ spec.actions = {
 }
 
 spec.calcAction = function(mode, state)
-    if mode == Faceroll.MODE_ST then
-        -- Single Target
-
+    local st = (mode == Faceroll.MODE_ST)
+    local aoe = (mode == Faceroll.MODE_AOE)
+    if st then
         if state.fireball then
             return "fireball"
         elseif state.barrage then
@@ -83,8 +83,7 @@ spec.calcAction = function(mode, state)
             return "frostbolt"
         end
 
-    elseif mode == Faceroll.MODE_AOE then
-
+    elseif aoe then
         if state.meteor then
             return "meteor"
         elseif state.arcaneorb then
@@ -94,7 +93,7 @@ spec.calcAction = function(mode, state)
         else
             return "blizzard"
         end
-    end
 
+    end
     return nil
 end

@@ -20,6 +20,7 @@ Ascension\SpecDefiasGunslinger.lua
 Ascension\SpecEvoker.lua
 Ascension\SpecLavaSweep.lua
 Ascension\SpecLegacyOfTheArcanist.lua
+Ascension\SpecLeiShensLegacy.lua
 Ascension\SpecLucifur.lua
 Ascension\SpecMasterOfShadows.lua
 Ascension\SpecPlagueBearer.lua
@@ -27,6 +28,7 @@ Ascension\SpecPredatorsWrath.lua
 Ascension\SpecThermalVoid.lua
 Ascension\SpecThunderSlam.lua
 Ascension\SpecTreeofWrath.lua
+Ascension\SpecWhiteWalker.lua
 
 # -- Classic (Anniversary) Specs --
 Classic\SpecDruid.lua

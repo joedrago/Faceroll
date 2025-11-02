@@ -82,29 +82,27 @@ spec.actions = {
 spec.calcAction = function(mode, state)
     local st = (mode == Faceroll.MODE_ST)
     local aoe = (mode == Faceroll.MODE_AOE)
-    if st or aoe then
-        if state.targetingenemy then
-            if not state.melee and state.charge then
-                return "charge"
 
-            elseif not state.autoattack then
-                return "attack"
+    if state.targetingenemy then
+        if not state.melee and state.charge then
+            return "charge"
 
-            elseif state.execute then
-                return "execute"
+        elseif not state.autoattack then
+            return "attack"
 
-            elseif state.combopoints >= 5 and not state.sliceanddice then
-                return "sliceanddice"
+        elseif state.execute then
+            return "execute"
 
-            elseif state.combopoints >= 5 then
-                return "disembowel"
+        elseif state.combopoints >= 5 and not state.sliceanddice then
+            return "sliceanddice"
 
-            else
-                return "mutilate"
+        elseif state.combopoints >= 5 then
+            return "disembowel"
 
-            end
+        else
+            return "mutilate"
+
         end
-
     end
 
     return nil
