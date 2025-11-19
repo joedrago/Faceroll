@@ -7,6 +7,7 @@ end
 
 local spec = Faceroll.createSpec("CBF", "997799", "HERO-Corrupted Bear Form")
 
+spec.melee = "Lacerate"
 spec.options = {
     "solo",
 }
@@ -14,7 +15,7 @@ spec.options = {
 -----------------------------------------------------------------------------------------
 -- States
 
-spec.overlay = {
+spec.overlay = Faceroll.createOverlay({
     "- Resources -",
     "rage20",
     "rage40",
@@ -42,19 +43,9 @@ spec.overlay = {
     "combat",
     "autoattack",
     "melee",
-}
+})
 
 spec.calcState = function(state)
-    local rage = UnitPower("PLAYER", Enum.PowerType.Rage)
-    local cp = GetComboPoints("PLAYER", "TARGET")
-
-    if rage >= 20 then
-        state.rage20 = true
-    end
-    if rage >= 40 then
-        state.rage40 = true
-    end
-
     for i = 1, GetNumShapeshiftForms() do
         local icon, name, active = GetShapeshiftFormInfo(i)
         if active and (name == "Bear Form" or name == "Dire Bear Form") then
@@ -66,7 +57,7 @@ spec.calcState = function(state)
         state.maulqueued = true
     end
 
-    if Faceroll.isSpellAvailable("Charge") then
+    if Faceroll.isSpellAvailable("Feral Charge - Bear") then
         state.charge = true
     end
     if Faceroll.isSpellAvailable("Enrage") then
@@ -78,7 +69,7 @@ spec.calcState = function(state)
     if Faceroll.isBuffActive("Tainted Swipe") then
         state.taintedswipe = true
     end
-    if Faceroll.isBuffActive("Shadow Trance") then
+    if Faceroll.isBuffActive("Shadow Trance") or Faceroll.isBuffActive("Backlash") then
         state.shadowtrance = true
     end
 
@@ -98,21 +89,6 @@ spec.calcState = function(state)
     if Faceroll.isDotActive("Corruption") then
         state.corruption = true
     end
-
-    -- Combat
-    if Faceroll.targetingEnemy() then
-        state.targetingenemy = true
-    end
-    if Faceroll.inCombat() then
-        state.combat = true
-    end
-    if IsCurrentSpell(6603) then -- Autoattack
-        state.autoattack = true
-    end
-    if IsSpellInRange("Lacerate", "target") == 1 then
-        state.melee = true
-    end
-
     return state
 end
 
@@ -155,18 +131,18 @@ spec.calcAction = function(mode, state)
         elseif state.enrage then
             return "enrage"
 
-        elseif not state.taintedwound and state.taintedswipe then
+        elseif not state.taintedwound and state.taintedswipe and state.melee then
             return "swipe"
 
         elseif mode == Faceroll.MODE_ST then
             if not state.laceratemax or state.lacerateending then
                 return "lacerate"
-            elseif state.corruption then
+            elseif state.corruption and state.melee then
                 return "swipe"
             else
                 return "maul"
             end
-        else
+        elseif state.melee then
             return "swipe"
 
         end

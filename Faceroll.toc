@@ -25,10 +25,12 @@ Ascension\SpecLucifur.lua
 Ascension\SpecMasterOfShadows.lua
 Ascension\SpecPlagueBearer.lua
 Ascension\SpecPredatorsWrath.lua
+Ascension\SpecRoulette.lua
 Ascension\SpecThermalVoid.lua
 Ascension\SpecThunderSlam.lua
 Ascension\SpecTreeofWrath.lua
 Ascension\SpecWhiteWalker.lua
+Ascension\SpecZandalariWindreaver.lua
 
 # -- Classic (Anniversary) Specs --
 Classic\SpecDruid.lua

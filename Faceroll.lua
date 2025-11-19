@@ -25,6 +25,7 @@ Faceroll.active = false
 local nextSpec = 0
 Faceroll.availableSpecs = {}
 Faceroll.activeSpecs = {}
+Faceroll.specAliases = {}
 
 -----------------------------------------------------------------------------------------
 -- Helpers
@@ -60,6 +61,10 @@ Faceroll.createSpec = function(name, color, specKey)
 end
 
 Faceroll.createSpec("OFF", "333333", "OFF")
+
+Faceroll.aliasSpec = function(spec, key)
+    Faceroll.specAliases[key] = spec
+end
 
 Faceroll.createState = function(spec)
     local state = {}
@@ -107,6 +112,7 @@ Faceroll.createOverlay = function(extras)
             "targetingenemy",
             "combat",
             "autoattack",
+            "autoshot",
             "melee",
 
             "- Resources -",
@@ -129,6 +135,13 @@ Faceroll.startup = function()
             print("WARNING: Multiple specs for the same key active! Overriding preexisting spec key: " .. spec.key)
         end
         Faceroll.activeSpecs[spec.key] = spec
+        -- print("Enabling Spec: " .. spec.name .. " (" .. Faceroll.SPEC_LAST .. "), ".. bitCount .. "/28 bits, " .. actionCount .. " actions")
+    end
+    for key, spec in pairs(Faceroll.specAliases) do
+        if Faceroll.activeSpecs[key] ~= nil then
+            print("WARNING: Multiple specs for the same key active! Overriding preexisting spec key: " .. key)
+        end
+        Faceroll.activeSpecs[key] = spec
         -- print("Enabling Spec: " .. spec.name .. " (" .. Faceroll.SPEC_LAST .. "), ".. bitCount .. "/28 bits, " .. actionCount .. " actions")
     end
 
@@ -574,6 +587,18 @@ Faceroll.inShapeshiftForm = function(formName)
         end
     end
     return inform
+end
+
+Faceroll.isTotemActive = function(searchName)
+    for i=1,4 do
+        local haveTotem, totemName, startTime, duration = GetTotemInfo(i)
+        if type(totemName) == "string" then
+            if string.find(totemName, searchName) == 1 then
+                return true
+            end
+        end
+    end
+    return false
 end
 
 Faceroll.targetingEnemy = function()
