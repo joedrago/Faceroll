@@ -441,6 +441,21 @@ Faceroll.ascensionFindAura = function(reqUnit, reqName, reqFilter)
     return nil
 end
 
+
+local builtinSpellPowerCost = nil
+if C_Spell ~= nil then
+    builtinSpellPowerCost = C_Spell.GetSpellPowerCost
+end
+if builtinSpellPowerCost == nil then
+    builtinSpellPowerCost = function(spellName)
+        local name, _, _, cost = GetSpellInfo(spellName)
+        if name == nil then
+            return nil
+        end
+        return { [1]={ ["cost"]=cost } }
+    end
+end
+
 -----------------------------------------------------------------------------------------
 -- Queries
 
@@ -569,7 +584,7 @@ end
 
 Faceroll.hasManaForSpell = function(spellName)
     local curMana = UnitPower("player", 0)
-    local spellCost = C_Spell.GetSpellPowerCost(spellName)
+    local spellCost = builtinSpellPowerCost(spellName)
     if spellCost ~= nil and spellCost[1] ~= nil and spellCost[1].cost > 0 then
         if curMana >= spellCost[1].cost then
             return true
@@ -961,6 +976,73 @@ local function onLoaded()
 end
 
 -----------------------------------------------------------------------------------------
+-- Upgrade Ranks Action Bar Spell Helper
+
+local function upgradeRanks()
+    local bestRanks = {}
+    local idRanks = {}
+
+    local i = 1
+    while true do
+        local spellName, spellSubName = GetSpellBookItemName(i, BOOKTYPE_SPELL)
+        if not spellName then
+            break -- Exit the loop when no more spells are found
+        end
+        local _, id = GetSpellBookItemInfo(i, BOOKTYPE_SPELL)
+        local infoName = GetSpellInfo(id)
+        if infoName == nil then
+            break
+        end
+
+        local _, _, rank = string.find(spellSubName, "Rank (%d+)")
+        if rank ~= nil then
+            rank = tonumber(rank)
+            -- print(spellName .. " (ranky " .. rank .. ") - " .. infoName)
+
+            if bestRanks[infoName] == nil then
+                bestRanks[infoName] = {}
+                bestRanks[infoName].name = infoName
+                bestRanks[infoName].rank = 0
+            end
+            if bestRanks[infoName].rank < rank then
+                bestRanks[infoName].rank = rank
+                bestRanks[infoName].id = id
+            end
+            idRanks[id] = rank
+        end
+
+        i = i + 1
+    end
+
+    local upgradedCount = 0
+    for i = 1,120 do
+        local actionType, _, subType, id = GetActionInfo(i)
+        if id ~= nil then
+            local infoName = GetSpellInfo(id)
+            if infoName ~= nil then
+                local rank = idRanks[id]
+                if rank ~= nil then
+                    local bestRank = bestRanks[infoName]
+                    if bestRank ~= nil then
+                        if rank < bestRank.rank then
+                            print("Upgrading["..i..", "..bestRank.id.."]: " .. infoName .. " " .. rank .. " => " .. bestRank.rank)
+                            -- PickupSpell(bestRank.id)
+                            PickupSpell(infoName)
+                            PlaceAction(i)
+                            ClearCursor()
+
+                            upgradedCount = upgradedCount + 1
+                        end
+                    end
+                end
+            end
+        end
+    end
+
+    print("UpgradeRanks slots fixed: " .. upgradedCount)
+end
+
+-----------------------------------------------------------------------------------------
 -- Babysit zone boundaries to maintain Faceroll active state, if necessary
 
 local lastTimeChatDisabledFaceroll = 0
@@ -1091,5 +1173,8 @@ SlashCmdList["FRDEBUG"] = toggleDebug
 
 SLASH_FRK1 = '/frk'
 SlashCmdList["FRK"] = dumpKeybinds
+
+SLASH_FRUR1 = '/frur'
+SlashCmdList["FRUR"] = upgradeRanks
 
 -----------------------------------------------------------------------------------------

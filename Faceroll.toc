@@ -32,6 +32,13 @@ Ascension\SpecTreeofWrath.lua
 Ascension\SpecWhiteWalker.lua
 Ascension\SpecZandalariWindreaver.lua
 
+# -- Ascension WoW Bronzebeard Specs --
+Ascension\SpecBBDruid.lua
+Ascension\SpecBBMage.lua
+Ascension\SpecBBPaladin.lua
+Ascension\SpecBBPriest.lua
+Ascension\SpecBBWarlock.lua
+
 # -- Classic (Anniversary) Specs --
 Classic\SpecDruid.lua
 Classic\SpecMage.lua
