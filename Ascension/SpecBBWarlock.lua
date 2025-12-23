@@ -10,55 +10,89 @@ local spec = Faceroll.createSpec("WL", "aaaaff", "WARLOCK-ASCENSION")
 -----------------------------------------------------------------------------------------
 -- States
 
-spec.overlay = {
-    -- "- Buffs -",
-    -- "innerfire",
-    -- "renewbuff",
-    -- "weakenedsoulbuff",
-    -- "shieldbuff",
+spec.overlay = Faceroll.createOverlay({
+    "- Buffs -",
+    "shadowtrance",
 
-    -- "- Debuffs -",
-    -- "pain",
+    "-- Dots --",
+    "corruption",
 
-    -- "- Spells -",
-    -- "shieldavailable",
-    -- "mindblast",
+    "- State -",
+    "min",
+    "shards",
+    "deadsoon",
+    "drainready",
+    "drainingsoul",
+    "drainsoulending",
+    "wand",
+    "needtap",
 
-    -- "- Target -",
-    -- "targetingenemy",
-    -- "target40",
-
-    -- "- Combat -",
-    -- "combat",
-    -- "hp80",
-    -- "mana90",
-    -- "wand",
-    -- "coast",
-}
+    "-- Options --",
+    "farm",
+    "burn",
+})
 
 spec.options = {
-    "coast",
+    "farm",
+    "burn",
 }
 
 spec.calcState = function(state)
     -- Buffs
-    -- if Faceroll.isBuffActive("Inner Fire") then
-    --     state.innerfire = true
-    -- end
-    -- if Faceroll.isBuffActive("Renew") then
-    --     state.renewbuff = true
-    -- end
-    -- if Faceroll.isBuffActive("Weakened Soul") then
-    --     state.weakenedsoulbuff = true
-    -- end
-    -- if Faceroll.isBuffActive("Power Word: Shield") then
-    --     state.shieldbuff = true
-    -- end
+    if Faceroll.isBuffActive("Shadow Trance") or Faceroll.isBuffActive("Backlash") then
+        state.shadowtrance = true
+    end
 
     -- -- Debuffs
-    -- if Faceroll.getDotRemainingNorm("Shadow Word: Pain") > 0.1 then
-    --     state.pain = true
-    -- end
+    if Faceroll.getDotRemainingNorm("Corruption") > 0.1 then
+        state.corruption = true
+    end
+
+    state.min = 6
+    if state.farm then
+        state.min = 20
+    end
+    state.shards = GetItemCount("Soul Shard")
+
+    if Faceroll.targetingEnemy() then
+        local targethp = UnitHealth("target")
+        local targethpmax = UnitHealthMax("target")
+        local targethpnorm = targethp / targethpmax
+        if targethpnorm <= 0.70 then
+            state.deadsoon = true
+        end
+
+        -- if not state.deadsoon then
+        --     local castingSpell, _, _, _, castingSpellEndTime = UnitCastingInfo("player")
+        --     if castingSpell == "Shadow Bolt" and targethpnorm <= 0.70 then
+        --         state.deadsoon = true
+        --     end
+        -- end
+
+        if state.deadsoon and (state.shards < state.min) then
+            state.drainready = true
+        end
+    end
+
+    local channelingSpell, _, _, _, _, channelEndMS = UnitChannelInfo("player")
+    if channelingSpell == "Drain Soul" then
+        local channelFinish = (channelEndMS / 1000) - GetTime()
+        state.drainingsoul = true
+        if channelFinish < 5 then
+            state.drainsoulending = channelFinish
+        end
+    end
+
+    local hp = UnitHealth("player")
+    local hpmax = UnitHealthMax("player")
+    local hpnorm = hp / hpmax
+    local mana = UnitPower("player", Enum.PowerType.Mana)
+    local manamax = UnitPowerMax("player", Enum.PowerType.Mana)
+    local mananorm = mana / manamax
+
+    if (hpnorm >= 0.25) and (mananorm < hpnorm) then
+        state.needtap = true
+    end
 
     -- -- Spells
     -- if Faceroll.isSpellAvailable("Power Word: Shield") then
@@ -68,17 +102,6 @@ spec.calcState = function(state)
     --     state.mindblast = true
     -- end
 
-    -- -- Target
-    -- if Faceroll.targetingEnemy() then
-    --     state.targetingenemy = true
-
-    --     local targethp = UnitHealth("target")
-    --     local targethpmax = UnitHealthMax("target")
-    --     local targethpnorm = targethp / targethpmax
-    --     if targethpnorm <= 0.40 then
-    --         state.target40 = true
-    --     end
-    -- end
 
     -- -- Combat
     -- if Faceroll.inCombat() then
@@ -97,9 +120,9 @@ spec.calcState = function(state)
     --     state.mana90 = true
     -- end
 
-    -- if IsCurrentSpell(5019) then -- Shoot (wand)
-    --     state.wand = true
-    -- end
+    if IsCurrentSpell(5019) then -- Shoot (wand)
+        state.wand = true
+    end
 
     -- if not state.combat or Faceroll.targetChanged then
     --     Faceroll.setOption("coast", false)
@@ -113,33 +136,38 @@ end
 -- Actions
 
 spec.actions = {
+    "sic",
     "shadowbolt",
+    "corruption",
+    "drainsoul",
+    "wand",
+    "tap",
 }
 
 spec.calcAction = function(mode, state)
+    local st = (mode == Faceroll.MODE_ST)
+    local aoe = (mode == Faceroll.MODE_AOE)
 
-    if state.targetingenemy then
-        -- if not state.coast and not state.innerfire then
-        --     return "innerfire"
-
-        -- elseif not state.coast and not state.shieldbuff and not state.weakenedsoulbuff and state.shieldavailable then
-        --     return "shield"
-
-        -- elseif not state.coast and not state.combat and state.mindblast then
-        --     return "mindblast"
-
-        -- if not state.coast and not state.pain then
-        --     return "pain"
-
-        -- elseif not state.wand then
-        --     return "shoot"
-
-        -- elseif state.target40 and not state.coast then
-        --     return "coast"
-
-        return "shadowbolt"
-
-        -- end
+    if (state.burn or not state.combat) and state.needtap then
+        return "tap"
+    elseif state.targetingenemy then
+        if not state.burn and not state.combat then
+            return "sic"
+        elseif not state.burn and state.drainready then
+            if not state.drainingsoul or state.drainsoulending then
+                return "drainsoul"
+            else
+                return nil
+            end
+        elseif not state.burn and state.deadsoon then
+            return "wand"
+        elseif state.shadowtrance then
+            return "shadowbolt"
+        elseif state.combat and not state.corruption then
+            return "corruption"
+        else
+            return "shadowbolt"
+        end
     end
 
     return nil
