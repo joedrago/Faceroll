@@ -54,6 +54,14 @@ local wowTapKey = hs.eventtap.new({hs.eventtap.event.types.keyDown}, function(ev
 end)
 
 local wowTapFlags = hs.eventtap.new({hs.eventtap.event.types.flagsChanged}, function(event)
+    if event:getFlags():containExactly{'cmd'} then
+        -- print("You are alt-tabbing (keyDown), ignore")
+        return
+    end
+    if event:getFlags():containExactly{} then
+        -- print("You are letting go of all mod keys (keyUp), ignore")
+        return
+    end
     return onReset()
 end)
 
