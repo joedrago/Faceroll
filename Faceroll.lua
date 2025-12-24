@@ -2,6 +2,8 @@ if Faceroll == nil then
     _, Faceroll = ...
 end
 
+local eventFrame = nil
+
 -----------------------------------------------------------------------------------------
 -- Faceroll Globals
 
@@ -38,6 +40,14 @@ Faceroll.isSeparatorName = function(name)
     return (string.find(name, "^[- ]") ~= nil)
 end
 
+Faceroll.pad = function(text, count)
+    text = tostring(text)
+    while strlenutf8(text) < count do
+        text = " " .. text
+    end
+    return text
+end
+
 -----------------------------------------------------------------------------------------
 -- Spec Management
 
@@ -53,6 +63,7 @@ Faceroll.createSpec = function(name, color, specKey)
         ["overlay"]={},
         ["actions"]={},
         ["options"]={},
+        ["enemyGrid"]=nil,
         ["keys"]={},
         ["index"]=nil,
     }
@@ -318,14 +329,6 @@ Faceroll.setDebugState = function(spec, state)
         return
     end
 
-    local pad = function(text, count)
-        text = tostring(text)
-        while strlenutf8(text) < count do
-            text = " " .. text
-        end
-        return text
-    end
-
     local function bt(b)
         if b then
             return "\124cffffff00T\124r"
@@ -342,13 +345,13 @@ Faceroll.setDebugState = function(spec, state)
                 if strlenutf8(o) > 0 then
                     o = o .. "\n"
                 end
-                o = o .. "\124cffffffaa" .. pad(k, 18) .. "\124r\n"
+                o = o .. "\124cffffffaa" .. Faceroll.pad(k, 18) .. "\124r\n"
             elseif type(v) == "number" then
-                o = o .. pad(k, 18) .. "  : " .. Faceroll.textColor(v, "ffffaa") .. "\n"
+                o = o .. Faceroll.pad(k, 18) .. "  : " .. Faceroll.textColor(v, "ffffaa") .. "\n"
             elseif type(v) == "string" then
-                o = o .. pad(k, 18) .. "  : " .. Faceroll.textColor(v, "ffaaff") .. "\n"
+                o = o .. Faceroll.pad(k, 18) .. "  : " .. Faceroll.textColor(v, "ffaaff") .. "\n"
             else
-                o = o .. pad(k, 18) .. "  : " .. bt(v) .. "\n"
+                o = o .. Faceroll.pad(k, 18) .. "  : " .. bt(v) .. "\n"
             end
         end
         o = o .. "\n"
@@ -381,6 +384,164 @@ Faceroll.debugInit = function()
                                                     "TOOLTIP", 0.7,            -- strata/alpha
                                                     "TOPLEFT", "firamono", 13) -- text
     Faceroll.updateDebugOverlay()
+end
+
+-----------------------------------------------------------------------------------------
+-- EnemyGrid
+
+Faceroll.enemyGridOverlay = nil
+
+Faceroll.enemyGridInit = function()
+    Faceroll.enemyGridOverlay = Faceroll.createFrame(400, 220,                 -- size
+                                                    "RIGHT", 0, 0,           -- position
+                                                    "MEDIUM", 0.7,            -- strata/alpha
+                                                    "TOPLEFT", "firamono", 13) -- text
+    Faceroll.enemyGridUpdate()
+end
+
+Faceroll.enemyGridTrack = function(spec, spellName, shortName, color)
+    if spec.enemyGrid == nil then
+        spec.enemyGrid = {}
+    end
+    local e = {}
+    e.spellName = spellName
+    e.shortName = shortName
+    e.color = color
+    table.insert(spec.enemyGrid, e)
+end
+
+Faceroll.enemyGridUpdate = function()
+    local kui = _G.KuiNameplates
+    local spec = Faceroll.activeSpec()
+    if (Faceroll.enemyGridOverlay == nil) or (spec == nil) or (spec.enemyGrid == nil) or (kui == nil) or not Faceroll.inCombat() then
+        Faceroll.enemyGridOverlay.frame:Hide()
+        return
+    end
+
+    local spellLookup = {}
+    for i, e in ipairs(spec.enemyGrid) do
+        spellLookup[e.spellName] = 0
+    end
+
+    -- find tracked spell IDs based on what is on the bars
+    for i = 1,120 do
+        local actionType, _, subType, id = GetActionInfo(i)
+        if id ~= nil then
+            local infoName = GetSpellInfo(id)
+            if infoName ~= nil and spellLookup[infoName] ~= nil then
+                spellLookup[infoName] = id
+            end
+        end
+    end
+
+    -- build a table of "wanted" spell IDs
+    local wantedIDs = {}
+    for k,v in pairs(spellLookup) do
+        if v ~= 0 then
+            wantedIDs[v] = k
+        end
+    end
+
+    -- Figure out who is targeted, if anyone
+    local targetGUID = UnitGUID("target")
+    if targetGUID == nil then
+        targetGUID = "NOBODY_TARGETED" -- sentinel
+    end
+
+    -- Make a list of mobs we can see along with the expirations of our wanted IDs
+    local mobs = {}
+    for frameIndex, frame in pairs(kui.frameList) do
+        if frame:IsVisible() then
+            local fguid = frame.kui.guid
+            if fguid == nil then
+                fguid = "--"
+            end
+
+            local mob = {}
+            mob.name = frame.kui.oldName:GetText()
+            mob.target = (fguid == targetGUID)
+            mob.total = 0
+            mob.expirations = {}
+            for k,id in pairs(spellLookup) do
+                mob.expirations[id] = 0
+            end
+            for id,aura in pairs(frame.kui.auras.spellids) do
+                if mob.expirations[id] ~= nil and aura.expirationTime ~= nil then
+                    mob.expirations[id] = aura.expirationTime - GetTime()
+                    mob.total = mob.total + mob.expirations[id]
+                end
+            end
+            table.insert(mobs, mob)
+        end
+    end
+
+    -- Sort mobs
+    table.sort(mobs, function(a, b)
+            local lowestA = 999
+            local lowestB = 999
+            for _,wantedID in ipairs(wantedIDs) do
+                if lowestA > a.expirations[wantedID] then
+                    lowestA = a.expirations[wantedID]
+                end
+                if lowestB > b.expirations[wantedID] then
+                    lowestB = b.expirations[wantedID]
+                end
+            end
+            if lowestA ~= lowestB then
+                return lowestA < lowestB
+            end
+            if a.total ~= b.total then
+                return a.total < b.total
+            end
+            return a.name < b.name
+    end)
+
+    local function durationToColor(duration)
+        local expColor = "ff5555"
+        if duration < 4 then
+            expColor = "ffff00"
+        elseif duration < 7 then
+            expColor = "999977"
+        else
+            expColor = "777777"
+        end
+        return expColor
+    end
+
+    -- header
+    local o = ""
+    -- o = o .. "" .. GetTime() .. "\n"
+    for i, e in ipairs(spec.enemyGrid) do
+        o = o .. Faceroll.textColor(Faceroll.pad(e.shortName, 6), e.color)
+    end
+    -- TODO: single here
+    o = o .. "\n"
+
+    for _, mob in ipairs(mobs) do
+        local expirations = mob.expirations
+        for i, e in ipairs(spec.enemyGrid) do
+            local wantedColor = e.color
+            local expStr = "    XX"
+            local expColor = "ff5555"
+            local exp = expirations[spellLookup[e.spellName]]
+            if exp ~= nil and exp > 0 then
+                expStr = string.format("%6.1f", exp)
+                expColor = durationToColor(exp)
+            end
+            o = o .. Faceroll.textColor(expStr, expColor)
+        end
+
+        local color = "777777"
+        if mob.target then
+            color = "77dd77"
+        end
+        o = o .. " " .. Faceroll.textColor(string.sub(mob.name, 0, 8), color)
+
+        o = o .. "\n"
+    end
+
+    Faceroll.enemyGridOverlay:setText(o)
+    Faceroll.enemyGridOverlay.frame:Show()
 end
 
 -----------------------------------------------------------------------------------------
@@ -844,6 +1005,8 @@ local function updateBits(who)
         hideBits()
     end
 
+    Faceroll.enemyGridUpdate()
+
     Faceroll.updateBitsCounter = Faceroll.updateBitsCounter + 1
 end
 
@@ -966,6 +1129,7 @@ end
 
 local function onLoaded()
     Faceroll.debugInit()
+    Faceroll.enemyGridInit()
 
     enabledFrameCreate()
     enabledFrameUpdate()
@@ -1061,7 +1225,7 @@ end
 -----------------------------------------------------------------------------------------
 -- Core event registration and handling
 
-local eventFrame = CreateFrame("Frame")
+eventFrame = CreateFrame("Frame")
 local initialized = false
 local function onEvent(self, event, arg1, arg2, ...)
     Faceroll.targetChanged = false

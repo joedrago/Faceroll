@@ -7,6 +7,8 @@ end
 
 local spec = Faceroll.createSpec("WL", "aaaaff", "WARLOCK-ASCENSION")
 
+Faceroll.enemyGridTrack(spec, "Corruption", "COR", "621518")
+
 -----------------------------------------------------------------------------------------
 -- States
 
@@ -28,12 +30,10 @@ spec.overlay = Faceroll.createOverlay({
     "needtap",
 
     "-- Options --",
-    "farm",
     "burn",
 })
 
 spec.options = {
-    "farm",
     "burn",
 }
 
@@ -48,10 +48,6 @@ spec.calcState = function(state)
         state.corruption = true
     end
 
-    state.min = 6
-    if state.farm then
-        state.min = 20
-    end
     state.shards = GetItemCount("Soul Shard")
 
     if Faceroll.targetingEnemy() then
@@ -69,7 +65,8 @@ spec.calcState = function(state)
         --     end
         -- end
 
-        if state.deadsoon and (state.shards < state.min) then
+        local MIN_SHARDS = 32 -- in Ascension they stack to 32!
+        if state.deadsoon and (state.shards < MIN_SHARDS) then
             state.drainready = true
         end
     end
@@ -94,40 +91,9 @@ spec.calcState = function(state)
         state.needtap = true
     end
 
-    -- -- Spells
-    -- if Faceroll.isSpellAvailable("Power Word: Shield") then
-    --     state.shieldavailable = true
-    -- end
-    -- if Faceroll.isSpellAvailable("Mind Blast") then
-    --     state.mindblast = true
-    -- end
-
-
-    -- -- Combat
-    -- if Faceroll.inCombat() then
-    --     state.combat = true
-    -- end
-    -- local hp = UnitHealth("player")
-    -- local hpmax = UnitHealthMax("player")
-    -- local hpnorm = hp / hpmax
-    -- if hpnorm < 0.8 then
-    --     state.hp80 = true
-    -- end
-    -- local mana = UnitPower("player", Enum.PowerType.Mana)
-    -- local manamax = UnitPowerMax("player", Enum.PowerType.Mana)
-    -- local mananorm = mana / manamax
-    -- if mananorm >= 0.90 then
-    --     state.mana90 = true
-    -- end
-
     if IsCurrentSpell(5019) then -- Shoot (wand)
         state.wand = true
     end
-
-    -- if not state.combat or Faceroll.targetChanged then
-    --     Faceroll.setOption("coast", false)
-    --     state.coast = false
-    -- end
 
     return state
 end
@@ -153,6 +119,8 @@ spec.calcAction = function(mode, state)
     elseif state.targetingenemy then
         if not state.burn and not state.combat then
             return "sic"
+        elseif (state.burn or state.combat) and not state.corruption then
+            return "corruption"
         elseif not state.burn and state.drainready then
             if not state.drainingsoul or state.drainsoulending then
                 return "drainsoul"
@@ -163,8 +131,6 @@ spec.calcAction = function(mode, state)
             return "wand"
         elseif state.shadowtrance then
             return "shadowbolt"
-        elseif state.combat and not state.corruption then
-            return "corruption"
         else
             return "shadowbolt"
         end
