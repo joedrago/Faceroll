@@ -52,16 +52,17 @@ Faceroll.keys["signal_aoe"] = "pad6"
 
 -- The little "OFF" / "SV" spec text
 Faceroll.enabledFrameAnchor = "BOTTOMLEFT"
-Faceroll.enabledFrameX = 470
+Faceroll.enabledFrameX = 488
 Faceroll.enabledFrameY = 70
 Faceroll.enabledFrameFontSize = 18
 
 -- The list of active options
 Faceroll.optionsFrameAnchor = "BOTTOMLEFT"
-Faceroll.optionsFrameX = 470
+Faceroll.optionsFrameX = 488
 Faceroll.optionsFrameY = 100
 Faceroll.optionsFrameFontSize = 10
 Faceroll.optionsFrameColor = "ffffaa"
+Faceroll.optionsFrameRadioColor = "ff8844"
 Faceroll.optionsFrameShowAll = false
 
 -- The text in the center of the screen saying "FR AE", etc

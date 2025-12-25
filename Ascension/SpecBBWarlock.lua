@@ -8,16 +8,21 @@ end
 local spec = Faceroll.createSpec("WL", "aaaaff", "WARLOCK-ASCENSION")
 
 Faceroll.enemyGridTrack(spec, "Corruption", "COR", "621518")
+Faceroll.enemyGridTrack(spec, "Curse of Agony", "COA", "626218")
 
 -----------------------------------------------------------------------------------------
 -- States
 
 spec.overlay = Faceroll.createOverlay({
+    "- Spells -",
+    "firestorm",
+
     "- Buffs -",
     "shadowtrance",
 
     "-- Dots --",
     "corruption",
+    "agony",
 
     "- State -",
     "min",
@@ -30,14 +35,24 @@ spec.overlay = Faceroll.createOverlay({
     "needtap",
 
     "-- Options --",
-    "burn",
+    "chill",
+    "trash",
+    "boss",
 })
 
 spec.options = {
-    "burn",
+    "chill",
+
+    "trash|mode",
+    "boss|mode",
 }
 
 spec.calcState = function(state)
+    -- Spells
+    if Faceroll.isSpellAvailable("Fire Storm") then
+        state.firestorm = true
+    end
+
     -- Buffs
     if Faceroll.isBuffActive("Shadow Trance") or Faceroll.isBuffActive("Backlash") then
         state.shadowtrance = true
@@ -46,6 +61,9 @@ spec.calcState = function(state)
     -- -- Debuffs
     if Faceroll.getDotRemainingNorm("Corruption") > 0.1 then
         state.corruption = true
+    end
+    if Faceroll.getDotRemainingNorm("Curse of Agony") > 0.1 then
+        state.agony = true
     end
 
     state.shards = GetItemCount("Soul Shard")
@@ -108,31 +126,58 @@ spec.actions = {
     "drainsoul",
     "wand",
     "tap",
+    "rof",
+    "firestorm",
+    "agony",
 }
 
 spec.calcAction = function(mode, state)
     local st = (mode == Faceroll.MODE_ST)
     local aoe = (mode == Faceroll.MODE_AOE)
 
-    if (state.burn or not state.combat) and state.needtap then
+    if state.needtap and (not state.combat or not state.targetingenemy or state.chill) then
         return "tap"
-    elseif state.targetingenemy then
-        if not state.burn and not state.combat then
-            return "sic"
-        elseif (state.burn or state.combat) and not state.corruption then
-            return "corruption"
-        elseif not state.burn and state.drainready then
-            if not state.drainingsoul or state.drainsoulending then
-                return "drainsoul"
+
+    elseif st then
+        if state.targetingenemy then
+            -- wait for pet to engage combat when chilling
+            if state.chill and not state.combat then
+                return "sic"
+
+            -- spend procs immediately
+            elseif state.shadowtrance then
+                return "shadowbolt"
+
+            -- maintain dots, but when chilling, wait for combat
+            elseif not state.corruption and (not state.chill or state.combat) then
+                return "corruption"
+            elseif state.boss and not state.agony and (not state.chill or state.combat) then
+                return "agony"
+
+            -- farm shards when chilling
+            elseif state.chill and state.drainready then
+                if not state.drainingsoul or state.drainsoulending then
+                    return "drainsoul"
+                else
+                    return nil
+                end
+
+            -- wand when chilling
+            elseif state.chill and state.deadsoon then
+                return "wand"
+
+            -- filler
             else
-                return nil
+                return "shadowbolt"
+
             end
-        elseif not state.burn and state.deadsoon then
-            return "wand"
-        elseif state.shadowtrance then
-            return "shadowbolt"
+        end
+
+    elseif aoe then
+        if state.firestorm then
+            return "firestorm"
         else
-            return "shadowbolt"
+            return "rof"
         end
     end
 

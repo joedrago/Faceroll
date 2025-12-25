@@ -23,6 +23,7 @@ Faceroll.movingStopped = 0
 Faceroll.updateBitsCounter = 0
 Faceroll.targetChanged = false
 Faceroll.active = false
+Faceroll.kickedRadios = false
 
 local nextSpec = 0
 Faceroll.availableSpecs = {}
@@ -79,7 +80,8 @@ end
 
 Faceroll.createState = function(spec)
     local state = {}
-    for _,name in ipairs(spec.options) do
+    for _, rawName in ipairs(spec.options) do
+        local name, radio = strsplit("|", rawName)
         if Faceroll.options[name] ~= nil then
             state[name] = true
         end
@@ -860,17 +862,29 @@ local function enabledFrameUpdate()
         end
 
         local optionsText = ""
+        local radioColor = spec.color
+        if Faceroll.optionsFrameRadioColor ~= nil then
+            radioColor = Faceroll.optionsFrameRadioColor
+        end
         if Faceroll.active then
-            for _,name in ipairs(spec.options) do
+            for _, rawName in ipairs(spec.options) do
+                local name, radio = strsplit("|", rawName)
                 if Faceroll.optionsFrameShowAll then
                     local color = optionsFrameColor
+                    if radio ~= nil then
+                        color = radioColor
+                    end
                     if not Faceroll.options[name] then
                         color = "222222"
                     end
                     optionsText = optionsText .. Faceroll.textColor(string.upper(name), color) .. "\n"
                 else
+                    local color = optionsFrameColor
+                    if radio ~= nil then
+                        color = radioColor
+                    end
                     if Faceroll.options[name] then
-                        optionsText = optionsText .. string.upper(name) .. "\n"
+                        optionsText = optionsText .. Faceroll.textColor(string.upper(name), color) .. "\n"
                     end
                 end
             end
@@ -1013,9 +1027,35 @@ end
 -----------------------------------------------------------------------------------------
 -- Options (/fro)
 
+local function radioKillOthers(option)
+    local spec = Faceroll.activeSpec()
+    if spec == nil then
+        return
+    end
+
+    -- Find the radio associated with option
+    local radioToKill = nil
+    for _, rawName in ipairs(spec.options) do
+        local name, radio = strsplit("|", rawName)
+        if option == name then
+            radioToKill = radio
+        end
+    end
+
+    if radioToKill ~= nil then
+        for _, rawName in ipairs(spec.options) do
+            local name, radio = strsplit("|", rawName)
+            if name ~= option and radio == radioToKill then
+                Faceroll.options[name] = nil
+            end
+        end
+    end
+end
+
 Faceroll.setOption = function(option, enabled)
     if enabled then
         Faceroll.options[option] = true
+        radioKillOthers(option)
     else
         Faceroll.options[option] = nil
     end
@@ -1027,6 +1067,7 @@ local function toggleOption(option)
         Faceroll.options[option] = nil
     else
         Faceroll.options[option] = true
+        radioKillOthers(option)
     end
     enabledFrameUpdate()
     updateBits("toggleOption")
@@ -1034,6 +1075,7 @@ end
 
 local function setOptionTrue(option)
     Faceroll.options[option] = true
+    radioKillOthers(option)
     enabledFrameUpdate()
     updateBits("setOptionTrue")
 end
@@ -1042,6 +1084,63 @@ local function setOptionFalse(option)
     Faceroll.options[option] = nil
     enabledFrameUpdate()
     updateBits("setOptionFalse")
+end
+
+local function toggleRadioOption(radioToToggle)
+    local spec = Faceroll.activeSpec()
+    if spec == nil then
+        return
+    end
+
+    -- Find the radio associated with option
+    local firstRadioName = nil
+    local nextRadio = false
+    for _, rawName in ipairs(spec.options) do
+        local name, radio = strsplit("|", rawName)
+        if radioToToggle == radio then
+            if nextRadio then
+                setOptionTrue(name)
+                return
+            end
+
+            if firstRadioName == nil then
+                firstRadioName = name
+            end
+
+            if Faceroll.options[name] ~= nil then
+                nextRadio = true
+            end
+        end
+    end
+
+    -- wrap!
+    if firstRadioName ~= nil then
+        setOptionTrue(firstRadioName)
+    end
+end
+
+Faceroll.kickRadios = function()
+    if Faceroll.kickedRadios then
+        return
+    end
+    Faceroll.kickedRadios = true
+
+    local spec = Faceroll.activeSpec()
+    if spec == nil then
+        return
+    end
+
+    local radioSeen = {}
+    for _, rawName in ipairs(spec.options) do
+        local name, radio = strsplit("|", rawName)
+        if radio ~= nil then
+            if radioSeen[radio] == nil then
+                radioSeen[radio] = true
+                -- print("kickRadios: Enabling " .. name)
+                setOptionTrue(name)
+            end
+        end
+    end
 end
 
 -----------------------------------------------------------------------------------------
@@ -1103,6 +1202,7 @@ end
 function facerollActivate()
     if Faceroll.activeSpec() ~= nil then
         Faceroll.active = true
+        Faceroll.kickRadios()
     else
         Faceroll.active = false
     end
@@ -1320,16 +1420,19 @@ SlashCmdList["FRA"] = facerollActivateToggle
 SLASH_FRTICK1 = '/frtick'
 SlashCmdList["FRTICK"] = tickReset
 
+SLASH_FRR1 = '/frr'
+SlashCmdList["FRR"] = toggleRadioOption
+
 SLASH_FRO1 = '/fro'
 SlashCmdList["FRO"] = toggleOption
 
 SLASH_FRT1 = '/frt'
 SlashCmdList["FRT"] = setOptionTrue
 
-SLASH_FRD1 = '/frd'
+SLASH_FRF1 = '/frf'
 SlashCmdList["FRF"] = setOptionFalse
 
-SLASH_FRF1 = '/frf'
+SLASH_FRD1 = '/frd'
 SlashCmdList["FRD"] = toggleDebug
 
 SLASH_FRDEBUG1 = '/frdebug'
