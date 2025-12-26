@@ -37,7 +37,8 @@ Ascension\SpecBBDruid.lua
 Ascension\SpecBBMage.lua
 Ascension\SpecBBPaladin.lua
 Ascension\SpecBBPriest.lua
-Ascension\SpecBBWarlock.lua
+Ascension\SpecBBWarlockDungeon.lua
+Ascension\SpecBBWarlockGrind.lua
 
 # -- Classic (Anniversary) Specs --
 Classic\SpecDruid.lua

@@ -1,11 +1,11 @@
 -----------------------------------------------------------------------------------------
--- Ascension WoW Bronzebeard Warlock
+-- Ascension WoW Bronzebeard Warlock (Dungeon)
 
 if Faceroll == nil then
     _, Faceroll = ...
 end
 
-local spec = Faceroll.createSpec("WL", "aaaaff", "WARLOCK-ASCENSION")
+local spec = Faceroll.createSpec("WL", "aaaaff", "WARLOCK-Hand of Gul'dan")
 
 Faceroll.enemyGridTrack(spec, "Corruption", "COR", "621518")
 Faceroll.enemyGridTrack(spec, "Curse of Agony", "COA", "626218")
@@ -16,6 +16,7 @@ Faceroll.enemyGridTrack(spec, "Curse of Agony", "COA", "626218")
 spec.overlay = Faceroll.createOverlay({
     "- Spells -",
     "firestorm",
+    "handofguldan",
 
     "- Buffs -",
     "shadowtrance",
@@ -26,14 +27,11 @@ spec.overlay = Faceroll.createOverlay({
 
     "- State -",
     "min",
-    "shards",
     "deadsoon",
-    "drainready",
     "drainingsoul",
     "drainsoulending",
     "wand",
     "needtap",
-    "needlife",
     "darkharveststacks",
     "moving",
     "consumeshadows",
@@ -65,6 +63,9 @@ spec.calcState = function(state)
     if Faceroll.isSpellAvailable("Fire Storm") then
         state.firestorm = true
     end
+    if Faceroll.isSpellAvailable("Hand of Gul'dan") then
+        state.handofguldan = true
+    end
 
     -- Buffs
     if Faceroll.isBuffActive("Shadow Trance") or Faceroll.isBuffActive("Backlash") then
@@ -79,10 +80,7 @@ spec.calcState = function(state)
         state.agony = true
     end
 
-    state.darkharveststacks = Faceroll.getBuffStacks("Dark Harvest")
     state.moving = Faceroll.moving
-
-    state.shards = GetItemCount("Soul Shard")
 
     if Faceroll.targetingEnemy() then
         local targethp = UnitHealth("target")
@@ -90,18 +88,6 @@ spec.calcState = function(state)
         local targethpnorm = targethp / targethpmax
         if targethpnorm <= 0.70 then
             state.deadsoon = true
-        end
-
-        -- if not state.deadsoon then
-        --     local castingSpell, _, _, _, castingSpellEndTime = UnitCastingInfo("player")
-        --     if castingSpell == "Shadow Bolt" and targethpnorm <= 0.70 then
-        --         state.deadsoon = true
-        --     end
-        -- end
-
-        local MIN_SHARDS = 32 -- in Ascension they stack to 32!
-        if state.deadsoon and (state.shards < MIN_SHARDS) then
-            state.drainready = true
         end
     end
 
@@ -122,7 +108,7 @@ spec.calcState = function(state)
     local mananorm = mana / manamax
 
     local hpbias = 0
-    if state.grind and (state.darkharveststacks > 3) then
+    if state.grind then
         hpbias = 0.1
         if (hpnorm + hpbias) > 1.0 then
             hpbias = 1.0 - hpnorm
@@ -131,10 +117,6 @@ spec.calcState = function(state)
 
     if (hpnorm >= 0.25) and (mananorm < (hpnorm + hpbias)) then
         state.needtap = true
-    end
-
-    if hpnorm <= 0.75 then
-        state.needlife = true
     end
 
     if IsCurrentSpell(5019) then -- Shoot (wand)
@@ -183,7 +165,7 @@ spec.actions = {
     "rof",
     "firestorm",
     "agony",
-    "drainlife",
+    "handofguldan",
     "consumeshadows",
     "food",
 }
@@ -193,15 +175,11 @@ spec.calcAction = function(mode, state)
     local aoe = (mode == Faceroll.MODE_AOE)
 
     -- get some mana back
-    if state.needtap and not state.wand and not state.picnic and not state.channeling and (not state.combat or not state.targetingenemy or state.grind) then
+    if state.needtap and not state.wand and not state.picnic and not state.channeling and (not state.combat or not state.targetingenemy) then
         return "tap"
 
-    -- Eat instead of drain life if your pet is very, very weak
-    elseif state.grind and state.petdying and not state.combat and state.needlife and not state.picnic then
-        return "food"
-
     -- Let your voidwalker heal itself if it is weak
-    elseif state.grind and state.consumeshadows and not state.combat and ((state.darkharveststacks == 0) or not state.needlife or state.picnic) then
+    elseif state.grind and state.consumeshadows and not state.combat then
         return "consumeshadows"
 
     -- Give your voidwalker a chance to eat dinner
@@ -210,26 +188,22 @@ spec.calcAction = function(mode, state)
 
     elseif st then
         if state.targetingenemy then
-            -- wait for pet to engage combat when grinding
-            if state.grind and not state.combat and (state.darkharveststacks == 0) then
-                return "sic"
-
-            -- a big free heal when grinding
-            elseif state.grind and state.needlife and state.darkharveststacks >= 6 and not state.deadsoon and state.combat and not state.moving then
-                return "drainlife"
-
             -- spend procs immediately
-            elseif state.shadowtrance then
+            if state.shadowtrance then
                 return "shadowbolt"
+
+            -- wait for pet to engage combat when grinding
+            elseif state.grind and not state.combat then
+                return "sic"
 
             -- maintain dots, but when grinding, wait for combat
             elseif not state.corruption then
                 return "corruption"
-            elseif state.boss and not state.agony then -- or state.grind
+            elseif state.boss and not state.agony then
                 return "agony"
 
             -- farm shards when grinding
-            elseif state.grind and state.drainready then
+            elseif state.grind and state.deadsoon then
                 if not state.drainingsoul or state.drainsoulending then
                     return "drainsoul"
                 else
@@ -239,6 +213,9 @@ spec.calcAction = function(mode, state)
             -- wand when grinding
             elseif state.grind and state.deadsoon then
                 return "wand"
+
+            elseif state.handofguldan and not state.grind then
+                return "handofguldan"
 
             -- filler
             else
@@ -250,6 +227,8 @@ spec.calcAction = function(mode, state)
     elseif aoe then
         if state.firestorm then
             return "firestorm"
+        elseif state.handofguldan then
+            return "handofguldan"
         else
             return "rof"
         end
