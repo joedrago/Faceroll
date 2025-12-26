@@ -62,7 +62,7 @@ Faceroll.optionsFrameX = 488
 Faceroll.optionsFrameY = 100
 Faceroll.optionsFrameFontSize = 10
 Faceroll.optionsFrameColor = "ffffaa"
-Faceroll.optionsFrameRadioColor = "ff8844"
+Faceroll.optionsFrameRadioColors = { "ff8844" }
 Faceroll.optionsFrameShowAll = false
 
 -- The text in the center of the screen saying "FR AE", etc

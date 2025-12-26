@@ -862,9 +862,10 @@ local function enabledFrameUpdate()
         end
 
         local optionsText = ""
-        local radioColor = spec.color
-        if Faceroll.optionsFrameRadioColor ~= nil then
-            radioColor = Faceroll.optionsFrameRadioColor
+        local radioColorIndex = 0
+        local radioFrameColors = Faceroll.optionsFrameRadioColors
+        if spec.radioColors ~= nil then
+            radioFrameColors = spec.radioColors
         end
         if Faceroll.active then
             for _, rawName in ipairs(spec.options) do
@@ -872,6 +873,11 @@ local function enabledFrameUpdate()
                 if Faceroll.optionsFrameShowAll then
                     local color = optionsFrameColor
                     if radio ~= nil then
+                        local radioColor = spec.color
+                        if radioFrameColors ~= nil then
+                            radioColor = radioFrameColors[radioColorIndex + 1]
+                            radioColorIndex = mod(radioColorIndex + 1, #radioFrameColors)
+                        end
                         color = radioColor
                     end
                     if not Faceroll.options[name] then
@@ -881,6 +887,11 @@ local function enabledFrameUpdate()
                 else
                     local color = optionsFrameColor
                     if radio ~= nil then
+                        local radioColor = spec.color
+                        if radioFrameColors ~= nil then
+                            radioColor = radioFrameColors[radioColorIndex + 1]
+                            radioColorIndex = mod(radioColorIndex + 1, #radioFrameColors)
+                        end
                         color = radioColor
                     end
                     if Faceroll.options[name] then
@@ -1373,6 +1384,37 @@ local function onEvent(self, event, arg1, arg2, ...)
         if Faceroll.classic or Faceroll.ascension then
             -- Classic seems to get fewer other events, just blast here
             updateBits("COMBAT_LOG_EVENT_UNFILTERED")
+
+            -- function unfuck(v)
+            --     if v == nil then
+            --         return "nil"
+            --     end
+            --     return v
+            -- end
+
+            -- local subEvent = arg2
+            -- print("subEvent: " .. subEvent);
+            -- if subEvent == "SPELL_DAMAGE" then
+            --     local sourceName = select(2, ...)
+            --     local destName = select(5, ...)
+            --     local spellName = select(8, ...)
+            --     local damageAmount = select(10, ...)
+            --     local overkill = select(11, ...)
+            --     damageAmount = tonumber(damageAmount) - tonumber(overkill)
+            --     if  subEvent == "SPELL_DAMAGE"
+            --     and sourceName == "Demonza"
+            --     and destName == "Elder Mottled Boar"
+            --     then
+            --         print("HIT BOAR: " .. damageAmount .. " (" .. overkill .. ")")
+
+            --         -- local o = "COMBAT_LOG_EVENT_UNFILTERED: " .. unfuck(subEvent)
+            --         -- for i = 1,20 do
+            --         --     local q = unfuck(select(i, ...))
+            --         --     o = o .. " " .. i .. " " .. q
+            --         -- end
+            --         -- print(o)
+            --     end
+            -- end
         end
     end
 end

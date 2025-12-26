@@ -33,18 +33,31 @@ spec.overlay = Faceroll.createOverlay({
     "drainsoulending",
     "wand",
     "needtap",
+    "needlife",
+    "darkharveststacks",
+    "moving",
+    "consumeshadows",
+    "petdying",
+    "consumingshadows",
+    "picnic",
+    "channeling",
 
-    "-- Options --",
-    "chill",
+    "-- Mode --",
+    "grind",
     "trash",
     "boss",
 })
 
 spec.options = {
-    "chill",
-
+    "grind|mode",
     "trash|mode",
     "boss|mode",
+}
+
+spec.radioColors = {
+    "ff8844",
+    "ffffaa",
+    "ffaaaa",
 }
 
 spec.calcState = function(state)
@@ -65,6 +78,9 @@ spec.calcState = function(state)
     if Faceroll.getDotRemainingNorm("Curse of Agony") > 0.1 then
         state.agony = true
     end
+
+    state.darkharveststacks = Faceroll.getBuffStacks("Dark Harvest")
+    state.moving = Faceroll.moving
 
     state.shards = GetItemCount("Soul Shard")
 
@@ -105,12 +121,50 @@ spec.calcState = function(state)
     local manamax = UnitPowerMax("player", Enum.PowerType.Mana)
     local mananorm = mana / manamax
 
-    if (hpnorm >= 0.25) and (mananorm < hpnorm) then
+    local hpbias = 0
+    if state.grind and (state.darkharveststacks > 3) then
+        hpbias = 0.1
+        if (hpnorm + hpbias) > 1.0 then
+            hpbias = 1.0 - hpnorm
+        end
+    end
+
+    if (hpnorm >= 0.25) and (mananorm < (hpnorm + hpbias)) then
         state.needtap = true
+    end
+
+    if hpnorm <= 0.75 then
+        state.needlife = true
     end
 
     if IsCurrentSpell(5019) then -- Shoot (wand)
         state.wand = true
+    end
+
+    if UnitExists("pet") and not UnitIsDead("pet") and UnitCreatureFamily("pet") == "Voidwalker" then
+        local pethp = UnitHealth("pet")
+        local pethpmax = UnitHealthMax("pet")
+        local pethpnorm = pethp / pethpmax
+        if pethpnorm < 0.8 then
+            state.consumeshadows = true
+        end
+        if pethpnorm < 0.4 then
+            state.petdying = true
+        end
+
+        local channelingSpell, _, _, _, channelEndMS = UnitChannelInfo("pet")
+        if channelingSpell then
+            -- local channelFinish = channelEndMS/1000 - GetTime()
+            state.consumingshadows = true
+        end
+    end
+
+    if Faceroll.isBuffActive("Food") or Faceroll.isBuffActive("Drink") then
+        state.picnic = true
+    end
+    local channelingSpell, _, _, _, channelEndMS = UnitChannelInfo("pet")
+    if channelingSpell then
+        state.channeling = true
     end
 
     return state
@@ -129,41 +183,61 @@ spec.actions = {
     "rof",
     "firestorm",
     "agony",
+    "drainlife",
+    "consumeshadows",
+    "food",
 }
 
 spec.calcAction = function(mode, state)
     local st = (mode == Faceroll.MODE_ST)
     local aoe = (mode == Faceroll.MODE_AOE)
 
-    if state.needtap and (not state.combat or not state.targetingenemy or state.chill) then
+    -- get some mana back
+    if state.needtap and not state.wand and not state.picnic and not state.channeling and (not state.combat or not state.targetingenemy or state.grind) then
         return "tap"
+
+    -- Eat instead of drain life if your pet is very, very weak
+    elseif state.grind and state.petdying and not state.combat and state.needlife and not state.picnic then
+        return "food"
+
+    -- Let your voidwalker heal itself if it is weak
+    elseif state.grind and state.consumeshadows and not state.combat and ((state.darkharveststacks == 0) or not state.needlife or state.picnic) then
+        return "consumeshadows"
+
+    -- Give your voidwalker a chance to eat dinner
+    elseif state.grind and state.consumingshadows then
+        return nil
 
     elseif st then
         if state.targetingenemy then
-            -- wait for pet to engage combat when chilling
-            if state.chill and not state.combat then
+            -- wait for pet to engage combat when grinding
+            if state.grind and not state.combat and (state.darkharveststacks == 0) then
                 return "sic"
+
+            -- a big free heal when grinding
+            elseif state.grind and state.needlife and state.darkharveststacks >= 6 and not state.deadsoon and state.combat and not state.moving then
+                return "drainlife"
 
             -- spend procs immediately
             elseif state.shadowtrance then
                 return "shadowbolt"
 
-            -- maintain dots, but when chilling, wait for combat
-            elseif not state.corruption and (not state.chill or state.combat) then
+            -- maintain dots, but when grinding, wait for combat
+            elseif not state.corruption then
                 return "corruption"
-            elseif state.boss and not state.agony and (not state.chill or state.combat) then
+            elseif state.boss and not state.agony then -- or state.grind
                 return "agony"
 
-            -- farm shards when chilling
-            elseif state.chill and state.drainready then
+            -- farm shards when grinding
+            elseif state.grind and state.drainready then
                 if not state.drainingsoul or state.drainsoulending then
                     return "drainsoul"
                 else
                     return nil
                 end
 
-            -- wand when chilling
-            elseif state.chill and state.deadsoon then
+            -- wand when grinding
+            elseif state.grind and state.deadsoon then
                 return "wand"
 
             -- filler
