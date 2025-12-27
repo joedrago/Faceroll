@@ -5,68 +5,46 @@ if Faceroll == nil then
     _, Faceroll = ...
 end
 
-local spec = Faceroll.createSpec("WL", "aaaaff", "WARLOCK-ASCENSION")
+local spec = Faceroll.createSpec("WG", "aaaaff", "WARLOCK-Crazy Cultist")
 
 Faceroll.enemyGridTrack(spec, "Corruption", "COR", "621518")
-Faceroll.enemyGridTrack(spec, "Curse of Agony", "COA", "626218")
 
 -----------------------------------------------------------------------------------------
 -- States
 
 spec.overlay = Faceroll.createOverlay({
-    "- Spells -",
-    "firestorm",
-    "handofguldan",
-
     "- Buffs -",
     "shadowtrance",
 
     "-- Dots --",
     "corruption",
-    "agony",
+
+    "- Dark Harvest -",
+    "darkharveststacks",
+    "moving",
+    "channeling",
+    "needhp",
 
     "- State -",
-    "min",
     "deadsoon",
     "drainingsoul",
     "drainsoulending",
-    "wand",
     "needtap",
-    "darkharveststacks",
-    "moving",
     "consumeshadows",
-    "petdying",
     "consumingshadows",
     "picnic",
     "channeling",
+    "group",
 
-    "-- Mode --",
-    "grind",
-    "trash",
-    "boss",
+    "-- Options --",
+    "burn",
 })
 
 spec.options = {
-    "grind|mode",
-    "trash|mode",
-    "boss|mode",
-}
-
-spec.radioColors = {
-    "ff8844",
-    "ffffaa",
-    "ffaaaa",
+    "burn",
 }
 
 spec.calcState = function(state)
-    -- Spells
-    if Faceroll.isSpellAvailable("Fire Storm") then
-        state.firestorm = true
-    end
-    if Faceroll.isSpellAvailable("Hand of Gul'dan") then
-        state.handofguldan = true
-    end
-
     -- Buffs
     if Faceroll.isBuffActive("Shadow Trance") or Faceroll.isBuffActive("Backlash") then
         state.shadowtrance = true
@@ -76,17 +54,22 @@ spec.calcState = function(state)
     if Faceroll.getDotRemainingNorm("Corruption") > 0.1 then
         state.corruption = true
     end
-    if Faceroll.getDotRemainingNorm("Curse of Agony") > 0.1 then
-        state.agony = true
-    end
 
+    state.darkharveststacks = Faceroll.getBuffStacks("Dark Harvest")
     state.moving = Faceroll.moving
+    local channelingSpell, _, _, _, channelEndMS = UnitChannelInfo("pet")
+    if channelingSpell then
+        state.channeling = true
+    end
+    if IsInGroup() then
+        state.group = true
+    end
 
     if Faceroll.targetingEnemy() then
         local targethp = UnitHealth("target")
         local targethpmax = UnitHealthMax("target")
         local targethpnorm = targethp / targethpmax
-        if targethpnorm <= 0.70 then
+        if targethpnorm <= 0.40 then
             state.deadsoon = true
         end
     end
@@ -106,21 +89,15 @@ spec.calcState = function(state)
     local mana = UnitPower("player", Enum.PowerType.Mana)
     local manamax = UnitPowerMax("player", Enum.PowerType.Mana)
     local mananorm = mana / manamax
-
-    local hpbias = 0
-    if state.grind then
-        hpbias = 0.1
-        if (hpnorm + hpbias) > 1.0 then
-            hpbias = 1.0 - hpnorm
-        end
+    local hpbias = 0.1
+    if (hpnorm + hpbias) > 1.0 then
+        hpbias = 1.0 - hpnorm
     end
-
     if (hpnorm >= 0.25) and (mananorm < (hpnorm + hpbias)) then
         state.needtap = true
     end
-
-    if IsCurrentSpell(5019) then -- Shoot (wand)
-        state.wand = true
+    if hpnorm < 0.7 then
+        state.needhp = true
     end
 
     if UnitExists("pet") and not UnitIsDead("pet") and UnitCreatureFamily("pet") == "Voidwalker" then
@@ -129,9 +106,6 @@ spec.calcState = function(state)
         local pethpnorm = pethp / pethpmax
         if pethpnorm < 0.8 then
             state.consumeshadows = true
-        end
-        if pethpnorm < 0.4 then
-            state.petdying = true
         end
 
         local channelingSpell, _, _, _, channelEndMS = UnitChannelInfo("pet")
@@ -160,30 +134,28 @@ spec.actions = {
     "shadowbolt",
     "corruption",
     "drainsoul",
-    "wand",
     "tap",
     "rof",
-    "firestorm",
-    "agony",
-    "handofguldan",
     "consumeshadows",
-    "food",
+    "drainlife",
 }
 
 spec.calcAction = function(mode, state)
     local st = (mode == Faceroll.MODE_ST)
     local aoe = (mode == Faceroll.MODE_AOE)
 
+    local needdrain = state.needhp and (state.darkharveststacks >= 8) and not state.deadsoon and not state.moving and not state.channeling
+
     -- get some mana back
-    if state.needtap and not state.wand and not state.picnic and not state.channeling and (not state.combat or not state.targetingenemy) then
+    if state.needtap and not state.picnic and not state.channeling and (not state.combat or not state.targetingenemy) then
         return "tap"
 
     -- Let your voidwalker heal itself if it is weak
-    elseif state.grind and state.consumeshadows and not state.combat then
+    elseif state.consumeshadows and not state.combat then
         return "consumeshadows"
 
-    -- Give your voidwalker a chance to eat dinner
-    elseif state.grind and state.consumingshadows then
+    -- Give your voidwalker a chance to eat dinner, unless we have a juicy proc
+    elseif state.consumingshadows and not state.shadowtrance and not needdrain then
         return nil
 
     elseif st then
@@ -192,30 +164,24 @@ spec.calcAction = function(mode, state)
             if state.shadowtrance then
                 return "shadowbolt"
 
+            elseif needdrain then
+                return "drainlife"
+
             -- wait for pet to engage combat when grinding
-            elseif state.grind and not state.combat then
+            elseif not state.combat and not state.group then
                 return "sic"
 
-            -- maintain dots, but when grinding, wait for combat
+            -- maintain dots
             elseif not state.corruption then
                 return "corruption"
-            elseif state.boss and not state.agony then
-                return "agony"
 
-            -- farm shards when grinding
-            elseif state.grind and state.deadsoon then
-                if not state.drainingsoul or state.drainsoulending then
+            -- farm shards/mana, but skip this when burning
+            elseif state.deadsoon and not state.burn then
+                if not state.channeling then
                     return "drainsoul"
                 else
                     return nil
                 end
-
-            -- wand when grinding
-            elseif state.grind and state.deadsoon then
-                return "wand"
-
-            elseif state.handofguldan and not state.grind then
-                return "handofguldan"
 
             -- filler
             else
@@ -225,13 +191,7 @@ spec.calcAction = function(mode, state)
         end
 
     elseif aoe then
-        if state.firestorm then
-            return "firestorm"
-        elseif state.handofguldan then
-            return "handofguldan"
-        else
-            return "rof"
-        end
+        return "rof"
     end
 
     return nil
