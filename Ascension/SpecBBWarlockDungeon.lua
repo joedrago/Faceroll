@@ -8,7 +8,7 @@ end
 -- Heretic of Gul'dan
 -- Glyph of Immolate or Incinerate
 
-local spec = Faceroll.createSpec("WD", "aaaaff", "WARLOCK-Hand of Gul'dan")
+local spec = Faceroll.createSpec("WD", "aaaaff", "WARLOCK-Shadow Crash")
 
 Faceroll.enemyGridTrack(spec, "Corruption", "COR", "621518")
 Faceroll.enemyGridTrack(spec, "Curse of Agony", "COA", "626218")
@@ -19,12 +19,13 @@ Faceroll.enemyGridTrack(spec, "Curse of Agony", "COA", "626218")
 spec.overlay = Faceroll.createOverlay({
     "- Spells -",
     "firestorm",
-    "handofguldan",
+    "shadowcrash",
 
     "-- Dots --",
     "corruption",
     "agony",
     "immolate",
+    "immodeadzone",
 
     "- State -",
     "needtap",
@@ -44,13 +45,15 @@ spec.radioColors = {
     "ffaaaa",
 }
 
+local immoDeadzone = Faceroll.deadzoneCreate("Immolate", 0.3, 1)
+
 spec.calcState = function(state)
     -- Spells
     if Faceroll.isSpellAvailable("Fire Storm") then
         state.firestorm = true
     end
-    if Faceroll.isSpellAvailable("Hand of Gul'dan") then
-        state.handofguldan = true
+    if Faceroll.isSpellAvailable("Shadow Crash") then
+        state.shadowcrash = true
     end
 
     -- -- Debuffs
@@ -62,6 +65,11 @@ spec.calcState = function(state)
     end
     if Faceroll.getDotRemainingNorm("Immolate") > 0.1 then
         state.immolate = true
+    end
+
+    Faceroll.deadzoneUpdate(immoDeadzone)
+    if Faceroll.deadzoneActive(immoDeadzone) then
+        state.immodeadzone = true
     end
 
     local hp = UnitHealth("player")
@@ -85,7 +93,7 @@ spec.actions = {
     "incinerate",
     "corruption",
     "agony",
-    "handofguldan",
+    "shadowcrash",
     "tap",
     "rof",
     "firestorm",
@@ -107,11 +115,11 @@ spec.calcAction = function(mode, state)
                 return "corruption"
             elseif state.boss and not state.agony then
                 return "agony"
-            elseif not state.immolate then
+            elseif not state.immolate and not state.immodeadzone then
                 return "immolate"
 
-            elseif state.handofguldan then
-                return "handofguldan"
+            -- elseif state.shadowcrash then
+            --     return "shadowcrash"
 
             -- filler
             else
@@ -123,8 +131,8 @@ spec.calcAction = function(mode, state)
     elseif aoe then
         if state.firestorm then
             return "firestorm"
-        elseif state.handofguldan then
-            return "handofguldan"
+        elseif state.shadowcrash then
+            return "shadowcrash"
         else
             return "rof"
         end
