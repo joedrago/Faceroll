@@ -846,15 +846,17 @@ end
 
 local function enabledFrameUpdate()
     if enabledFrame ~= nil and optionsFrame ~= nil then
-        local spec = nil
-        if Faceroll.active then
-            spec = Faceroll.activeSpec()
-        end
+        local spec = Faceroll.activeSpec()
+        local offSpec = Faceroll.activeSpecs["OFF"]
+        local displayColor = offSpec.color
         if spec == nil then
-            spec = Faceroll.activeSpecs["OFF"]
+            spec = offSpec
+        end
+        if Faceroll.active then
+            displayColor = spec.color
         end
 
-        enabledFrame:setText(Faceroll.textColor(spec.name, spec.color))
+        enabledFrame:setText(Faceroll.textColor(spec.name, displayColor))
 
         local optionsFrameColor = Faceroll.optionsFrameColor
         if optionsFrameColor == nil then
@@ -867,36 +869,35 @@ local function enabledFrameUpdate()
         if spec.radioColors ~= nil then
             radioFrameColors = spec.radioColors
         end
-        if Faceroll.active then
-            for _, rawName in ipairs(spec.options) do
-                local name, radio = strsplit("|", rawName)
-                if Faceroll.optionsFrameShowAll then
-                    local color = optionsFrameColor
-                    if radio ~= nil then
-                        local radioColor = spec.color
-                        if radioFrameColors ~= nil then
-                            radioColor = radioFrameColors[radioColorIndex + 1]
-                            radioColorIndex = mod(radioColorIndex + 1, #radioFrameColors)
-                        end
-                        color = radioColor
+
+        for _, rawName in ipairs(spec.options) do
+            local name, radio = strsplit("|", rawName)
+            if Faceroll.optionsFrameShowAll then
+                local color = optionsFrameColor
+                if radio ~= nil then
+                    local radioColor = spec.color
+                    if radioFrameColors ~= nil then
+                        radioColor = radioFrameColors[radioColorIndex + 1]
+                        radioColorIndex = mod(radioColorIndex + 1, #radioFrameColors)
                     end
-                    if not Faceroll.options[name] then
-                        color = "222222"
+                    color = radioColor
+                end
+                if not Faceroll.options[name] then
+                    color = "222222"
+                end
+                optionsText = optionsText .. Faceroll.textColor(string.upper(name), color) .. "\n"
+            else
+                local color = optionsFrameColor
+                if radio ~= nil then
+                    local radioColor = spec.color
+                    if radioFrameColors ~= nil then
+                        radioColor = radioFrameColors[radioColorIndex + 1]
+                        radioColorIndex = mod(radioColorIndex + 1, #radioFrameColors)
                     end
+                    color = radioColor
+                end
+                if Faceroll.options[name] then
                     optionsText = optionsText .. Faceroll.textColor(string.upper(name), color) .. "\n"
-                else
-                    local color = optionsFrameColor
-                    if radio ~= nil then
-                        local radioColor = spec.color
-                        if radioFrameColors ~= nil then
-                            radioColor = radioFrameColors[radioColorIndex + 1]
-                            radioColorIndex = mod(radioColorIndex + 1, #radioFrameColors)
-                        end
-                        color = radioColor
-                    end
-                    if Faceroll.options[name] then
-                        optionsText = optionsText .. Faceroll.textColor(string.upper(name), color) .. "\n"
-                    end
                 end
             end
         end
