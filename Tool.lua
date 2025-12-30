@@ -32,6 +32,7 @@ KEYCODE_ST1 = Faceroll.lookupKeyCode(Faceroll.keys["mode_st1"])
 KEYCODE_ST2 = Faceroll.lookupKeyCode(Faceroll.keys["mode_st2"])
 KEYCODE_AOE1 = Faceroll.lookupKeyCode(Faceroll.keys["mode_aoe1"])
 KEYCODE_AOE2 = Faceroll.lookupKeyCode(Faceroll.keys["mode_aoe2"])
+KEYCODE_RESET1 = Faceroll.lookupKeyCode(Faceroll.keys["reset1"])
 
 function onKeyCode(keyCode)
     if facerollActive then
@@ -46,6 +47,11 @@ function onKeyCode(keyCode)
         then
             FRDEBUG("Faceroll: AOE")
             facerollAction = Faceroll.MODE_AOE
+            return true
+        elseif (KEYCODE_RESET1 ~= nil) and (keyCode == KEYCODE_RESET1)
+        then
+            FRDEBUG("Faceroll: Reset")
+            facerollAction = Faceroll.MODE_NONE
             return true
         end
 

@@ -53,7 +53,12 @@ static int wlIsWowInForeground()
         int len = GetWindowTextA(win, titleBuffer, 1023);
         if (len > 0) {
             titleBuffer[len] = 0;
+            // printf("Foreground Window: %s\n", titleBuffer);
             if (!strcmp(titleBuffer, "World of Warcraft")) {
+                lastWowWindow = win;
+                return 1;
+            }
+            if (!strcmp(titleBuffer, "Ascension")) {
                 lastWowWindow = win;
                 return 1;
             }

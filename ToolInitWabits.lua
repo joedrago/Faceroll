@@ -92,4 +92,4 @@ Faceroll.load = WABITS_LOAD
 -----------------------------------------------------------------------------------------
 -- Shared code
 
-require("./ActMain")
+require("./Tool")
