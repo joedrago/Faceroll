@@ -7,6 +7,9 @@ end
 
 -- Heretic of Gul'dan
 -- Glyph of Immolate or Incinerate
+-- Dusk Till Dawn (Shadowburn!)
+-- Decisive Decimation (useless until 48)
+-- Inner Flame (now) -> Unstable Void (50)
 
 local spec = Faceroll.createSpec("WD", "aaaaff", "WARLOCK-Shadow Crash")
 
@@ -20,6 +23,7 @@ spec.overlay = Faceroll.createOverlay({
     "- Spells -",
     "firestorm",
     "shadowcrash",
+    "conflagrate",
 
     "-- Dots --",
     "corruption",
@@ -55,6 +59,9 @@ spec.calcState = function(state)
     if Faceroll.isSpellAvailable("Shadow Crash") then
         state.shadowcrash = true
     end
+    if Faceroll.isSpellAvailable("Conflagrate") then
+        state.conflagrate = true
+    end
 
     -- -- Debuffs
     if Faceroll.getDotRemainingNorm("Corruption") > 0.1 then
@@ -67,6 +74,7 @@ spec.calcState = function(state)
         state.immolate = true
     end
 
+    -- Never cast Immolate twice in a row
     Faceroll.deadzoneUpdate(immoDeadzone)
     if Faceroll.deadzoneActive(immoDeadzone) then
         state.immodeadzone = true
@@ -98,6 +106,7 @@ spec.actions = {
     "rof",
     "firestorm",
     "immolate",
+    "conflagrate",
 }
 
 spec.calcAction = function(mode, state)
@@ -115,6 +124,8 @@ spec.calcAction = function(mode, state)
                 return "corruption"
             elseif state.boss and not state.agony then
                 return "agony"
+            elseif state.conflagrate then
+                return "conflagrate"
             elseif not state.immolate and not state.immodeadzone then
                 return "immolate"
 
@@ -129,7 +140,9 @@ spec.calcAction = function(mode, state)
         end
 
     elseif aoe then
-        if state.firestorm then
+        if state.targetingenemy and state.conflagrate then
+            return "conflagrate"
+        elseif state.firestorm then
             return "firestorm"
         elseif state.shadowcrash then
             return "shadowcrash"
