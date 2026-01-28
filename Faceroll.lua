@@ -24,6 +24,7 @@ Faceroll.updateBitsCounter = 0
 Faceroll.targetChanged = false
 Faceroll.active = false
 Faceroll.kickedRadios = false
+Faceroll.combatJustEnded = false
 
 local nextSpec = 0
 Faceroll.availableSpecs = {}
@@ -594,6 +595,10 @@ else
 end
 
 Faceroll.ascensionFindAura = function(reqUnit, reqName, reqFilter)
+    if not Faceroll.ascension then
+        print("ERROR: Faceroll.ascensionFindAura()")
+        return
+    end
     for auraIndex=1,40 do
         local name, rank, icon, stacks, dispelType, duration, expirationTime, source, isStealable, nameplateShowPersonal, spellId, canApplyAura, isBossDebuff, castByPlayer, nameplateShowAll, timeMod = UnitAura(reqUnit, auraIndex, reqFilter)
         if name == reqName then
@@ -1006,6 +1011,7 @@ local function actionKey(spec, mode, state)
 end
 
 local function updateBits(who)
+    Faceroll.combatJustEnded = (who == "PLAYER_REGEN_ENABLED")
     if Faceroll.debugLastUpdateEventsEnabled then
         if Faceroll.debugLastUpdateWho[who] == nil then
             Faceroll.debugLastUpdateWho[who] = 0
@@ -1096,6 +1102,15 @@ local function setOptionFalse(option)
     Faceroll.options[option] = nil
     enabledFrameUpdate()
     updateBits("setOptionFalse")
+end
+
+local function setOptionString(raw)
+    local spec = Faceroll.activeSpec()
+    if (spec == nil) or spec.setOption == nil then
+        print("/frs: Active spec doesn't support this.")
+    else
+        spec.setOption(raw)
+    end
 end
 
 local function toggleRadioOption(radioToToggle)
@@ -1455,7 +1470,10 @@ end)
 -- Slash command registration
 
 SLASH_FR1 = '/fr'
-SlashCmdList["FR"] = activeFrameSet
+SlashCmdList["FR"] = function(text)
+    activeFrameSet(text)
+    updateBits("/fr")
+end
 
 SLASH_FRA1 = '/fra'
 SlashCmdList["FRA"] = facerollActivateToggle
@@ -1474,6 +1492,9 @@ SlashCmdList["FRT"] = setOptionTrue
 
 SLASH_FRF1 = '/frf'
 SlashCmdList["FRF"] = setOptionFalse
+
+SLASH_FRS1 = '/frs'
+SlashCmdList["FRS"] = setOptionString
 
 SLASH_FRD1 = '/frd'
 SlashCmdList["FRD"] = toggleDebug

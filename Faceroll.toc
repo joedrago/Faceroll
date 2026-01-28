@@ -37,6 +37,8 @@ Ascension\SpecBBDruid.lua
 Ascension\SpecBBMage.lua
 Ascension\SpecBBPaladin.lua
 Ascension\SpecBBPriest.lua
+Ascension\SpecBBRogue.lua
+Ascension\SpecBBShaman.lua
 Ascension\SpecBBWarlockDungeon.lua
 Ascension\SpecBBWarlockGrind.lua
 

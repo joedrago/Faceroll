@@ -25,6 +25,10 @@ spec.overlay = Faceroll.createOverlay({
     "channeling",
     "needhp",
 
+    "- Spells -",
+    "soulfire",
+    "demonicempowerment",
+
     "- State -",
     "deadsoon",
     "drainingsoul",
@@ -43,6 +47,8 @@ spec.overlay = Faceroll.createOverlay({
 spec.options = {
     "burn",
 }
+
+local soulfireDeadzone = Faceroll.deadzoneCreate("Soul Fire", 0.3, 1)
 
 spec.calcState = function(state)
     -- Buffs
@@ -100,6 +106,15 @@ spec.calcState = function(state)
         state.needhp = true
     end
 
+    Faceroll.deadzoneUpdate(soulfireDeadzone)
+    if (Faceroll.isBuffActive("Decisive Decimation") or Faceroll.isBuffActive("Decimation")) and Faceroll.isSpellAvailable("Soul Fire") and not Faceroll.deadzoneActive(soulfireDeadzone) then
+        state.soulfire = true
+    end
+
+    if Faceroll.isSpellAvailable("Demonic Empowerment") then
+        state.demonicempowerment = true
+    end
+
     if UnitExists("pet") and not UnitIsDead("pet") and UnitCreatureFamily("pet") == "Voidwalker" then
         local pethp = UnitHealth("pet")
         local pethpmax = UnitHealthMax("pet")
@@ -138,6 +153,8 @@ spec.actions = {
     "rof",
     "consumeshadows",
     "drainlife",
+    "soulfire",
+    "demonicempowerment",
 }
 
 spec.calcAction = function(mode, state)
@@ -171,6 +188,9 @@ spec.calcAction = function(mode, state)
             elseif not state.combat and not state.group then
                 return "sic"
 
+            elseif state.demonicempowerment then
+                return "demonicempowerment"
+
             -- maintain dots
             elseif not state.corruption then
                 return "corruption"
@@ -184,6 +204,8 @@ spec.calcAction = function(mode, state)
                 end
 
             -- filler
+            elseif state.soulfire then
+                return "soulfire"
             else
                 return "shadowbolt"
 

@@ -24,6 +24,9 @@ spec.overlay = Faceroll.createOverlay({
     "firestorm",
     "shadowcrash",
     "conflagrate",
+    "soulfire",
+    "shadowfury",
+    "backdraft",
 
     "-- Dots --",
     "corruption",
@@ -50,6 +53,7 @@ spec.radioColors = {
 }
 
 local immoDeadzone = Faceroll.deadzoneCreate("Immolate", 0.3, 1)
+local soulfireDeadzone = Faceroll.deadzoneCreate("Soul Fire", 0.3, 1)
 
 spec.calcState = function(state)
     -- Spells
@@ -61,6 +65,17 @@ spec.calcState = function(state)
     end
     if Faceroll.isSpellAvailable("Conflagrate") then
         state.conflagrate = true
+    end
+    if Faceroll.isSpellAvailable("Shadowfury") then
+        state.shadowfury = true
+    end
+    if Faceroll.getBuffStacks("Backdraft") > 0 then
+        state.backdraft = true
+    end
+
+    Faceroll.deadzoneUpdate(soulfireDeadzone)
+    if Faceroll.isBuffActive("Decisive Decimation") and Faceroll.isSpellAvailable("Soul Fire") and not Faceroll.deadzoneActive(soulfireDeadzone) then
+        state.soulfire = true
     end
 
     -- -- Debuffs
@@ -107,6 +122,8 @@ spec.actions = {
     "firestorm",
     "immolate",
     "conflagrate",
+    "soulfire",
+    "shadowfury",
 }
 
 spec.calcAction = function(mode, state)
@@ -133,6 +150,8 @@ spec.calcAction = function(mode, state)
             --     return "shadowcrash"
 
             -- filler
+            elseif state.soulfire then
+                return "soulfire"
             else
                 return "incinerate"
 
@@ -142,10 +161,12 @@ spec.calcAction = function(mode, state)
     elseif aoe then
         if state.targetingenemy and state.conflagrate then
             return "conflagrate"
-        elseif state.firestorm then
-            return "firestorm"
         elseif state.shadowcrash then
             return "shadowcrash"
+        elseif state.firestorm then
+            return "firestorm"
+        elseif state.shadowfury and not state.backdraft then
+            return "shadowfury"
         else
             return "rof"
         end
