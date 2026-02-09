@@ -8,6 +8,7 @@ end
 local spec = Faceroll.createSpec("WD", "aaaaff", "WARLOCK-Demonic Reoccurence")
 
 Faceroll.enemyGridTrack(spec, "Corruption", "COR", "621518")
+Faceroll.enemyGridTrack(spec, "Immolate", "IMM", "626218")
 -- Faceroll.enemyGridTrack(spec, "Curse of Agony", "COA", "626218")
 
 -----------------------------------------------------------------------------------------
@@ -18,6 +19,8 @@ spec.overlay = Faceroll.createOverlay({
     "firestorm",
     "meta",
     "soulfire",
+    "drainingsoul",
+    "empowerment",
 
     "-- Buffs --",
     "shadowtrance",
@@ -25,27 +28,30 @@ spec.overlay = Faceroll.createOverlay({
 
     "-- Dots --",
     "corruption",
-    "agony",
+    "elements",
     "immolate",
     "immodeadzone",
     "incineratedeadzone",
 
     "- State -",
     "needtap",
+    "wantstapbuff",
+    "shards",
 
     "-- Mode --",
-    "hold",
-    "pump",
+    "trash",
+    "boss",
 })
 
 spec.options = {
-    "hold|mode",
-    "pump|mode",
+    "shards",
+    "boss|mode",
+    "trash|mode",
 }
 
 spec.radioColors = {
-    "ffffaa",
     "ffaaaa",
+    "ffffaa",
 }
 
 local immoDeadzone = Faceroll.deadzoneCreate("Immolate", 0.3, 2)
@@ -59,6 +65,14 @@ spec.calcState = function(state)
     end
     if Faceroll.isSpellAvailable("Metamorphosis") then
         state.meta = true
+    end
+    if Faceroll.isSpellAvailable("Demonic Empowerment") then
+        state.empowerment = true
+    end
+
+    local channelingSpell, _, _, _, _, channelEndMS = UnitChannelInfo("player")
+    if channelingSpell == "Drain Soul" then
+        state.drainingsoul = true
     end
 
     Faceroll.deadzoneUpdate(soulfireDeadzone)
@@ -85,8 +99,8 @@ spec.calcState = function(state)
     if Faceroll.getDotRemainingNorm("Corruption") > 0.1 then
         state.corruption = true
     end
-    if Faceroll.getDotRemainingNorm("Curse of Agony") > 0.1 then
-        state.agony = true
+    if Faceroll.getDotRemainingNorm("Curse of the Elements") > 0.1 then
+        state.elements = true
     end
     if Faceroll.getDotRemainingNorm("Immolate") > 0.1 then
         state.immolate = true
@@ -107,6 +121,9 @@ spec.calcState = function(state)
     if (hpnorm >= 0.25) and (mananorm < hpnorm) then
         state.needtap = true
     end
+    if not Faceroll.isBuffActive("Life Tap") then
+        state.wantstapbuff = true
+    end
 
     return state
 end
@@ -117,56 +134,58 @@ end
 spec.actions = {
     "tap",
     "corruption",
-    "agony",
+    "elements",
     "immolate",
-    "meta",
     "soulfire",
-    "shadowbolt",
+    "incinerate",
     "firestorm",
     "seed",
-    "incinerate",
+    "drainsoul",
+    "empowerment",
 }
 
 spec.calcAction = function(mode, state)
     local st = (mode == Faceroll.MODE_ST)
     local aoe = (mode == Faceroll.MODE_AOE)
 
+    if state.shards then
+        if not state.drainingsoul then
+            return "drainsoul"
+        else
+            return nil
+        end
+
     -- get some mana back
-    if state.needtap and (not state.combat or not state.targetingenemy) then
+    elseif state.needtap and (not state.combat or not state.targetingenemy or state.wantstapbuff) then
         return "tap"
 
     elseif st then
         if state.targetingenemy then
-            if state.pump and state.meta then
-                return "meta"
+            -- Curse
+            if state.boss and not state.elements then
+                return "elements"
 
-            elseif state.shadowtrance then
-                return "shadowbolt"
+            -- Pet buff
+            elseif state.empowerment then
+                return "empowerment"
 
             -- maintain dots
             elseif not state.corruption then
                 return "corruption"
-            -- elseif state.pump and not state.agony then
-            --     return "agony"
             elseif not state.immolate and not state.immodeadzone then
                 return "immolate"
 
             -- filler
             elseif state.soulfire then
                 return "soulfire"
-            elseif state.moltencore and not state.incineratedeadzone then
-                return "incinerate"
             else
-                return "shadowbolt"
+                return "incinerate"
 
             end
         end
 
     elseif aoe then
-        if state.pump and state.meta then
-            return "meta"
-
-        elseif state.firestorm then
+        if state.firestorm then
             return "firestorm"
 
         else
