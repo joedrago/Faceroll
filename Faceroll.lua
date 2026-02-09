@@ -79,8 +79,9 @@ Faceroll.aliasSpec = function(spec, key)
     Faceroll.specAliases[key] = spec
 end
 
-Faceroll.createState = function(spec)
+Faceroll.createState = function(spec, specKey)
     local state = {}
+    state.key = specKey
     for _, rawName in ipairs(spec.options) do
         local name, radio = strsplit("|", rawName)
         if Faceroll.options[name] ~= nil then
@@ -201,7 +202,7 @@ Faceroll.activeSpec = function()
     end
     local specKey = playerClass .. "-" .. specIndex
     local spec = Faceroll.activeSpecs[specKey]
-    return spec
+    return spec, specKey
 end
 
 -----------------------------------------------------------------------------------------
@@ -1019,10 +1020,10 @@ local function updateBits(who)
         Faceroll.debugLastUpdateWho[who] = Faceroll.debugLastUpdateWho[who] + 1
     end
 
-    local spec = Faceroll.activeSpec()
+    local spec, specKey = Faceroll.activeSpec()
     if spec and spec.calcState then
         Faceroll.clearDebugLines()
-        local state = spec.calcState(Faceroll.createState(spec))
+        local state = spec.calcState(Faceroll.createState(spec, specKey))
 
         local bridgeState = {}
         bridgeState.key0 = actionKey(spec, Faceroll.MODE_ST, state)

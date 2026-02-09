@@ -5,16 +5,10 @@ if Faceroll == nil then
     _, Faceroll = ...
 end
 
--- Heretic of Gul'dan
--- Glyph of Immolate or Incinerate
--- Dusk Till Dawn (Shadowburn!)
--- Decisive Decimation (useless until 48)
--- Inner Flame (now) -> Unstable Void (50)
-
-local spec = Faceroll.createSpec("WD", "aaaaff", "WARLOCK-Shadow Crash")
+local spec = Faceroll.createSpec("WD", "aaaaff", "WARLOCK-Demonic Reoccurence")
 
 Faceroll.enemyGridTrack(spec, "Corruption", "COR", "621518")
-Faceroll.enemyGridTrack(spec, "Curse of Agony", "COA", "626218")
+-- Faceroll.enemyGridTrack(spec, "Curse of Agony", "COA", "626218")
 
 -----------------------------------------------------------------------------------------
 -- States
@@ -22,29 +16,31 @@ Faceroll.enemyGridTrack(spec, "Curse of Agony", "COA", "626218")
 spec.overlay = Faceroll.createOverlay({
     "- Spells -",
     "firestorm",
-    "shadowcrash",
-    "conflagrate",
+    "meta",
     "soulfire",
-    "shadowfury",
-    "backdraft",
+
+    "-- Buffs --",
+    "shadowtrance",
+    "moltencore",
 
     "-- Dots --",
     "corruption",
     "agony",
     "immolate",
     "immodeadzone",
+    "incineratedeadzone",
 
     "- State -",
     "needtap",
 
     "-- Mode --",
-    "trash",
-    "boss",
+    "hold",
+    "pump",
 })
 
 spec.options = {
-    "trash|mode",
-    "boss|mode",
+    "hold|mode",
+    "pump|mode",
 }
 
 spec.radioColors = {
@@ -52,30 +48,37 @@ spec.radioColors = {
     "ffaaaa",
 }
 
-local immoDeadzone = Faceroll.deadzoneCreate("Immolate", 0.3, 1)
-local soulfireDeadzone = Faceroll.deadzoneCreate("Soul Fire", 0.3, 1)
+local immoDeadzone = Faceroll.deadzoneCreate("Immolate", 0.3, 2)
+local soulfireDeadzone = Faceroll.deadzoneCreate("Soul Fire", 0.3, 2)
+local incinerateDeadzone = Faceroll.deadzoneCreate("Incinerate", 0.3, 2)
 
 spec.calcState = function(state)
     -- Spells
     if Faceroll.isSpellAvailable("Fire Storm") then
         state.firestorm = true
     end
-    if Faceroll.isSpellAvailable("Shadow Crash") then
-        state.shadowcrash = true
-    end
-    if Faceroll.isSpellAvailable("Conflagrate") then
-        state.conflagrate = true
-    end
-    if Faceroll.isSpellAvailable("Shadowfury") then
-        state.shadowfury = true
-    end
-    if Faceroll.getBuffStacks("Backdraft") > 0 then
-        state.backdraft = true
+    if Faceroll.isSpellAvailable("Metamorphosis") then
+        state.meta = true
     end
 
     Faceroll.deadzoneUpdate(soulfireDeadzone)
-    if Faceroll.isBuffActive("Decisive Decimation") and Faceroll.isSpellAvailable("Soul Fire") and not Faceroll.deadzoneActive(soulfireDeadzone) then
+    if Faceroll.isBuffActive("Decimation") and Faceroll.isSpellAvailable("Soul Fire") and not Faceroll.deadzoneActive(soulfireDeadzone) then
         state.soulfire = true
+    end
+
+    if Faceroll.getBuffStacks("Molten Core") == 1 then
+        Faceroll.deadzoneUpdate(incinerateDeadzone)
+    end
+    if Faceroll.deadzoneActive(incinerateDeadzone) then
+        state.incineratedeadzone = true
+    end
+
+    -- Buffs
+    if Faceroll.isBuffActive("Shadow Trance") then
+        state.shadowtrance = true
+    end
+    if Faceroll.isBuffActive("Molten Core") then
+        state.moltencore = true
     end
 
     -- -- Debuffs
@@ -112,18 +115,16 @@ end
 -- Actions
 
 spec.actions = {
-    "sic",
-    "incinerate",
+    "tap",
     "corruption",
     "agony",
-    "shadowcrash",
-    "tap",
-    "rof",
-    "firestorm",
     "immolate",
-    "conflagrate",
+    "meta",
     "soulfire",
-    "shadowfury",
+    "shadowbolt",
+    "firestorm",
+    "seed",
+    "incinerate",
 }
 
 spec.calcAction = function(mode, state)
@@ -136,39 +137,41 @@ spec.calcAction = function(mode, state)
 
     elseif st then
         if state.targetingenemy then
+            if state.pump and state.meta then
+                return "meta"
+
+            elseif state.shadowtrance then
+                return "shadowbolt"
+
             -- maintain dots
-            if state.boss and not state.corruption then
+            elseif not state.corruption then
                 return "corruption"
-            elseif state.boss and not state.agony then
-                return "agony"
-            elseif state.conflagrate then
-                return "conflagrate"
+            -- elseif state.pump and not state.agony then
+            --     return "agony"
             elseif not state.immolate and not state.immodeadzone then
                 return "immolate"
-
-            -- elseif state.shadowcrash then
-            --     return "shadowcrash"
 
             -- filler
             elseif state.soulfire then
                 return "soulfire"
-            else
+            elseif state.moltencore and not state.incineratedeadzone then
                 return "incinerate"
+            else
+                return "shadowbolt"
 
             end
         end
 
     elseif aoe then
-        if state.targetingenemy and state.conflagrate then
-            return "conflagrate"
-        elseif state.shadowcrash then
-            return "shadowcrash"
+        if state.pump and state.meta then
+            return "meta"
+
         elseif state.firestorm then
             return "firestorm"
-        elseif state.shadowfury and not state.backdraft then
-            return "shadowfury"
+
         else
-            return "rof"
+            return "seed"
+
         end
     end
 

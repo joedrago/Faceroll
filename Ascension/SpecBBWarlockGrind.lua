@@ -114,6 +114,9 @@ spec.calcState = function(state)
     if Faceroll.isSpellAvailable("Demonic Empowerment") then
         state.demonicempowerment = true
     end
+    if Faceroll.isSpellAvailable("Metamorphosis") then
+        state.meta = true
+    end
 
     if UnitExists("pet") and not UnitIsDead("pet") and UnitCreatureFamily("pet") == "Voidwalker" then
         local pethp = UnitHealth("pet")
@@ -155,6 +158,7 @@ spec.actions = {
     "drainlife",
     "soulfire",
     "demonicempowerment",
+    "meta",
 }
 
 spec.calcAction = function(mode, state)
@@ -177,8 +181,11 @@ spec.calcAction = function(mode, state)
 
     elseif st then
         if state.targetingenemy then
+            if state.burn and state.meta then
+                return "meta"
+
             -- spend procs immediately
-            if state.shadowtrance then
+            elseif state.shadowtrance then
                 return "shadowbolt"
 
             elseif needdrain then

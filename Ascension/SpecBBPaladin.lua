@@ -6,6 +6,8 @@ if Faceroll == nil then
 end
 
 local spec = Faceroll.createSpec("PAL", "975774", "PALADIN-ASCENSION")
+Faceroll.aliasSpec(spec, "PALADIN-Twist of Faith")
+Faceroll.aliasSpec(spec, "PALADIN-Hammerstorm")
 
 spec.melee = "Crusader Strike"
 
@@ -46,7 +48,20 @@ local function targetIsPartyMember()
     return false
 end
 
-local function requestedBuff(unitIndex)
+local function UnitRole(unit)
+    local roleTank, roleHealer, roleDPS = UnitGroupRolesAssigned(unit)
+    local role = "NONE"
+    if roleTank then
+        role = "TANK"
+    elseif roleHealer then
+        role = "HEALER"
+    elseif roleDPS then
+        role = "DPS"
+    end
+    return role
+end
+
+local function requestedBuff(unitIndex, class, role)
     if partyBuffsRequested == nil then
         return nil
     end
@@ -56,7 +71,38 @@ local function requestedBuff(unitIndex)
         return nil
     end
 
-    local buff = availableBuffs[partyBuffsRequested[unitIndex]]
+    local buffShortName = partyBuffsRequested[unitIndex]
+
+    if buffShortName == "a" then
+        -- assume Kings
+        buffShortName = "k"
+
+        if role == "HEALER" then
+            buffShortName = "w"
+        end
+        if class == "MAGE" then
+            buffShortName = "w"
+        end
+        if class == "WARLOCK" then
+            buffShortName = "w"
+        end
+        if class == "PRIEST" then
+            buffShortName = "w"
+        end
+        if not Faceroll.options["nomight"] then
+            if class == "HUNTER" then
+                buffShortName = "m"
+            end
+            if class == "ROGUE" then
+                buffShortName = "m"
+            end
+            if class == "WARRIOR" and role == "DPS" then
+                buffShortName = "m"
+            end
+        end
+    end
+
+    local buff = availableBuffs[buffShortName]
     if buff == nil then
         return nil
     end
@@ -73,14 +119,17 @@ spec.setOption = function(raw)
 
     partyBuffsRequested = { strsplit(" ", raw) }
     for i, v in ipairs(partyBuffsRequested) do
-        local unitName = UnitName("party" .. i)
-        if unitName ~= nil then
-            local buff = availableBuffs[v]
+        local unit = "party" .. i
+        local unitName = UnitName(unit)
+        if UnitExists(unit) then
+            local _, class = UnitClass(unit)
+            local role = UnitRole(unit)
+            local buff = requestedBuff(i, class, role)
             local buffName = "(Ignore)"
             if buff ~= nil then
                 buffName = buff.name
             end
-            print(" * " .. Faceroll.textColor(unitName, "ffffaa") .. " -> " .. Faceroll.textColor(buffName, "aaffaa"))
+            print(" * " .. Faceroll.textColor(unitName, "ffffaa") .. "(" .. Faceroll.textColor(class, "aaaaff") .. ", " .. Faceroll.textColor(role, "aaffff") .. ") -> " .. Faceroll.textColor(buffName, "aaffaa"))
         end
     end
 end
@@ -88,15 +137,26 @@ end
 -----------------------------------------------------------------------------------------
 -- States
 
+spec.options = {
+    "nomight",
+    "burn",
+}
+
 spec.overlay = Faceroll.createOverlay({
     "- Resources -",
     "selfheal",
+    "normHP",
+    "normMana",
     "group",
     "allbuffed",
+    "twisting",
+    "nomight",
+    "burn",
 
     "- Buffs -",
     "sealcommand",
-    "sealrighteousness",
+    "echocommand",
+    "echovengeance",
     "blessing",
 
     "- Spells -",
@@ -104,6 +164,13 @@ spec.overlay = Faceroll.createOverlay({
     "judgement",
     "hand",
     "consecration",
+    "hammerstorm",
+    "divineplea",
+    "hammerofwrath",
+    "holyshield",
+    "holywrath",
+    "avengersshield",
+    "divinestorm",
 })
 
 local healDeadzone = Faceroll.deadzoneCreate("Holy Light", 1.5, 0.5)
@@ -113,6 +180,7 @@ spec.calcState = function(state)
         partyBuffSeen = {}
     end
     state.allbuffed = everyoneBuffed()
+    state.twisting = (state.key == "PALADIN-Twist of Faith")
 
     -- Resources --
     Faceroll.deadzoneUpdate(healDeadzone)
@@ -126,14 +194,21 @@ spec.calcState = function(state)
     if IsInGroup() then
         state.group = true
     end
+    local curMana = UnitPower("player")
+    local maxMana = UnitPowerMax("player")
+    local norMana = curMana / maxMana
+    state.normMana = norMana
 
     -- Buffs --
 
-    if Faceroll.isBuffActive("Seal of Command") then
+    if Faceroll.isBuffActive("Seal of Command") or Faceroll.isBuffActive("Seal of Wisdom") then
         state.sealcommand = true
     end
-    if Faceroll.isBuffActive("Seal of Righteousness") then
-        state.sealrighteousness = true
+    if Faceroll.getBuffRemaining("Echo of Command") >= 1 then
+        state.echocommand = true
+    end
+    if Faceroll.getBuffRemaining("Echo of Vengeance") >= 1 then
+        state.echovengeance = true
     end
     if Faceroll.isBuffActive("Blessing of Wisdom") then
         state.blessing = true
@@ -166,6 +241,27 @@ spec.calcState = function(state)
     if Faceroll.isSpellAvailable("Consecration") then
         state.consecration = true
     end
+    if Faceroll.isSpellAvailable("Hammerstorm") then
+        state.hammerstorm = true
+    end
+    if Faceroll.isSpellAvailable("Divine Plea") then
+        state.divineplea = true
+    end
+    if Faceroll.isSpellAvailable("Hammer of Wrath") then
+        state.hammerofwrath = true
+    end
+    if Faceroll.isSpellAvailable("Holy Shield") then
+        state.holyshield = true
+    end
+    if Faceroll.isSpellAvailable("Holy Wrath") then
+        state.holywrath = true
+    end
+    if Faceroll.isSpellAvailable("Avenger's Shield") then
+        state.avengersshield = true
+    end
+    if Faceroll.isSpellAvailable("Divine Storm") then
+        state.divinestorm = true
+    end
 
     return state
 end
@@ -178,27 +274,39 @@ spec.actions = {
     "wisdom",
     "kings",
     "sealcommand",
-    "sealrighteousness",
+    "hammerstorm", -- "sealvengeance",
     "crusaderstrike",
     "judgement",
     "hand",
     "consecration",
     "targetparty",
+    "divineplea",
+    "hammerofwrath",
     "heal",
+    "holyshield",
+    "holywrath",
+    "avengersstorm", -- this is *also* divine storm
 }
 
 spec.calcAction = function(mode, state)
     -- local st = (mode == Faceroll.MODE_ST)
     local aoe = (mode == Faceroll.MODE_AOE)
 
-    -- ((state.combat and (state.normHP <= 0.5)) or
     if state.selfheal and (not state.combat and (state.normHP <= 0.7)) then
         return "heal"
 
-    elseif not state.sealcommand then
+    elseif not state.twisting and not state.sealcommand then
         return "sealcommand"
-    -- elseif not state.sealrighteousness then
-    --     return "sealrighteousness"
+
+    elseif state.twisting and not state.echocommand and not state.echovengeance then
+        if state.sealcommand then
+            return "sealvengeance"
+        else
+            return "sealcommand"
+        end
+
+    elseif state.divineplea and state.normMana <= 0.70 then
+        return "divineplea"
 
     elseif not state.blessing then
         return "wisdom"
@@ -207,21 +315,43 @@ spec.calcAction = function(mode, state)
             if not state.combat and not state.group and state.hand then
                 return "hand"
 
-            elseif aoe and state.consecration then
-                return "consecration"
+            elseif state.holyshield then
+                return "holyshield"
+
+            elseif state.burn and state.avengersshield then
+                return "avengersstorm"
 
             elseif state.judgement then
                 return "judgement"
 
-            else
+            elseif state.melee and state.consecration then
+                return "consecration"
+
+            elseif state.melee and state.hammerstorm then
+                return "hammerstorm"
+
+            elseif aoe and state.melee and state.divinestorm then
+                return "avengersstorm"
+
+            elseif state.burn and state.melee and state.holywrath then
+                return "holywrath"
+
+            elseif state.melee and state.hammerofwrath then
+                return "hammerofwrath"
+
+            elseif state.crusaderstrike then
                 return "crusaderstrike"
+
+            elseif state.melee and state.divinestorm then
+                return "avengersstorm"
+
             end
         -- end
 
-    elseif not state.combat and state.group and everyoneBuffed() and targetIsPartyMember() then
+    elseif not state.combat and not aoe and state.group and everyoneBuffed() and targetIsPartyMember() then
         return nil
 
-    elseif not state.combat and state.group and not everyoneBuffed() then
+    elseif not state.combat and not aoe and state.group and not everyoneBuffed() then
         -- buff teammates
         local unitIndex = 0
         for i = 1,4 do
@@ -231,7 +361,9 @@ spec.calcAction = function(mode, state)
         end
         if unitIndex > 0 then
             local unit = "party" .. unitIndex
-            local reqBuff = requestedBuff(unitIndex)
+            local _, class = UnitClass(unit)
+            local role = UnitRole(unit)
+            local reqBuff = requestedBuff(unitIndex, class, role)
             if reqBuff == nil then
                 print("Unit " .. unit .. " does not want a buff.")
                 partyBuffSeen[unit] = true
