@@ -101,7 +101,11 @@ Faceroll.createState = function(spec, specKey)
         if IsCurrentSpell(6603) then -- Autoattack
             state.autoattack = true
         end
-        if spec.melee ~= nil then
+        if spec.melee == nil then
+            if IsItemInRange(37727) == 1 then -- Ruby Acorn
+                state.melee = true
+            end
+        else
             if IsSpellInRange(spec.melee, "target") == 1 then
                 state.melee = true
             end
