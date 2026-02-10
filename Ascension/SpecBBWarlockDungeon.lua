@@ -19,6 +19,7 @@ spec.overlay = Faceroll.createOverlay({
     "firestorm",
     "meta",
     "soulfire",
+    "soulfiredeadzone",
     "drainingsoul",
     "empowerment",
 
@@ -55,7 +56,7 @@ spec.radioColors = {
 }
 
 local immoDeadzone = Faceroll.deadzoneCreate("Immolate", 0.3, 2)
-local soulfireDeadzone = Faceroll.deadzoneCreate("Soul Fire", 0.3, 2)
+local soulfireDeadzone = Faceroll.deadzoneCreate("Soul Fire", 0.3, 0.2) -- just long enough to re-get Decimation from flight
 local incinerateDeadzone = Faceroll.deadzoneCreate("Incinerate", 0.3, 2)
 
 spec.calcState = function(state)
@@ -75,8 +76,9 @@ spec.calcState = function(state)
         state.drainingsoul = true
     end
 
-    Faceroll.deadzoneUpdate(soulfireDeadzone)
-    if Faceroll.isBuffActive("Decimation") and Faceroll.isSpellAvailable("Soul Fire") and not Faceroll.deadzoneActive(soulfireDeadzone) then
+
+    state.soulfiredeadzone = Faceroll.deadzoneUpdate(soulfireDeadzone)
+    if Faceroll.isBuffActive("Decimation") and Faceroll.isSpellAvailable("Soul Fire") then
         state.soulfire = true
     end
 
@@ -177,7 +179,12 @@ spec.calcAction = function(mode, state)
 
             -- filler
             elseif state.soulfire then
-                return "soulfire"
+                if not state.boss and state.soulfiredeadzone then
+                    -- wait a tiny bit for another decimation proc!
+                    return nil
+                else
+                    return "soulfire"
+                end
             else
                 return "incinerate"
 

@@ -1,23 +1,31 @@
 -----------------------------------------------------------------------------------------
--- Ascension WoW Bronzebeard Druid
+-- Classic Druid
 
 if Faceroll == nil then
     _, Faceroll = ...
 end
 
-local spec = Faceroll.createSpec("BBD", "006600", "DRUID-ASCENSION")
+local spec = Faceroll.createSpec("CD", "006600", "DRUID-CLASSIC")
 
-spec.melee = "Growl"
+spec.buffs = {
+    "Mark of the Wild",
+    "Thorns",
+    "Rejuvenation",
+    "Tiger's Fury",
+}
 
 -----------------------------------------------------------------------------------------
 -- States
 
-spec.overlay = Faceroll.createOverlay({
+spec.overlay = {
     "- Stances -",
     "bear",
     "cat",
 
     "- Combat -",
+    "targetingenemy",
+    "melee",
+    "combat",
     "aoe",
     "hold",
 
@@ -45,7 +53,7 @@ spec.overlay = Faceroll.createOverlay({
     "- Spells -",
     "enrage",
     "fffready",
-})
+}
 
 spec.options = {
     "hold",
@@ -62,6 +70,18 @@ spec.calcState = function(state)
     end
 
     -- Combat --
+
+    if Faceroll.targetingEnemy() then
+        state.targetingenemy = true
+    end
+
+    if IsSpellInRange("Growl", "target") == 1 then
+        state.melee = true
+    end
+
+    if Faceroll.inCombat() then
+        state.combat = true
+    end
 
     local mobCount = 0
     for i = 0, 5, 1 do
@@ -160,91 +180,89 @@ end
 -- Actions
 
 spec.actions = {
-    "wrath",
-    -- "bear",
-    -- "thorns",
-    -- "roar",
-    -- "swipe",
-    -- "moonfire",
-    -- "rejuvenation",
-    -- "enrage",
-    -- "cat",
-    -- "bite",
-    -- "claw",
-    -- "rake",
-    -- "maul",
-    -- "tigersfury",
-    -- "fff",
+    "bear",
+    "thorns",
+    "roar",
+    "swipe",
+    "moonfire",
+    "rejuvenation",
+    "enrage",
+    "cat",
+    "bite",
+    "claw",
+    "rake",
+    "maul",
+    "tigersfury",
+    "fff",
 }
 
 spec.calcAction = function(mode, state)
-    return "wrath"
-    -- if mode == Faceroll.MODE_ST then
-    --     -- Cat Form
+    if mode == Faceroll.MODE_ST then
+        -- Cat Form
 
-    --     if not state.targetingenemy and state.hpL80 and not state.manaL70 and not state.combat and not state.rejuvenation then
-    --         return "rejuvenation"
+        if not state.targetingenemy and state.hpL80 and not state.manaL70 and not state.combat and not state.rejuvenation then
+            return "rejuvenation"
 
-    --     elseif not state.targetingenemy and not state.combat and not state.thorns then
-    --         return "thorns"
+        elseif not state.targetingenemy and not state.combat and not state.thorns then
+            return "thorns"
 
-    --     elseif not state.cat then
-    --         return "cat"
+        elseif not state.cat then
+            return "cat"
 
-    --     elseif state.targetingenemy then
+        elseif state.targetingenemy then
 
-    --         -- state.hold means "I am fighting bleed immune targets"
+            -- state.hold means "I am fighting bleed immune targets"
 
-    --         if not state.fff and state.fffready then
-    --             return "fff"
+            if not state.fff and state.fffready then
+                return "fff"
 
-    --         elseif not state.tigersfury and state.energyG30 then
-    --             return "tigersfury"
+            elseif not state.tigersfury and state.energyG30 then
+                return "tigersfury"
 
-    --         elseif not state.hold and state.cpG3 and state.energyG35 then
-    --             return "bite"
+            elseif not state.hold and state.cpG3 and state.energyG35 then
+                return "bite"
 
-    --         elseif not state.hold and not state.rake and state.energyG35 then
-    --             return "rake"
+            elseif not state.hold and not state.rake and state.energyG35 then
+                return "rake"
 
-    --         elseif state.energyG40 then
-    --             return "claw"
-    --         end
-    --     end
+            elseif state.energyG40 then
+                return "claw"
+            end
+        end
 
-    -- elseif mode == Faceroll.MODE_AOE then
-    --     -- Bear Form
+    elseif mode == Faceroll.MODE_AOE then
+        -- Bear Form
 
-    --     if not state.targetingenemy and state.hpL90 and not state.manaL80 and not state.combat and not state.rejuvenation then
-    --         return "rejuvenation"
+        if not state.targetingenemy and state.hpL90 and not state.manaL80 and not state.combat and not state.rejuvenation then
+            return "rejuvenation"
 
-    --     elseif not state.targetingenemy and not state.combat and not state.thorns then
-    --             return "thorns"
+        elseif not state.targetingenemy and not state.combat and not state.thorns then
+                return "thorns"
 
-    --     elseif state.targetingenemy then
-    --         if not state.combat and not state.manaL70 and not state.bear and not state.moonfire then
-    --             return "moonfire"
+        elseif state.targetingenemy then
+            if not state.combat and not state.manaL70 and not state.bear and not state.moonfire then
+                return "moonfire"
 
-    --         elseif not state.bear then
-    --             return "bear"
+            elseif not state.bear then
+                return "bear"
 
-    --         elseif state.enrage then
-    --             return "enrage"
+            elseif state.enrage then
+                return "enrage"
 
-    --         elseif not state.roar then
-    --             if state.melee then
-    --                 return "roar"
-    --             end
-    --             -- we want to wait if we can't roar
+            elseif not state.roar then
+                if state.melee then
+                    return "roar"
+                end
+                -- we want to wait if we can't roar
 
-    --         elseif state.aoe then
-    --             return "swipe"
-    --         else
-    --             return "maul"
-    --         end
-    --     end
+            elseif state.aoe then
+                return "swipe"
+            else
+                return "maul"
+            end
+        end
 
-    -- end
+    end
 
-    -- return nil
+    return nil
 end

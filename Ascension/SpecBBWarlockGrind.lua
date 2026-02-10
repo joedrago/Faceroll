@@ -42,10 +42,12 @@ spec.overlay = Faceroll.createOverlay({
 
     "-- Options --",
     "burn",
+    "shards",
 })
 
 spec.options = {
     "burn",
+    "shards",
 }
 
 local soulfireDeadzone = Faceroll.deadzoneCreate("Soul Fire", 0.3, 1)
@@ -63,10 +65,6 @@ spec.calcState = function(state)
 
     state.darkharveststacks = Faceroll.getBuffStacks("Dark Harvest")
     state.moving = Faceroll.moving
-    local channelingSpell, _, _, _, channelEndMS = UnitChannelInfo("pet")
-    if channelingSpell then
-        state.channeling = true
-    end
     if IsInGroup() then
         state.group = true
     end
@@ -81,6 +79,9 @@ spec.calcState = function(state)
     end
 
     local channelingSpell, _, _, _, _, channelEndMS = UnitChannelInfo("player")
+    if channelingSpell then
+        state.channeling = true
+    end
     if channelingSpell == "Drain Soul" then
         local channelFinish = (channelEndMS / 1000) - GetTime()
         state.drainingsoul = true
@@ -114,9 +115,6 @@ spec.calcState = function(state)
     if Faceroll.isSpellAvailable("Demonic Empowerment") then
         state.demonicempowerment = true
     end
-    if Faceroll.isSpellAvailable("Metamorphosis") then
-        state.meta = true
-    end
 
     if UnitExists("pet") and not UnitIsDead("pet") and UnitCreatureFamily("pet") == "Voidwalker" then
         local pethp = UnitHealth("pet")
@@ -136,10 +134,6 @@ spec.calcState = function(state)
     if Faceroll.isBuffActive("Food") or Faceroll.isBuffActive("Drink") then
         state.picnic = true
     end
-    local channelingSpell, _, _, _, channelEndMS = UnitChannelInfo("pet")
-    if channelingSpell then
-        state.channeling = true
-    end
 
     return state
 end
@@ -153,17 +147,23 @@ spec.actions = {
     "corruption",
     "drainsoul",
     "tap",
-    "rof",
-    "consumeshadows",
+    "seed",
     "drainlife",
     "soulfire",
     "demonicempowerment",
-    "meta",
 }
 
 spec.calcAction = function(mode, state)
     local st = (mode == Faceroll.MODE_ST)
     local aoe = (mode == Faceroll.MODE_AOE)
+
+    if state.shards then
+        if not state.drainingsoul then
+            return "drainsoul"
+        else
+            return nil
+        end
+    end
 
     local needdrain = state.needhp and (state.darkharveststacks >= 8) and not state.deadsoon and not state.moving and not state.channeling
 
@@ -172,8 +172,8 @@ spec.calcAction = function(mode, state)
         return "tap"
 
     -- Let your voidwalker heal itself if it is weak
-    elseif state.consumeshadows and not state.combat then
-        return "consumeshadows"
+    -- elseif state.consumeshadows and not state.combat then
+    --     return "consumeshadows"
 
     -- Give your voidwalker a chance to eat dinner, unless we have a juicy proc
     elseif state.consumingshadows and not state.shadowtrance and not needdrain then
@@ -181,11 +181,8 @@ spec.calcAction = function(mode, state)
 
     elseif st then
         if state.targetingenemy then
-            if state.burn and state.meta then
-                return "meta"
-
             -- spend procs immediately
-            elseif state.shadowtrance then
+            if state.shadowtrance then
                 return "shadowbolt"
 
             elseif needdrain then
@@ -220,7 +217,7 @@ spec.calcAction = function(mode, state)
         end
 
     elseif aoe then
-        return "rof"
+        return "seed"
     end
 
     return nil

@@ -1,31 +1,28 @@
 -----------------------------------------------------------------------------------------
--- Classic Druid
+-- Ascension WoW Bronzebeard Druid
 
 if Faceroll == nil then
     _, Faceroll = ...
 end
 
-local spec = Faceroll.createSpec("CD", "006600", "DRUID-CLASSIC")
+local spec = Faceroll.createSpec("BBD", "006600", "DRUID-ASCENSION")
 
-spec.buffs = {
-    "Mark of the Wild",
-    "Thorns",
-    "Rejuvenation",
-    "Tiger's Fury",
-}
+-- spec.melee = "Growl"
 
 -----------------------------------------------------------------------------------------
 -- States
 
-spec.overlay = {
+spec.overlay = Faceroll.createOverlay({
     "- Stances -",
-    "bear",
+    "bearform",
+    "catform",
+
+    "- Mode -",
     "cat",
+    "bear",
+    "boom",
 
     "- Combat -",
-    "targetingenemy",
-    "melee",
-    "combat",
     "aoe",
     "hold",
 
@@ -53,35 +50,33 @@ spec.overlay = {
     "- Spells -",
     "enrage",
     "fffready",
-}
+    "maulqueued",
+})
 
 spec.options = {
     "hold",
+    "cat|mode",
+    "bear|mode",
+    "boom|mode",
+}
+
+spec.radioColors = {
+    "ffaaaa",
+    "ffffaa",
+    "aaffaa",
 }
 
 spec.calcState = function(state)
     -- Stances --
 
-    if GetShapeshiftForm() == 1 then
-        state.bear = true
+    if Faceroll.inShapeshiftForm("Bear Form") then
+        state.bearform = true
     end
-    if GetShapeshiftForm() == 3 then
-        state.cat = true
+    if Faceroll.inShapeshiftForm("Cat Form") then
+        state.catform = true
     end
 
     -- Combat --
-
-    if Faceroll.targetingEnemy() then
-        state.targetingenemy = true
-    end
-
-    if IsSpellInRange("Growl", "target") == 1 then
-        state.melee = true
-    end
-
-    if Faceroll.inCombat() then
-        state.combat = true
-    end
 
     local mobCount = 0
     for i = 0, 5, 1 do
@@ -173,6 +168,10 @@ spec.calcState = function(state)
         state.fffready = true
     end
 
+    if IsCurrentSpell("Maul") then
+        state.maulqueued = true
+    end
+
     return state
 end
 
@@ -181,70 +180,88 @@ end
 
 spec.actions = {
     "bear",
-    "thorns",
-    "roar",
-    "swipe",
     "moonfire",
     "rejuvenation",
-    "enrage",
-    "cat",
-    "bite",
-    "claw",
-    "rake",
+    "roar",
+    "swipe",
     "maul",
-    "tigersfury",
-    "fff",
+    "enrage",
+    "attack",
+    "wrath",
+
+    -- "cat",
+    -- "bite",
+    -- "claw",
+    -- "rake",
+    -- "tigersfury",
+    -- "fff",
 }
 
-spec.calcAction = function(mode, state)
-    if mode == Faceroll.MODE_ST then
-        -- Cat Form
+spec.calcActionBoom = function(mode, state)
+    -- local st = (mode == Faceroll.MODE_ST)
+    -- local aoe = (mode == Faceroll.MODE_AOE)
 
-        if not state.targetingenemy and state.hpL80 and not state.manaL70 and not state.combat and not state.rejuvenation then
-            return "rejuvenation"
+    if state.combat and not state.moonfire then
+        return "moonfire"
+    else
+        return "wrath"
+    end
+end
 
-        elseif not state.targetingenemy and not state.combat and not state.thorns then
-            return "thorns"
+spec.calcActionCat = function(mode, state)
+    -- local st = (mode == Faceroll.MODE_ST)
+    -- local aoe = (mode == Faceroll.MODE_AOE)
 
-        elseif not state.cat then
-            return "cat"
+    --     if not state.targetingenemy and state.hpL80 and not state.manaL70 and not state.combat and not state.rejuvenation then
+    --         return "rejuvenation"
 
-        elseif state.targetingenemy then
+    --     elseif not state.targetingenemy and not state.combat and not state.thorns then
+    --         return "thorns"
 
-            -- state.hold means "I am fighting bleed immune targets"
+    --     elseif not state.catform then
+    --         return "cat"
 
-            if not state.fff and state.fffready then
-                return "fff"
+    --     elseif state.targetingenemy then
 
-            elseif not state.tigersfury and state.energyG30 then
-                return "tigersfury"
+    --         -- state.hold means "I am fighting bleed immune targets"
 
-            elseif not state.hold and state.cpG3 and state.energyG35 then
-                return "bite"
+    --         if not state.fff and state.fffready then
+    --             return "fff"
 
-            elseif not state.hold and not state.rake and state.energyG35 then
-                return "rake"
+    --         elseif not state.tigersfury and state.energyG30 then
+    --             return "tigersfury"
 
-            elseif state.energyG40 then
-                return "claw"
-            end
-        end
+    --         elseif not state.hold and state.cpG3 and state.energyG35 then
+    --             return "bite"
 
-    elseif mode == Faceroll.MODE_AOE then
+    --         elseif not state.hold and not state.rake and state.energyG35 then
+    --             return "rake"
+
+    --         elseif state.energyG40 then
+    --             return "claw"
+    --         end
+    --     end
+end
+
+spec.calcActionBear = function(mode, state)
+    local st = (mode == Faceroll.MODE_ST)
+    local aoe = (mode == Faceroll.MODE_AOE)
+
+    if st or aoe then
         -- Bear Form
 
         if not state.targetingenemy and state.hpL90 and not state.manaL80 and not state.combat and not state.rejuvenation then
             return "rejuvenation"
 
-        elseif not state.targetingenemy and not state.combat and not state.thorns then
-                return "thorns"
-
         elseif state.targetingenemy then
-            if not state.combat and not state.manaL70 and not state.bear and not state.moonfire then
+            if not state.combat and not state.manaL70 and not state.bearform and not state.moonfire then
                 return "moonfire"
 
-            elseif not state.bear then
+            elseif not state.bearform then
                 return "bear"
+
+            elseif not state.autoattack and not state.maulqueued then
+                return "attack"
 
             elseif state.enrage then
                 return "enrage"
@@ -257,12 +274,22 @@ spec.calcAction = function(mode, state)
 
             elseif state.aoe then
                 return "swipe"
-            else
+            elseif not state.maulqueued then
                 return "maul"
             end
         end
 
     end
 
-    return nil
+    -- return nil
+end
+
+spec.calcAction = function(mode, state)
+    if state.bear then
+        return spec.calcActionBear(mode, state)
+    elseif state.cat then
+        return spec.calcActionCat(mode, state)
+    elseif state.boom then
+        return spec.calcActionBoom(mode, state)
+    end
 end
