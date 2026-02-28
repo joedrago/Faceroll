@@ -18,10 +18,10 @@ if Faceroll == nil then
     _, Faceroll = ...
 end
 
-local spec = Faceroll.createSpec("BBM", "00c7ee", "MAGE-ASCENSION")
+local spec = Faceroll.createSpec("M", "995599", "MAGE-ASCENSION")
 
-local CONJURED_FOOD_NAME  = "Conjured Muffin"
-local CONJURED_WATER_NAME = "Conjured Water"
+local CONJURED_FOOD_NAME  = "Conjured Rye"
+local CONJURED_WATER_NAME = "Conjured Purified Water"
 
 -----------------------------------------------------------------------------------------
 -- States
@@ -55,6 +55,10 @@ spec.overlay = Faceroll.createOverlay({
     "arcaneintellect",
     "icebarrier",
 
+    "- Dot -",
+    "arcanecharge",
+    "abdeadzone",
+
     "- Spells -",
     "icebarrierready",
     "coneofcold",
@@ -68,6 +72,8 @@ spec.overlay = Faceroll.createOverlay({
 spec.options = {
     "brita", -- I am a brita water filter, and my existence is to fill up glasses of water
 }
+
+local abDeadzone = Faceroll.deadzoneCreate("Arcane Blast", 0.3, 3)
 
 spec.calcState = function(state)
     -- Combat --
@@ -180,6 +186,16 @@ spec.calcState = function(state)
         state.blizzard = true
     end
 
+    -- state.arcanestacks =
+
+    if Faceroll.getDotRemainingNorm("Arcane Charge") > 0.1 then
+        state.arcanecharge = true
+    end
+    if Faceroll.deadzoneUpdate(abDeadzone) then
+        -- for AOE
+        state.abdeadzone = true
+    end
+
     return state
 end
 
@@ -189,12 +205,13 @@ end
 spec.actions = {
     "frostarmor",
     "arcaneintellect",
-    "frostbolt",
-    "coneofcold",
-    "shoot",
+    "arcaneblast",
+    "arcaneexplosion",
+    "targetaoe",
     "consume",
     "makefood",
     "makewater",
+    "arcanemissiles",
     "blizzard",
     "icebarrier",
 }
@@ -222,7 +239,7 @@ spec.calcAction = function(mode, state)
             -- low on mana or hp, and we've given a second or two to loot
             return "consume"
 
-        elseif not state.combat and not state.foodLwater and (makeForever or state.waterL1 or (state.brita and state.waterL100)) then
+        elseif not state.combat and not state.targetingenemy and not state.foodLwater and (makeForever or state.waterL1 or (state.brita and state.waterL100)) then
             -- we're either making one batch because we ran out, or we're doing
             -- a big prep because "hold" == "big prep"
             return "makewater"
@@ -249,31 +266,33 @@ spec.calcAction = function(mode, state)
                 -- Single Target
 
                 if state.targetingenemy then
-                    if state.coneofcold and state.melee and not state.manaL25 and state.hpL50 then
-                        -- hpL50 here is to take a hit or two while wanding for FSR
-                        return "coneofcold"
+                    -- if state.coneofcold and state.melee and not state.manaL25 and state.hpL50 then
+                    --     -- hpL50 here is to take a hit or two while wanding for FSR
+                    --     return "coneofcold"
 
-                    elseif not state.group and not state.icebarrier and state.icebarrierready and not state.manaL25 then
+                    if not state.group and not state.icebarrier and state.icebarrierready and not state.manaL25 then
                         return "icebarrier"
 
-                    -- elseif (state.melee and not state.group and not state.icebarrier) or not state.frostbolt then
+                    -- elseif (state.melee and not state.group and not state.icebarrier) or not state.arcaneblast then
                     --     return "shoot"
 
                     else
-                        return "frostbolt"
+                        return "arcaneblast"
                     end
                 end
 
             elseif mode == Faceroll.MODE_AOE then
                 -- AOE
 
-                if not state.channeling and (state.combat or state.targetingenemy) then
-                    -- if state.blizzard then
-                        return "blizzard"
+                if not state.targetingenemy then
+                    return "targetaoe"
 
-                    -- elseif state.targetingenemy then
-                        -- return "shoot"
-                    -- end
+                elseif not state.channeling and (state.combat or state.targetingenemy) then
+                    if not state.arcanecharge and not state.abdeadzone and not state.moving then
+                        return "arcaneblast"
+                    else
+                        return "arcaneexplosion"
+                    end
                 end
             end
         end

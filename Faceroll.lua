@@ -13,7 +13,9 @@ Faceroll.classic = false
 Faceroll.ascension = false
 if WOW_PROJECT_ID == nil then
     Faceroll.classic = true
-    Faceroll.ascension = true
+    if MysticEnchantUtil ~= nil then
+        Faceroll.ascension = true
+    end
 elseif WOW_PROJECT_ID == WOW_PROJECT_CLASSIC then
     Faceroll.classic = true
 end
@@ -90,7 +92,7 @@ Faceroll.createState = function(spec, specKey)
     end
 
     -- Add in standard state for each wow version
-    if Faceroll.ascension then
+    if Faceroll.ascension or Faceroll.classic then
         -- Combat
         if Faceroll.targetingEnemy() then
             state.targetingenemy = true
@@ -125,7 +127,7 @@ Faceroll.createOverlay = function(extras)
     local overlay = {}
 
     -- Add in standard state for each wow version
-    if Faceroll.ascension then
+    if Faceroll.ascension or Faceroll.classic then
         overlay = {
             "- Combat -",
             "targetingenemy",
@@ -600,7 +602,7 @@ else
 end
 
 Faceroll.ascensionFindAura = function(reqUnit, reqName, reqFilter)
-    if not Faceroll.ascension then
+    if not Faceroll.ascension and not Faceroll.classic then
         print("ERROR: Faceroll.ascensionFindAura()")
         return
     end
@@ -633,7 +635,7 @@ end
 -- Queries
 
 Faceroll.getBuff = function(buffName)
-    if Faceroll.ascension then
+    if Faceroll.ascension or Faceroll.classic then
         return Faceroll.ascensionFindAura("player", buffName, "HELPFUL")
     else
         print("FIXME: Faceroll.getBuff("..buffName..")")
@@ -641,8 +643,17 @@ Faceroll.getBuff = function(buffName)
     return nil
 end
 
+Faceroll.getDebuff = function(buffName)
+    if Faceroll.ascension or Faceroll.classic then
+        return Faceroll.ascensionFindAura("player", buffName, "HARMFUL")
+    else
+        print("FIXME: Faceroll.getDebuff("..buffName..")")
+    end
+    return nil
+end
+
 Faceroll.getDot = function(dotName)
-    if Faceroll.ascension then
+    if Faceroll.ascension or Faceroll.classic then
         return Faceroll.ascensionFindAura("target", dotName, "HARMFUL|PLAYER")
     else
         local name, _, stacks, _, duration, expirationTime = AuraUtil.FindAuraByName(spellName, "target", "HARMFUL|PLAYER")
@@ -1274,17 +1285,33 @@ end
 -----------------------------------------------------------------------------------------
 -- Upgrade Ranks Action Bar Spell Helper
 
+local gsbin = GetSpellBookItemName
+if gsbin == nil then
+    gsbin = GetSpellName
+end
+
 local function upgradeRanks()
     local bestRanks = {}
     local idRanks = {}
 
     local i = 1
     while true do
-        local spellName, spellSubName = GetSpellBookItemName(i, BOOKTYPE_SPELL)
+        local spellName, spellSubName = gsbin(i, BOOKTYPE_SPELL)
         if not spellName then
             break -- Exit the loop when no more spells are found
         end
-        local _, id = GetSpellBookItemInfo(i, BOOKTYPE_SPELL)
+        local id = nil
+        if Faceroll.ascension then
+            _, id = GetSpellBookItemInfo(i, BOOKTYPE_SPELL)
+        elseif Faceroll.classic then
+            local link = GetSpellLink(i, BOOKTYPE_SPELL)
+            if link then
+                id = tonumber(link:match("spell:(%d+)"))
+            end
+        end
+        if id == nil then
+            break
+        end
         local infoName = GetSpellInfo(id)
         if infoName == nil then
             break
@@ -1293,7 +1320,7 @@ local function upgradeRanks()
         local _, _, rank = string.find(spellSubName, "Rank (%d+)")
         if rank ~= nil then
             rank = tonumber(rank)
-            -- print(spellName .. " (ranky " .. rank .. ") - " .. infoName)
+            -- print(spellName .. " (ranky " .. rank .. ") - " .. infoName .. " (id " .. id .. ")")
 
             if bestRanks[infoName] == nil then
                 bestRanks[infoName] = {}
@@ -1316,6 +1343,7 @@ local function upgradeRanks()
         if id ~= nil then
             local infoName = GetSpellInfo(id)
             if infoName ~= nil then
+                -- print("Action Bar " .. i .. " is " .. infoName .. "(id " .. id .. ")")
                 local rank = idRanks[id]
                 if rank ~= nil then
                     local bestRank = bestRanks[infoName]

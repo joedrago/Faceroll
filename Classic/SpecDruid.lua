@@ -7,17 +7,10 @@ end
 
 local spec = Faceroll.createSpec("CD", "006600", "DRUID-CLASSIC")
 
-spec.buffs = {
-    "Mark of the Wild",
-    "Thorns",
-    "Rejuvenation",
-    "Tiger's Fury",
-}
-
 -----------------------------------------------------------------------------------------
 -- States
 
-spec.overlay = {
+spec.overlay = Faceroll.createOverlay({
     "- Stances -",
     "bear",
     "cat",
@@ -53,7 +46,7 @@ spec.overlay = {
     "- Spells -",
     "enrage",
     "fffready",
-}
+})
 
 spec.options = {
     "hold",
@@ -180,89 +173,92 @@ end
 -- Actions
 
 spec.actions = {
-    "bear",
-    "thorns",
-    "roar",
-    "swipe",
-    "moonfire",
-    "rejuvenation",
-    "enrage",
-    "cat",
-    "bite",
-    "claw",
-    "rake",
-    "maul",
-    "tigersfury",
-    "fff",
+    "wrath",
+    -- "bear",
+    -- "thorns",
+    -- "roar",
+    -- "swipe",
+    -- "moonfire",
+    -- "rejuvenation",
+    -- "enrage",
+    -- "cat",
+    -- "bite",
+    -- "claw",
+    -- "rake",
+    -- "maul",
+    -- "tigersfury",
+    -- "fff",
 }
 
 spec.calcAction = function(mode, state)
-    if mode == Faceroll.MODE_ST then
-        -- Cat Form
+    return "wrath"
 
-        if not state.targetingenemy and state.hpL80 and not state.manaL70 and not state.combat and not state.rejuvenation then
-            return "rejuvenation"
+    -- if mode == Faceroll.MODE_ST then
+    --     -- Cat Form
 
-        elseif not state.targetingenemy and not state.combat and not state.thorns then
-            return "thorns"
+    --     if not state.targetingenemy and state.hpL80 and not state.manaL70 and not state.combat and not state.rejuvenation then
+    --         return "rejuvenation"
 
-        elseif not state.cat then
-            return "cat"
+    --     elseif not state.targetingenemy and not state.combat and not state.thorns then
+    --         return "thorns"
 
-        elseif state.targetingenemy then
+    --     elseif not state.cat then
+    --         return "cat"
 
-            -- state.hold means "I am fighting bleed immune targets"
+    --     elseif state.targetingenemy then
 
-            if not state.fff and state.fffready then
-                return "fff"
+    --         -- state.hold means "I am fighting bleed immune targets"
 
-            elseif not state.tigersfury and state.energyG30 then
-                return "tigersfury"
+    --         if not state.fff and state.fffready then
+    --             return "fff"
 
-            elseif not state.hold and state.cpG3 and state.energyG35 then
-                return "bite"
+    --         elseif not state.tigersfury and state.energyG30 then
+    --             return "tigersfury"
 
-            elseif not state.hold and not state.rake and state.energyG35 then
-                return "rake"
+    --         elseif not state.hold and state.cpG3 and state.energyG35 then
+    --             return "bite"
 
-            elseif state.energyG40 then
-                return "claw"
-            end
-        end
+    --         elseif not state.hold and not state.rake and state.energyG35 then
+    --             return "rake"
 
-    elseif mode == Faceroll.MODE_AOE then
-        -- Bear Form
+    --         elseif state.energyG40 then
+    --             return "claw"
+    --         end
+    --     end
 
-        if not state.targetingenemy and state.hpL90 and not state.manaL80 and not state.combat and not state.rejuvenation then
-            return "rejuvenation"
+    -- elseif mode == Faceroll.MODE_AOE then
+    --     -- Bear Form
 
-        elseif not state.targetingenemy and not state.combat and not state.thorns then
-                return "thorns"
+    --     if not state.targetingenemy and state.hpL90 and not state.manaL80 and not state.combat and not state.rejuvenation then
+    --         return "rejuvenation"
 
-        elseif state.targetingenemy then
-            if not state.combat and not state.manaL70 and not state.bear and not state.moonfire then
-                return "moonfire"
+    --     elseif not state.targetingenemy and not state.combat and not state.thorns then
+    --             return "thorns"
 
-            elseif not state.bear then
-                return "bear"
+    --     elseif state.targetingenemy then
+    --         if not state.combat and not state.manaL70 and not state.bear and not state.moonfire then
+    --             return "moonfire"
 
-            elseif state.enrage then
-                return "enrage"
+    --         elseif not state.bear then
+    --             return "bear"
 
-            elseif not state.roar then
-                if state.melee then
-                    return "roar"
-                end
-                -- we want to wait if we can't roar
+    --         elseif state.enrage then
+    --             return "enrage"
 
-            elseif state.aoe then
-                return "swipe"
-            else
-                return "maul"
-            end
-        end
+    --         elseif not state.roar then
+    --             if state.melee then
+    --                 return "roar"
+    --             end
+    --             -- we want to wait if we can't roar
 
-    end
+    --         elseif state.aoe then
+    --             return "swipe"
+    --         else
+    --             return "maul"
+    --         end
+    --     end
 
-    return nil
+    -- end
+
+    -- return nil
 end

@@ -5,7 +5,7 @@ if Faceroll == nil then
     _, Faceroll = ...
 end
 
-local spec = Faceroll.createSpec("BBD", "006600", "DRUID-ASCENSION")
+local spec = Faceroll.createSpec("BBD", "006600", "DRUID-Boom")
 
 -- spec.melee = "Growl"
 
@@ -23,7 +23,6 @@ spec.overlay = Faceroll.createOverlay({
     "boom",
 
     "- Combat -",
-    "aoe",
     "hold",
 
     "- Resources -",
@@ -55,15 +54,9 @@ spec.overlay = Faceroll.createOverlay({
 
 spec.options = {
     "hold",
-    "cat|mode",
     "bear|mode",
+    "cat|mode",
     "boom|mode",
-}
-
-spec.radioColors = {
-    "ffaaaa",
-    "ffffaa",
-    "aaffaa",
 }
 
 spec.calcState = function(state)
@@ -74,18 +67,6 @@ spec.calcState = function(state)
     end
     if Faceroll.inShapeshiftForm("Cat Form") then
         state.catform = true
-    end
-
-    -- Combat --
-
-    local mobCount = 0
-    for i = 0, 5, 1 do
-        if _G["NamePlate"..i] ~= nil and _G["NamePlate"..i]:IsVisible() then
-            mobCount = mobCount + 1
-        end
-    end
-    if mobCount > 1 then
-        state.aoe = true
     end
 
     -- Resources --
@@ -188,59 +169,58 @@ spec.actions = {
     "enrage",
     "attack",
     "wrath",
-
-    -- "cat",
-    -- "bite",
-    -- "claw",
+    "fff",
+    "cat",
+    "claw",
+    "rip",
     -- "rake",
     -- "tigersfury",
-    -- "fff",
 }
 
 spec.calcActionBoom = function(mode, state)
     -- local st = (mode == Faceroll.MODE_ST)
     -- local aoe = (mode == Faceroll.MODE_AOE)
 
-    if state.combat and not state.moonfire then
-        return "moonfire"
-    else
+    -- if state.combat and not state.moonfire then
+    --     return "moonfire"
+    -- else
         return "wrath"
-    end
+    -- end
 end
 
 spec.calcActionCat = function(mode, state)
-    -- local st = (mode == Faceroll.MODE_ST)
-    -- local aoe = (mode == Faceroll.MODE_AOE)
+    local st = (mode == Faceroll.MODE_ST)
+    local aoe = (mode == Faceroll.MODE_AOE)
 
-    --     if not state.targetingenemy and state.hpL80 and not state.manaL70 and not state.combat and not state.rejuvenation then
-    --         return "rejuvenation"
+    if not state.targetingenemy and state.hpL80 and not state.manaL70 and not state.combat and not state.rejuvenation then
+        return "rejuvenation"
 
-    --     elseif not state.targetingenemy and not state.combat and not state.thorns then
-    --         return "thorns"
+    elseif not state.catform then
+        return "cat"
 
-    --     elseif not state.catform then
-    --         return "cat"
+    elseif state.targetingenemy then
 
-    --     elseif state.targetingenemy then
+        -- state.hold means "I am fighting bleed immune targets"
 
-    --         -- state.hold means "I am fighting bleed immune targets"
+        if not state.fff and state.fffready then
+            return "fff"
 
-    --         if not state.fff and state.fffready then
-    --             return "fff"
+        -- elseif not state.tigersfury and state.energyG30 then
+        --     return "tigersfury"
 
-    --         elseif not state.tigersfury and state.energyG30 then
-    --             return "tigersfury"
+        -- elseif not state.hold and state.cpG3 and state.energyG35 then
+        --     return "bite"
 
-    --         elseif not state.hold and state.cpG3 and state.energyG35 then
-    --             return "bite"
+        -- elseif not state.hold and not state.rake and state.energyG35 then
+        --     return "rake"
 
-    --         elseif not state.hold and not state.rake and state.energyG35 then
-    --             return "rake"
+        elseif not state.hold and not state.rip and state.combopoints > 3 then
+            return "rip"
 
-    --         elseif state.energyG40 then
-    --             return "claw"
-    --         end
-    --     end
+        else
+            return "claw"
+        end
+    end
 end
 
 spec.calcActionBear = function(mode, state)
@@ -254,8 +234,8 @@ spec.calcActionBear = function(mode, state)
             return "rejuvenation"
 
         elseif state.targetingenemy then
-            if not state.combat and not state.manaL70 and not state.bearform and not state.moonfire then
-                return "moonfire"
+            if state.fffready then -- not state.fff and
+                return "fff"
 
             elseif not state.bearform then
                 return "bear"
@@ -272,7 +252,7 @@ spec.calcActionBear = function(mode, state)
                 end
                 -- we want to wait if we can't roar
 
-            elseif state.aoe then
+            elseif aoe then
                 return "swipe"
             elseif not state.maulqueued then
                 return "maul"
