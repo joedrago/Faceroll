@@ -198,7 +198,18 @@ Faceroll.activeSpec = function()
                 specIndex = mysticLegoName
             end
         end
-    elseif not Faceroll.classic then
+    elseif Faceroll.classic then
+        local _, _, pointsTree1 = GetTalentTabInfo(1)
+        local _, _, pointsTree2 = GetTalentTabInfo(2)
+        local _, _, pointsTree3 = GetTalentTabInfo(3)
+        if (pointsTree1 > pointsTree2) and (pointsTree1 > pointsTree3) then
+            specIndex = "1"
+        elseif (pointsTree2 > pointsTree1) and (pointsTree2 > pointsTree3) then
+            specIndex = "2"
+        elseif (pointsTree3 > pointsTree1) and (pointsTree3 > pointsTree2) then
+            specIndex = "3"
+        end
+    else
         if GetSpecialization ~= nil then
             specIndex = GetSpecialization()
         end
@@ -596,6 +607,9 @@ if builtinGSCharges ~= nil then
     end
 else
     builtinGSCharges = function(spellName)
+        if not Faceroll.ascension then
+            return 0, 0
+        end
         local chargeCount, maxCharges = GetSpellCharges(C_Spell:GetSpellID(spellName))
         return chargeCount, maxCharges
     end

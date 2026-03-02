@@ -18,48 +18,31 @@ if Faceroll == nil then
     _, Faceroll = ...
 end
 
-local spec = Faceroll.createSpec("CM", "00c7ee", "MAGE-CLASSIC")
+local spec = Faceroll.createSpec("CM", "00c7ee", "MAGE-3")
 
-spec.buffs = {
+spec.overlay = Faceroll.createOverlay({
     "Mage Armor",
     "Arcane Intellect",
     "Arcane Brilliance",
     "Drink",
     "Ice Barrier",
-}
+})
 
-local CONJURED_FOOD_NAME  = "Conjured Sweet Roll"
-local CONJURED_WATER_NAME = "Conjured Crystal Water"
+local CONJURED_FOOD_NAME  = "Conjured Sourdough"
+local CONJURED_WATER_NAME = "Conjured Mineral Water"
 
 -----------------------------------------------------------------------------------------
 -- States
 
 spec.overlay = {
     "- Combat -",
-    "targetingenemy",
-    "combat",
-    "melee",
     "moving",
     "group",
     "channeling",
 
-    "- Resources -",
-    "hpL50",
-    "manaL25",
-    "manaL50",
-    "manaL80",
-    "manafull",
-
     "- Consume -",
     "drink",
     "drinkending",
-
-    "- Conjure -",
-    "waterL1",
-    "waterL100",
-    "foodL1",
-    "foodL100",
-    "foodLwater",
 
     "- Buffs -",
     "magearmor",
@@ -71,29 +54,10 @@ spec.overlay = {
     "coneofcold",
     "frostbolt",
     "blizzard",
-
-    "- Options -",
-    "brita",
-}
-
-spec.options = {
-    "brita", -- I am a brita water filter, and my existence is to fill up glasses of water
 }
 
 spec.calcState = function(state)
     -- Combat --
-
-    if Faceroll.targetingEnemy() then
-        state.targetingenemy = true
-    end
-
-    if Faceroll.inCombat() then
-        state.combat = true
-    end
-
-    if CheckInteractDistance("target", 3) then
-        state.melee = true
-    end
 
     -- local movingStoppedSince = GetTime() - Faceroll.movingStopped
     if Faceroll.moving then --or (movingStoppedSince < 0.5) then
@@ -108,50 +72,6 @@ spec.calcState = function(state)
     if channelingSpell then
         -- local channelFinish = channelEndMS/1000 - GetTime()
         state.channeling = true
-    end
-
-    -- Resources --
-
-    local curHP = UnitHealth("player")
-    local maxHP = UnitHealthMax("player")
-    local norHP = curHP / maxHP
-    if norHP < 0.5 then
-        state.hpL50 = true
-    end
-
-    local curMana = UnitPower("player", 0)
-    local maxMana = UnitPowerMax("player", 0)
-    local norMana = curMana / maxMana
-    if norMana < 0.25 then
-        state.manaL25 = true
-    end
-    if norMana < 0.5 then
-        state.manaL50 = true
-    end
-    if norMana < 0.8 then
-        state.manaL80 = true
-    end
-    if norMana > 0.95 then
-        state.manafull = true
-    end
-
-    local waterCount = GetItemCount(CONJURED_WATER_NAME)
-    local foodCount  = GetItemCount(CONJURED_FOOD_NAME)
-
-    if waterCount < 1 then
-        state.waterL1 = true
-    end
-    if waterCount < 100 then
-        state.waterL100 = true
-    end
-    if foodCount < 1 then
-        state.foodL1 = true
-    end
-    if foodCount < 100 then
-        state.foodL100 = true
-    end
-    if foodCount < waterCount then
-        state.foodLwater = true
     end
 
     -- Buffs --
@@ -202,92 +122,44 @@ spec.actions = {
     "arcaneintellect",
     "frostbolt",
     "coneofcold",
-    "shoot",
-    "consume",
-    "makefood",
-    "makewater",
     "blizzard",
     "icebarrier",
 }
 
 spec.calcAction = function(mode, state)
-    if mode == Faceroll.MODE_ST or mode == Faceroll.MODE_AOE then
-        local makeForever = state.brita and (mode == Faceroll.MODE_AOE)
+    if not state.combat and not state.magearmor then
+        return "magearmor"
 
-        if not state.combat and state.drink and state.drinkending and state.manaL80 then
-            -- we're going to need to drink more to finish drinking
-            return "consume"
+    elseif not state.combat and not state.arcaneintellect then
+        return "arcaneintellect"
 
-        elseif not state.combat and state.drink and not state.manafull then
-            -- wait for full mana
-            return nil
+    elseif mode == Faceroll.MODE_ST then
+        -- Single Target
 
-        -- TODO: make this conditional significantly less ugly
-        elseif not state.combat
-           and (((state.brita and state.manaL25) or (not state.brita and (state.manaL50 or state.hpL50))) or (not state.brita and state.group and not state.manafull))
-           and not state.waterL1
-           and not state.drink
-           and not state.moving
-           and not state.targetingenemy
-           then
-            -- low on mana or hp, and we've given a second or two to loot
-            return "consume"
+        if state.targetingenemy then
+            if state.coneofcold and state.melee then
+                return "coneofcold"
 
-        elseif not state.combat and not state.foodLwater and (makeForever or state.waterL1 or (state.brita and state.waterL100)) then
-            -- we're either making one batch because we ran out, or we're doing
-            -- a big prep because "hold" == "big prep"
-            return "makewater"
+            elseif not state.group and not state.icebarrier and state.icebarrierready then
+                return "icebarrier"
 
-        elseif not state.combat and (makeForever or state.foodL1 or (state.brita and state.foodL100)) then
-            -- we're either making one batch because we ran out, or we're doing
-            -- a big prep because "hold" == "big prep"
-            return "makefood"
-
-        elseif not state.combat and not state.magearmor then
-            return "magearmor"
-
-        elseif not state.combat and not state.arcaneintellect then
-            return "arcaneintellect"
-
-        elseif not state.combat and state.brita and not state.waterL100 and not state.manafull then
-            -- we just finished preparing a big pile of water and buffs, top off
-            return "consume"
-
-        elseif not state.brita then
-            -- combat
-
-            if mode == Faceroll.MODE_ST then
-                -- Single Target
-
-                if state.targetingenemy then
-                    if state.coneofcold and state.melee and not state.manaL25 and state.hpL50 then
-                        -- hpL50 here is to take a hit or two while wanding for FSR
-                        return "coneofcold"
-
-                    elseif not state.group and not state.icebarrier and state.icebarrierready and not state.manaL25 then
-                        return "icebarrier"
-
-                    -- elseif (state.melee and not state.group and not state.icebarrier) or not state.frostbolt then
-                    --     return "shoot"
-
-                    else
-                        return "frostbolt"
-                    end
-                end
-
-            elseif mode == Faceroll.MODE_AOE then
-                -- AOE
-
-                if not state.channeling and (state.combat or state.targetingenemy) then
-                    -- if state.blizzard then
-                        return "blizzard"
-
-                    -- elseif state.targetingenemy then
-                        -- return "shoot"
-                    -- end
-                end
+            else
+                return "frostbolt"
             end
         end
+
+    elseif mode == Faceroll.MODE_AOE then
+        -- AOE
+
+        -- if state.coneofcold and state.melee then
+        --     return "coneofcold"
+        if not state.channeling and (state.combat or state.targetingenemy) then
+            -- if state.blizzard then
+                return "blizzard"
+
+            -- elseif state.targetingenemy then
+                -- return "shoot"
+            -- end
+        end
     end
-    return nil
 end

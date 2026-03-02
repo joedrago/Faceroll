@@ -1,11 +1,11 @@
 -----------------------------------------------------------------------------------------
--- Classic Druid
+-- Classic Feral Druid
 
 if Faceroll == nil then
     _, Faceroll = ...
 end
 
-local spec = Faceroll.createSpec("CD", "006600", "DRUID-CLASSIC")
+local spec = Faceroll.createSpec("FERAL", "00aa00", "DRUID-2")
 
 -----------------------------------------------------------------------------------------
 -- States
@@ -16,11 +16,10 @@ spec.overlay = Faceroll.createOverlay({
     "cat",
 
     "- Combat -",
-    "targetingenemy",
-    "melee",
-    "combat",
+    "group",
     "aoe",
-    "hold",
+    "nobleed",
+    "dps",
 
     "- Resources -",
     "hpL80",
@@ -30,7 +29,6 @@ spec.overlay = Faceroll.createOverlay({
     "energyG30",
     "energyG35",
     "energyG40",
-    "cpG3",
 
     "- Buffs -",
     "thorns",
@@ -49,7 +47,8 @@ spec.overlay = Faceroll.createOverlay({
 })
 
 spec.options = {
-    "hold",
+    "nobleed",
+    "dps",
 }
 
 spec.calcState = function(state)
@@ -63,6 +62,10 @@ spec.calcState = function(state)
     end
 
     -- Combat --
+
+    if IsInGroup() then
+        state.group = true
+    end
 
     if Faceroll.targetingEnemy() then
         state.targetingenemy = true
@@ -119,11 +122,6 @@ spec.calcState = function(state)
         state.energyG40 = true
     end
 
-    local cp = GetComboPoints("player", "target")
-    if cp >= 3 then
-        state.cpG3 = true
-    end
-
     -- Buffs --
 
     if Faceroll.isBuffActive("Thorns") then
@@ -173,25 +171,87 @@ end
 -- Actions
 
 spec.actions = {
-    "wrath",
-    -- "bear",
-    -- "thorns",
-    -- "roar",
-    -- "swipe",
-    -- "moonfire",
-    -- "rejuvenation",
-    -- "enrage",
-    -- "cat",
+    "moonfire",
+    "bear",
+    "thorns",
+    "roar",
+    "rejuvenation",
+    "enrage",
+    "maul",
+    "swipe",
+
+    "cat",
+    "fff",
+    "claw",
+    "rip",
+
     -- "bite",
-    -- "claw",
     -- "rake",
-    -- "maul",
     -- "tigersfury",
-    -- "fff",
 }
 
 spec.calcAction = function(mode, state)
-    return "wrath"
+    local st = (mode == Faceroll.MODE_ST)
+    local aoe = (mode == Faceroll.MODE_AOE)
+
+    if not state.group and not state.targetingenemy and state.hpL90 and not state.manaL80 and not state.combat and not state.rejuvenation then
+        return "rejuvenation"
+
+    elseif state.dps then
+        if not state.cat then
+            return "cat"
+
+        elseif state.targetingenemy then
+
+            -- state.nobleed means "I am fighting bleed immune targets"
+
+            if not state.fff and state.fffready then
+                return "fff"
+
+            -- elseif not state.tigersfury and state.energyG30 then
+            --     return "tigersfury"
+
+            elseif not state.nobleed and state.combopoints >= 5 then
+                return "rip"
+
+            -- elseif not state.nobleed and state.cpG3 and state.energyG35 then
+            --     return "bite"
+
+            -- elseif not state.nobleed and not state.rake and state.energyG35 then
+            --     return "rake"
+
+            else
+                return "claw"
+            end
+        end
+
+    else
+        if not state.targetingenemy and not state.combat and not state.thorns then
+                return "thorns"
+
+        elseif state.targetingenemy then
+            if not state.bear then
+                return "bear"
+
+            elseif not aoe and not state.fff and state.fffready then
+                return "fff"
+
+            elseif state.enrage then
+                return "enrage"
+
+            elseif not state.roar then
+                if state.melee then
+                    return "roar"
+                end
+                -- we want to wait if we can't roar
+
+            elseif aoe then
+                return "swipe"
+            else
+                return "maul"
+            end
+        end
+    end
 
     -- if mode == Faceroll.MODE_ST then
     --     -- Cat Form
@@ -207,7 +267,7 @@ spec.calcAction = function(mode, state)
 
     --     elseif state.targetingenemy then
 
-    --         -- state.hold means "I am fighting bleed immune targets"
+    --         -- state.nobleed means "I am fighting bleed immune targets"
 
     --         if not state.fff and state.fffready then
     --             return "fff"
@@ -215,10 +275,10 @@ spec.calcAction = function(mode, state)
     --         elseif not state.tigersfury and state.energyG30 then
     --             return "tigersfury"
 
-    --         elseif not state.hold and state.cpG3 and state.energyG35 then
+    --         elseif not state.nobleed and state.cpG3 and state.energyG35 then
     --             return "bite"
 
-    --         elseif not state.hold and not state.rake and state.energyG35 then
+    --         elseif not state.nobleed and not state.rake and state.energyG35 then
     --             return "rake"
 
     --         elseif state.energyG40 then
