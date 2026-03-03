@@ -1513,6 +1513,12 @@ DEFAULT_CHAT_FRAME.editBox:HookScript("OnShow", function()
     facerollDeactivate()
 end)
 
+hooksecurefunc("ChatEdit_ActivateChat", function(frame)
+    if frame:IsShown() then
+        facerollDeactivate()
+    end
+end)
+
 -----------------------------------------------------------------------------------------
 -- Slash command registration
 
