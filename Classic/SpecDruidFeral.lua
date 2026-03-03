@@ -43,6 +43,7 @@ spec.overlay = Faceroll.createOverlay({
 
     "- Spells -",
     "enrage",
+    "mangle",
     "fffready",
 })
 
@@ -159,6 +160,9 @@ spec.calcState = function(state)
     if Faceroll.isSpellAvailable("Enrage") then
         state.enrage = true
     end
+    if Faceroll.isSpellAvailable("Mangle (Bear)") then
+        state.mangle = true
+    end
 
     if Faceroll.isSpellAvailable("Faerie Fire (Feral)") then
         state.fffready = true
@@ -184,6 +188,9 @@ spec.actions = {
     "fff",
     "claw",
     "rip",
+    -- "catswipe",
+
+    "mangle",
 
     -- "bite",
     -- "rake",
@@ -220,6 +227,8 @@ spec.calcAction = function(mode, state)
             -- elseif not state.nobleed and not state.rake and state.energyG35 then
             --     return "rake"
 
+            -- elseif aoe then
+            --     return "catswipe"
             else
                 return "claw"
             end
@@ -247,6 +256,8 @@ spec.calcAction = function(mode, state)
 
             elseif aoe then
                 return "swipe"
+            elseif state.mangle then
+                return "mangle"
             else
                 return "maul"
             end

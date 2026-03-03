@@ -14,8 +14,12 @@ spec.overlay = Faceroll.createOverlay({
     "- Stances -",
     "moonkin",
 
+    "- Resources -",
+    "normana",
+
     "- Combat -",
     "group",
+    "drink",
 
     "- Debuffs -",
     "moonfire",
@@ -28,12 +32,23 @@ spec.calcState = function(state)
         state.moonkin = true
     end
 
+    -- Resources --
+    local curMana = UnitPower("player", 0)
+    local maxMana = UnitPowerMax("player", 0)
+    state.norMana = 0
+    if maxMana > 0 then
+        state.norMana = curMana / maxMana
+    end
+
     -- Combat --
 
     if IsInGroup() then
         state.group = true
     end
 
+    if Faceroll.isBuffActive("Drink") then
+        state.drink = true
+    end
     -- Debuffs --
 
     if Faceroll.getDotRemainingNorm("Moonfire") > 0.1 then
@@ -52,6 +67,7 @@ spec.actions = {
     "wrath",
     "starfire",
     "hurricane",
+    "drink",
 }
 
 spec.calcAction = function(mode, state)
@@ -69,5 +85,8 @@ spec.calcAction = function(mode, state)
         else
             return "wrath"
         end
+
+    elseif state.norMana < 0.9 and not state.combat and not state.drink then
+        return "drink"
     end
 end
