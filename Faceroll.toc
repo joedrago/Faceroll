@@ -48,12 +48,14 @@ Ascension\SpecBBWarlockGrind.lua
 # -- Classic (Anniversary) Specs --
 Classic\SpecDruidBalance.lua
 Classic\SpecDruidFeral.lua
-Classic\SpecMage.lua
+Classic\SpecMageArcane.lua
+Classic\SpecMageFrost.lua
 Classic\SpecPaladin.lua
 Classic\SpecPriest.lua
 Classic\SpecRogue.lua
 Classic\SpecShaman.lua
 Classic\SpecWarlock.lua
+Classic\SpecWarrior.lua
 
 # -- Retail Specs --
 # Retail\SpecArcaneMage.lua

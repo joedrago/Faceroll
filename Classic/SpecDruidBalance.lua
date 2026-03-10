@@ -23,6 +23,9 @@ spec.overlay = Faceroll.createOverlay({
 
     "- Debuffs -",
     "moonfire",
+
+    "- Buffs -",
+    "lunar",
 })
 
 spec.calcState = function(state)
@@ -49,10 +52,15 @@ spec.calcState = function(state)
     if Faceroll.isBuffActive("Drink") then
         state.drink = true
     end
-    -- Debuffs --
 
+    -- Debuffs --
     if Faceroll.getDotRemainingNorm("Moonfire") > 0.1 then
         state.moonfire = true
+    end
+
+    -- Buffs --
+    if Faceroll.isBuffActive("Eclipse (Lunar)") then
+        state.lunar = true
     end
 
     return state
@@ -68,6 +76,7 @@ spec.actions = {
     "starfire",
     "hurricane",
     "drink",
+    "starfire",
 }
 
 spec.calcAction = function(mode, state)
@@ -82,6 +91,8 @@ spec.calcAction = function(mode, state)
 
         elseif not state.moonfire then
             return "moonfire"
+        elseif state.lunar then
+            return "starfire"
         else
             return "wrath"
         end

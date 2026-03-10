@@ -854,6 +854,12 @@ Faceroll.deadzoneUpdate = function(deadzone)
     if castingSpell then
         castingSpellDone = castingSpellEndTime / 1000 - GetTime()
         -- print("castingSpell " .. castingSpell .. " castingSpellDone " .. castingSpellDone)
+    else
+        local channelingSpell, _, _, _, channelSpellEndTime = UnitChannelInfo("player")
+        if channelingSpell then
+            castingSpell = channelingSpell
+            castingSpellDone = channelSpellEndTime / 1000 - GetTime()
+        end
     end
     if castingSpell == deadzone.spellName and castingSpellDone < deadzone.castTimeRemaining then
         deadzone.endTime = GetTime() + deadzone.duration
