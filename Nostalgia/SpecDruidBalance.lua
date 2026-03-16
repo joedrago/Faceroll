@@ -20,26 +20,26 @@ spec.macros = {
 
 ["Dash"] = [[
 #showtooltip Dash
-/cast [noform:3] !Cat Form
-/cast [form:3] Dash
+/cast [noform:3] !@Cat Form@
+/cast [form:3] @Dash@
 ]],
 
 ["Prowl"] = [[
 #showtooltip
-/cast [noform:3] !Cat Form
-/cast [form:3] Prowl
+/cast [noform:3] !@Cat Form@
+/cast [form:3] @Prowl@
 ]],
 
 ["Moonkin"] = [[
 #showtooltip
-/cast !Moonkin Form
+/cast !@Moonkin Form@
 ]],
 
 ["Hurricane"] = [[
 #showtooltip Hurricane
 /stopmacro [channeling]
 /stopmacro [noexist]
-/say .cast 27012
+/say .cast @@Hurricane@@
 ]],
 
 }
@@ -80,30 +80,22 @@ spec.actions = {
 spec.calcAction = function(mode, state)
     local aoe = (mode == Faceroll.MODE_AOE)
 
-    if state.level < 20 then
-        if state.level >= 4 and not state.d_moonfire and state.combat then
-            return "moonfire"
-        else
-            return "wrath"
-        end
-    end
-
-    if not state.f_moonkin then
+    if not state.f_moonkin and Faceroll.isActionAvailable("moonkin") then
         return "moonkin"
 
     elseif state.targetingenemy then
-        if aoe then
+        if aoe and Faceroll.isActionAvailable("hurricane") then
             return "hurricane"
 
-        elseif not state.d_moonfire then
+        elseif not state.d_moonfire and (state.group or state.combat) and Faceroll.isActionAvailable("moonfire") then
             return "moonfire"
-        elseif state.b_lunar then
+        elseif state.b_lunar and Faceroll.isActionAvailable("starfire") then
             return "starfire"
         else
             return "wrath"
         end
 
-    elseif state.mana < 0.9 and not state.combat and not state.b_drink then
+    elseif state.mana < 0.9 and not state.combat and not state.b_drink and Faceroll.isActionAvailable("drink") then
         return "drink"
     end
 end

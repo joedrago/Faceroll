@@ -33,60 +33,67 @@ spec.macros = {
 
 ["Dash"] = [[
 #showtooltip Dash
-/cast [noform:3] !Cat Form
-/cast [form:3] Dash
+/cast [noform:3] !@Cat Form@
+/cast [form:3] @Dash@
 ]],
 
 ["Prowl"] = [[
 #showtooltip
-/cast [noform:3] !Cat Form
-/cast [form:3] Prowl
+/cast [noform:3] !@Cat Form@
+/cast [form:3] @Prowl@
 ]],
 
 ["Bear"] = [[
 #showtooltip
-/cast !Bear Form
-]],
-
-["DireBear"] = [[
-#showtooltip
-/cast !Dire Bear Form
+/cast !@Dire Bear Form|Bear Form@
 ]],
 
 ["Cat"] = [[
 #showtooltip
-/cast !Cat Form
+/cast !@Cat Form@
 ]],
 
 ["Charge"] = [[
 #showtooltip
-/cast [form:1] Feral Charge - Bear
+/cast [form:1] @Feral Charge - Bear@
 /cast [form:3] Feral Charge - Cat
 ]],
 
 ["Maul"] = [[
 #showtooltip
-/cast !Maul
+/cast !@Maul@
 /startAttack
 ]],
 
 ["Swipe"] = [[
 #showtooltip
-/cast [form:1] Swipe (Bear)
+/cast [form:1] @Swipe (Bear)@
 /cast [form:3] Swipe (Cat)
-/startAttack
-]],
-
-["Claw"] = [[
-#showtooltip
-/cast Claw
 /startAttack
 ]],
 
 ["Mangle"] = [[
 #showtooltip
-/cast [form:1] Mangle (Bear)
-/cast [form:3] Mangle (Cat)
+/cast [form:1] @Mangle (Bear)|Maul@
+/cast [form:3] @Mangle (Cat)|Claw@
+/startAttack
+]],
+
+["Bite"] = [[
+#showtooltip
+/cast @Ferocious Bite|Rip@
+/startAttack
+]],
+
+["Rake"] = [[
+#showtooltip
+/cast @Rake|Claw@
+/startAttack
+]],
+
+["Ravage"] = [[
+#showtooltip
+/cast @Ravage|Claw@
 /startAttack
 ]],
 
@@ -155,16 +162,16 @@ spec.actions = {
     { "charge",     macro = "Charge" },
     { "maul",       macro = "Maul" },
     { "swipe",      macro = "Swipe" },
-    { "mangle",     macro = "Mangle" },     -- use Claw macro until you learn Mangle
+    { "mangle",     macro = "Mangle" },
     { "cat",        macro = "Cat" },
     { "fff",        spell = "Faerie Fire (Feral)" },
     { "enrage",     spell = "Enrage" },
     { "roar",       spell = "Demoralizing Roar" },
     { "tigersfury", spell = "Tiger's Fury" },
     { "rip",        spell = "Rip" },
-    { "bite",       spell = "Ferocious Bite" },     -- use Rip macro until you learn Ferocious Bite
-    { "rake",       spell = "Rake" },               -- use Claw macro until you learn Rake
-    { "ravage",     spell = "Ravage" },              -- use Claw macro until you learn Ravage
+    { "bite",       macro = "Bite" },
+    { "rake",       macro = "Rake" },
+    { "ravage",     macro = "Ravage" },
     { "rejuv",      spell = "Rejuvenation" },
     { "kick",       spell = "Skull Bash" },
 }
@@ -227,7 +234,7 @@ spec.calcAction = function(mode, state)
             -- elseif not state.s_charge and not state.melee and state.s_fff and not state.d_fff then
             --     return "fff"
 
-            elseif not state.b_berserk and state.s_tigersfury and not state.b_tigersfury and state.energy <= 30 then
+            elseif not state.b_berserk and state.s_tigersfury and not state.b_tigersfury and state.energy <= 30 and Faceroll.isActionAvailable("tigersfury") then
                 return "tigersfury"
 
             elseif aoe and state.melee then

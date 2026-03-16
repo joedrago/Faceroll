@@ -1469,14 +1469,14 @@ local function onLoaded()
 end
 
 -----------------------------------------------------------------------------------------
--- Upgrade Ranks Action Bar Spell Helper
+-- Spellbook scanning (used by /frur, /frm)
 
 local gsbin = GetSpellBookItemName
 if gsbin == nil then
     gsbin = GetSpellName
 end
 
-local function upgradeRanks()
+local function scanSpellbook()
     local bestRanks = {}
     local idRanks = {}
 
@@ -1484,7 +1484,7 @@ local function upgradeRanks()
     while true do
         local spellName, spellSubName = gsbin(i, BOOKTYPE_SPELL)
         if not spellName then
-            break -- Exit the loop when no more spells are found
+            break
         end
         local id = nil
         if Faceroll.ascension then
@@ -1503,25 +1503,33 @@ local function upgradeRanks()
             break
         end
 
-        local _, _, rank = string.find(spellSubName, "Rank (%d+)")
-        if rank ~= nil then
-            rank = tonumber(rank)
-            -- print(spellName .. " (ranky " .. rank .. ") - " .. infoName .. " (id " .. id .. ")")
+        local _, _, rank = string.find(spellSubName or "", "Rank (%d+)")
+        rank = rank and tonumber(rank) or 0
 
-            if bestRanks[infoName] == nil then
-                bestRanks[infoName] = {}
-                bestRanks[infoName].name = infoName
-                bestRanks[infoName].rank = 0
-            end
-            if bestRanks[infoName].rank < rank then
-                bestRanks[infoName].rank = rank
-                bestRanks[infoName].id = id
-            end
+        if bestRanks[infoName] == nil then
+            bestRanks[infoName] = {}
+            bestRanks[infoName].name = infoName
+            bestRanks[infoName].rank = -1
+        end
+        if rank > bestRanks[infoName].rank then
+            bestRanks[infoName].rank = rank
+            bestRanks[infoName].id = id
+        end
+        if rank > 0 then
             idRanks[id] = rank
         end
 
         i = i + 1
     end
+
+    return bestRanks, idRanks
+end
+
+-----------------------------------------------------------------------------------------
+-- Upgrade Ranks Action Bar Spell Helper
+
+local function upgradeRanks()
+    local bestRanks, idRanks = scanSpellbook()
 
     local upgradedCount = 0
     for i = 1,120 do
@@ -1752,28 +1760,95 @@ SlashCmdList["FRM"] = function()
         return s:match("^%s*(.-)%s*$")
     end
 
+    -- Scan spellbook once for :SpellName: resolution
+    local bestRanks = scanSpellbook()
+
     for name, body in pairs(spec.macros) do
         local macroName = name .. " FR"
         body = trim(body)
         local tag = Faceroll.textColor("[frm] ", "333333")
         local nameText = Faceroll.textColor(macroName, "aaffff")
 
-        local index = GetMacroIndexByName(macroName)
-        if index and index > 0 then
-            local _, existingIcon, existingBody = GetMacroInfo(index)
-            if trim(existingBody) == body then
-                print(tag .. nameText .. " " .. Faceroll.textColor("OK", "777777"))
+        -- Resolve @SpellA|SpellB@ patterns (check-only, keeps first known spell name)
+        -- Resolve @@SpellA|SpellB@@ patterns (replaces with best-rank spell ID of first known)
+        -- Pipe-separated fallbacks: tries each name left-to-right, uses first found
+        local resolveNotes = {}
+        local resolveFailed = false
+
+        local function findBestMatch(candidates)
+            for _, spellName in ipairs(candidates) do
+                local best = bestRanks[spellName]
+                if best then return spellName, best end
+            end
+            return nil, nil
+        end
+
+        local function splitCandidates(str)
+            local candidates = {}
+            for name in string.gmatch(str, "[^|]+") do
+                table.insert(candidates, name)
+            end
+            return candidates
+        end
+
+        body = string.gsub(body, "@@([^@]+)@@", function(pattern)
+            local candidates = splitCandidates(pattern)
+            local matched, best = findBestMatch(candidates)
+            if matched then
+                table.insert(resolveNotes, Faceroll.textColor(matched, "ffffaa")
+                    .. " -> " .. Faceroll.textColor("rank " .. best.rank .. " (id " .. best.id .. ")", "aaffaa"))
+                return tostring(best.id)
             else
-                EditMacro(index, macroName, existingIcon, body)
-                print(tag .. nameText .. " " .. Faceroll.textColor("Updated", "ffffaa"))
+                table.insert(resolveNotes, Faceroll.textColor(pattern, "ffffaa")
+                    .. " " .. Faceroll.textColor("not in spellbook", "ff5555"))
+                resolveFailed = true
+                return "@@" .. pattern .. "@@"
+            end
+        end)
+        body = string.gsub(body, "@([^@]+)@", function(pattern)
+            local candidates = splitCandidates(pattern)
+            local matched, best = findBestMatch(candidates)
+            if matched then
+                local rankText = best.rank > 0
+                    and "known (rank " .. best.rank .. ")"
+                    or "known"
+                table.insert(resolveNotes, Faceroll.textColor(matched, "ffffaa")
+                    .. " " .. Faceroll.textColor(rankText, "aaffaa"))
+                return matched
+            else
+                table.insert(resolveNotes, Faceroll.textColor(pattern, "ffffaa")
+                    .. " " .. Faceroll.textColor("not in spellbook", "ff5555"))
+                resolveFailed = true
+                return "@" .. pattern .. "@"
+            end
+        end)
+
+        if resolveFailed then
+            print(tag .. nameText .. " " .. Faceroll.textColor("Skipped (unlearned spell)", "777777"))
+            for _, note in ipairs(resolveNotes) do
+                print(tag .. "  " .. note)
             end
         else
-            local _, numCharacter = GetNumMacros()
-            if numCharacter >= 18 then
-                print(tag .. nameText .. " " .. Faceroll.textColor("FAILED - no character macro slots", "ff5555"))
+            local index = GetMacroIndexByName(macroName)
+            if index and index > 0 then
+                local _, existingIcon, existingBody = GetMacroInfo(index)
+                if trim(existingBody) == body then
+                    print(tag .. nameText .. " " .. Faceroll.textColor("OK", "777777"))
+                else
+                    EditMacro(index, macroName, existingIcon, body)
+                    print(tag .. nameText .. " " .. Faceroll.textColor("Updated", "ffffaa"))
+                end
             else
-                CreateMacro(macroName, AUTO_ICON, body, 1)
-                print(tag .. nameText .. " " .. Faceroll.textColor("Created", "aaffaa"))
+                local _, numCharacter = GetNumMacros()
+                if numCharacter >= 18 then
+                    print(tag .. nameText .. " " .. Faceroll.textColor("FAILED - no character macro slots", "ff5555"))
+                else
+                    CreateMacro(macroName, AUTO_ICON, body, 1)
+                    print(tag .. nameText .. " " .. Faceroll.textColor("Created", "aaffaa"))
+                end
+            end
+            for _, note in ipairs(resolveNotes) do
+                print(tag .. "  " .. note)
             end
         end
     end
@@ -1877,13 +1952,46 @@ end
 -----------------------------------------------------------------------------------------
 -- Setup: /frm + /frb + /frk refresh with confirmation (/frs etup)
 
+local function placeGlobalMacro(keyName, macroName)
+    local tag = Faceroll.textColor("[frsetup] ", "333333")
+    local key = Faceroll.keys[keyName]
+    if not key then return end
+    local macroIndex = GetMacroIndexByName(macroName)
+    if not macroIndex or macroIndex == 0 then return end
+    local blizzKey = facerollKeyToBlizzKey(key)
+    local binding = GetBindingAction(blizzKey)
+    if not binding or binding == "" then return end
+    local slot = bindingToSlot(binding)
+    if not slot then return end
+    if HasAction(slot) then return end
+    PickupMacro(macroIndex)
+    PlaceAction(slot)
+    ClearCursor()
+    print(tag .. Faceroll.textColor(macroName, "aaffff") .. " -> slot " .. slot .. " " .. Faceroll.textColor("OK", "aaffaa"))
+end
+
+local function setupPlaceGlobalMacros()
+    placeGlobalMacro("toggle1", "FRA")
+    placeGlobalMacro("signal_st", "FR_ST")
+    placeGlobalMacro("signal_aoe", "FR_AE")
+end
+
 StaticPopupDialogs["FACEROLL_SETUP"] = {
     text = "Faceroll: Create macros and populate action bars for the active spec?",
-    button1 = "Yes",
+    button1 = "Update",
     button2 = "Cancel",
+    button3 = "Clear + Update",
     OnAccept = function()
         SlashCmdList["FRM"]()
         SlashCmdList["FRB"]()
+        setupPlaceGlobalMacros()
+        dumpKeybinds("refresh")
+    end,
+    OnAlt = function()
+        SlashCmdList["FRBC"]()
+        SlashCmdList["FRM"]()
+        SlashCmdList["FRB"]()
+        setupPlaceGlobalMacros()
         dumpKeybinds("refresh")
     end,
     timeout = 0,
