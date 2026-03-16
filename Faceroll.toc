@@ -8,71 +8,30 @@
 Bridge.lua
 Faceroll.lua
 
-# -- Ascension WoW Specs --
-Ascension\SpecArcaneThunderSeer.lua
-Ascension\SpecBloodAndGuts.lua
-Ascension\SpecCarnageIncarnate.lua
-Ascension\SpecConsecratedStrikes.lua
-Ascension\SpecCorruptedBearForm.lua
-Ascension\SpecDarkApotheosis.lua
-Ascension\SpecDarkRanger.lua
-Ascension\SpecDefiasGunslinger.lua
-Ascension\SpecEvoker.lua
-Ascension\SpecLavaSweep.lua
-Ascension\SpecLegacyOfTheArcanist.lua
-Ascension\SpecLeiShensLegacy.lua
-Ascension\SpecLucifur.lua
-Ascension\SpecMasterOfShadows.lua
-Ascension\SpecPlagueBearer.lua
-Ascension\SpecPredatorsWrath.lua
-Ascension\SpecRoulette.lua
-Ascension\SpecThermalVoid.lua
-Ascension\SpecThunderSlam.lua
-Ascension\SpecTreeofWrath.lua
-Ascension\SpecWhiteWalker.lua
-Ascension\SpecZandalariWindreaver.lua
-
 # -- Ascension WoW Bronzebeard Specs --
-Ascension\SpecBBDruidBear.lua
-Ascension\SpecBBDruidCat.lua
-Ascension\SpecBBDruidTree.lua
-Ascension\SpecBBDruidBoom.lua
-Ascension\SpecBBMage.lua
-Ascension\SpecBBPaladin.lua
-Ascension\SpecBBPriest.lua
-Ascension\SpecBBRogue.lua
-Ascension\SpecBBShaman.lua
-Ascension\SpecBBWarlockDungeon.lua
-Ascension\SpecBBWarlockGrind.lua
+# Ascension\SpecBBDruidBear.lua
+# Ascension\SpecBBDruidCat.lua
+# Ascension\SpecBBDruidTree.lua
+# Ascension\SpecBBDruidBoom.lua
+# Ascension\SpecBBMage.lua
+# Ascension\SpecBBPaladin.lua
+# Ascension\SpecBBPriest.lua
+# Ascension\SpecBBRogue.lua
+# Ascension\SpecBBShaman.lua
+# Ascension\SpecBBWarlockDungeon.lua
+# Ascension\SpecBBWarlockGrind.lua
 
-# -- Classic (Anniversary) Specs --
-Classic\SpecDruidBalance.lua
-Classic\SpecDruidFeral.lua
-Classic\SpecMageArcane.lua
-Classic\SpecMageFrost.lua
-Classic\SpecPaladin.lua
-Classic\SpecPaladinRet.lua
-Classic\SpecPriest.lua
-Classic\SpecRogue.lua
-Classic\SpecShaman.lua
-Classic\SpecWarlock.lua
-Classic\SpecWarrior.lua
-
-# -- Retail Specs --
-# Retail\SpecArcaneMage.lua
-# Retail\SpecBalanceDruid.lua
-# Retail\SpecBeastMasteryHunter.lua
-# Retail\SpecDestructionWarlock.lua
-# Retail\SpecFrostDeathKnight.lua
-# Retail\SpecGuardianDruid.lua
-# Retail\SpecHavocDemonHunter.lua
-# Retail\SpecHolyPaladin.lua
-# Retail\SpecMarksmanshipHunter.lua
-# Retail\SpecProtectionPaladin.lua
-# Retail\SpecRetributionPaladin.lua
-# Retail\SpecSubtletyRogue.lua
-# Retail\SpecSurvivalHunter.lua
-# Retail\SpecVengeanceDemonHunter.lua
+# -- Nostalgia WoW Specs --
+Nostalgia\SpecDruidBalance.lua
+Nostalgia\SpecDruidFeral.lua
+Nostalgia\SpecMageArcane.lua
+Nostalgia\SpecMageFrost.lua
+Nostalgia\SpecPaladinRet.lua
+Nostalgia\SpecPriest.lua
+Nostalgia\SpecRogue.lua
+Nostalgia\SpecShaman.lua
+Nostalgia\SpecWarlock.lua
+Nostalgia\SpecWarrior.lua
 
 Settings.lua
 Startup.lua
