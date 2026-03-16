@@ -213,7 +213,8 @@ Faceroll.startup = function()
 
     for _, spec in ipairs(Faceroll.availableSpecs) do
         if spec.actions ~= nil then
-            for index, action in ipairs(spec.actions) do
+            for index, entry in ipairs(spec.actions) do
+                local action = type(entry) == "table" and entry[1] or entry
                 local key = Faceroll.keys[action]
                 if key == nil then
                     key = Faceroll.keys[index]
@@ -1297,7 +1298,8 @@ end
 local function dumpKeybinds()
     local spec = Faceroll.activeSpec()
     if spec and spec.actions then
-        for actionIndex,action in ipairs(spec.actions) do
+        for actionIndex, entry in ipairs(spec.actions) do
+            local action = type(entry) == "table" and entry[1] or entry
             local key = Faceroll.keys[action]
             if key == nil then
                 key = Faceroll.keys[actionIndex]
@@ -1663,6 +1665,149 @@ SlashCmdList["FRM"] = function()
             end
         end
     end
+end
+
+-----------------------------------------------------------------------------------------
+-- Action Bar Placement (/frb)
+
+-- Resolve faceroll key names to action bar slots
+-- Supports vanilla action bars (ACTIONBUTTON7) and Bartender4 (CLICK BT4Button109:LeftButton)
+local function facerollKeyToBlizzKey(frKey)
+    local upper = string.upper(frKey)
+    upper = string.gsub(upper, "^PAD", "NUMPAD")
+    return upper
+end
+
+local vanillaSlots = {
+    ACTIONBUTTON = 0,
+    BONUSACTIONBUTTON = 0,
+    MULTIACTIONBAR1BUTTON = 60,
+    MULTIACTIONBAR2BUTTON = 48,
+    MULTIACTIONBAR3BUTTON = 36,
+    MULTIACTIONBAR4BUTTON = 24,
+}
+
+local function bindingToSlot(binding)
+    local bt4num = string.match(binding, "^CLICK BT4Button(%d+):")
+    if bt4num then return tonumber(bt4num) end
+    for prefix, offset in pairs(vanillaSlots) do
+        local num = string.match(binding, "^" .. prefix .. "(%d+)$")
+        if num then return offset + tonumber(num) end
+    end
+    return nil
+end
+
+local function buildKeyToSlotMap(spec)
+    local keyToSlot = {}
+    local keysToCheck = {}
+    for index, entry in ipairs(spec.actions) do
+        local action = type(entry) == "table" and entry[1] or entry
+        local key = spec.keys[action]
+        if key then keysToCheck[key] = true end
+    end
+    for key, _ in pairs(keysToCheck) do
+        local blizzKey = facerollKeyToBlizzKey(key)
+        local binding = GetBindingAction(blizzKey)
+        if binding and binding ~= "" then
+            local slot = bindingToSlot(binding)
+            if slot then
+                keyToSlot[key] = slot
+            end
+        end
+    end
+    return keyToSlot
+end
+
+SLASH_FRB1 = '/frb'
+SlashCmdList["FRB"] = function()
+    local spec = Faceroll.activeSpec()
+    if spec == nil then
+        print(Faceroll.textColor("[frb] ", "ff5555") .. "No active spec.")
+        return
+    end
+    if spec.actions == nil then
+        print(Faceroll.textColor("[frb] ", "ff5555") .. "Active spec has no actions defined.")
+        return
+    end
+
+    local keyToSlot = buildKeyToSlotMap(spec)
+    local tag = Faceroll.textColor("[frb] ", "333333")
+    local placed = 0
+
+    for actionIndex, entry in ipairs(spec.actions) do
+        if type(entry) == "table" then
+            local action = entry[1]
+            local macroName = entry.macro
+            local spellName = entry.spell
+
+            local key = spec.keys[action]
+            if key == nil then
+                print(tag .. Faceroll.textColor(action, "aaffff") .. " " .. Faceroll.textColor("no keybind", "ff5555"))
+            else
+                local slot = keyToSlot[key]
+                if slot == nil then
+                    print(tag .. Faceroll.textColor(action, "aaffff") .. " key " .. Faceroll.textColor(key, "ffffaa") .. " " .. Faceroll.textColor("not bound to any bar slot", "ff5555"))
+                elseif macroName then
+                    local fullName = macroName .. " FR"
+                    local macroIndex = GetMacroIndexByName(fullName)
+                    if macroIndex and macroIndex > 0 then
+                        PickupMacro(macroIndex)
+                        PlaceAction(slot)
+                        ClearCursor()
+                        placed = placed + 1
+                        print(tag .. Faceroll.textColor(action, "aaffff") .. " " .. Faceroll.textColor(fullName, "ffffaa") .. " -> slot " .. slot .. " " .. Faceroll.textColor("OK", "aaffaa"))
+                    else
+                        print(tag .. Faceroll.textColor(action, "aaffff") .. " " .. Faceroll.textColor("macro not found: " .. fullName .. " (run /frm first)", "ff5555"))
+                    end
+                elseif spellName then
+                    if GetSpellInfo(spellName) then
+                        PickupSpell(spellName)
+                        PlaceAction(slot)
+                        ClearCursor()
+                        placed = placed + 1
+                        print(tag .. Faceroll.textColor(action, "aaffff") .. " " .. Faceroll.textColor(spellName, "ffffaa") .. " -> slot " .. slot .. " " .. Faceroll.textColor("OK", "aaffaa"))
+                    else
+                        print(tag .. Faceroll.textColor(action, "aaffff") .. " " .. Faceroll.textColor(spellName .. " (not learned yet)", "777777"))
+                    end
+                end
+            end
+        end
+    end
+
+    print(tag .. "Placed " .. placed .. " action(s).")
+end
+
+SLASH_FRBC1 = '/frbc'
+SlashCmdList["FRBC"] = function()
+    local spec = Faceroll.activeSpec()
+    if spec == nil then
+        print(Faceroll.textColor("[frbc] ", "ff5555") .. "No active spec.")
+        return
+    end
+    if spec.actions == nil then
+        print(Faceroll.textColor("[frbc] ", "ff5555") .. "Active spec has no actions defined.")
+        return
+    end
+
+    local keyToSlot = buildKeyToSlotMap(spec)
+    local tag = Faceroll.textColor("[frbc] ", "333333")
+    local cleared = 0
+
+    for index, entry in ipairs(spec.actions) do
+        local action = type(entry) == "table" and entry[1] or entry
+        local key = spec.keys[action]
+        if key then
+            local slot = keyToSlot[key]
+            if slot then
+                PickupAction(slot)
+                ClearCursor()
+                cleared = cleared + 1
+                print(tag .. Faceroll.textColor(action, "aaffff") .. " slot " .. slot .. " " .. Faceroll.textColor("cleared", "ffffaa"))
+            end
+        end
+    end
+
+    print(tag .. "Cleared " .. cleared .. " slot(s).")
 end
 
 -----------------------------------------------------------------------------------------

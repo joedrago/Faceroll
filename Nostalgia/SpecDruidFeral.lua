@@ -140,22 +140,22 @@ end
 -- Actions
 
 spec.actions = {
-    "bear",
-    "charge",
-    "maul",
-    "swipe",
-    "mangle",   -- use Claw macro until you learn Mangle
-    "cat",
-    "fff",
-    "enrage",
-    "roar",
-    "tigersfury",
-    "rip",
-    "bite",     -- use Rip macro until you learn Ferocious Bite
-    "rake",     -- use Claw macro until you learn Rake
-    "ravage",   -- use Claw macro until you learn Ravage
-    "rejuv",
-    "kick",     -- Skull Bash
+    { "bear",       macro = "Bear" },
+    { "charge",     macro = "Charge" },
+    { "maul",       macro = "Maul" },
+    { "swipe",      macro = "Swipe" },
+    { "mangle",     macro = "Mangle" },     -- use Claw macro until you learn Mangle
+    { "cat",        macro = "Cat" },
+    { "fff",        spell = "Faerie Fire (Feral)" },
+    { "enrage",     spell = "Enrage" },
+    { "roar",       spell = "Demoralizing Roar" },
+    { "tigersfury", spell = "Tiger's Fury" },
+    { "rip",        spell = "Rip" },
+    { "bite",       spell = "Ferocious Bite" },     -- use Rip macro until you learn Ferocious Bite
+    { "rake",       spell = "Rake" },               -- use Claw macro until you learn Rake
+    { "ravage",     spell = "Ravage" },              -- use Claw macro until you learn Ravage
+    { "rejuv",      spell = "Rejuvenation" },
+    { "kick",       spell = "Skull Bash" },
 }
 
 spec.calcAction = function(mode, state)
