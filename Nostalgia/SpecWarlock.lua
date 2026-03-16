@@ -12,23 +12,14 @@ spec.buffs = {}
 -----------------------------------------------------------------------------------------
 -- States
 
-spec.overlay = {
-    "curseofagony",
-    "corruption",
+spec.overlay = Faceroll.createOverlay({
+    { "d_curseofagony", "Curse of Agony" },
+    { "d_corruption", "Corruption" },
     "drainsoul",
-}
+})
 
 spec.calcState = function(state)
-    if Faceroll.getDotRemainingNorm("Curse of Agony") > 0.1 then
-        state.curseofagony = true
-    end
-    if Faceroll.getDotRemainingNorm("Corruption") > 0.1 then
-        state.corruption = true
-    end
-
     if Faceroll.targetingEnemy() then
-        state.targetingenemy = true
-
         local targethp = UnitHealth("target")
         local targethpmax = UnitHealthMax("target")
         local targethpnorm = targethp / targethpmax
@@ -59,10 +50,10 @@ spec.calcAction = function(mode, state)
         if state.drainsoul then
             return "drainsoul"
 
-        elseif not state.curseofagony then
+        elseif not state.d_curseofagony then
             return "curseofagony"
 
-        elseif not state.corruption then
+        elseif not state.d_corruption then
             return "corruption"
 
         else

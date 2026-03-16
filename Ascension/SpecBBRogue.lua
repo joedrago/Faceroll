@@ -37,10 +37,7 @@ local healDeadzone = Faceroll.deadzoneCreate("Holy Light", 1.5, 0.5)
 spec.calcState = function(state)
     -- Resources --
     Faceroll.deadzoneUpdate(healDeadzone)
-    local curHP = UnitHealth("player")
-    local maxHP = UnitHealthMax("player")
-    local norHP = curHP / maxHP
-    if (norHP <= 0.5) and Faceroll.hasManaForSpell("Holy Light") and not Faceroll.deadzoneActive(healDeadzone) then
+    if (state.hp <= 0.5) and Faceroll.hasManaForSpell("Holy Light") and not Faceroll.deadzoneActive(healDeadzone) then
         state.selfheal = true
     end
 

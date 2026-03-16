@@ -25,16 +25,6 @@ spec.overlay = Faceroll.createOverlay({
     "- Combat -",
     "hold",
 
-    "- Resources -",
-    "hpL80",
-    "hpL90",
-    "manaL70",
-    "manaL80",
-    "energyG30",
-    "energyG35",
-    "energyG40",
-    "cpG3",
-
     "- Buffs -",
     "thorns",
     "rejuvenation",
@@ -67,44 +57,6 @@ spec.calcState = function(state)
     end
     if Faceroll.inShapeshiftForm("Cat Form") then
         state.catform = true
-    end
-
-    -- Resources --
-
-    local curHP = UnitHealth("player")
-    local maxHP = UnitHealthMax("player")
-    local norHP = curHP / maxHP
-    if norHP < 0.8 then
-        state.hpL80 = true
-    end
-    if norHP < 0.9 then
-        state.hpL90 = true
-    end
-
-    local curMana = UnitPower("player", 0)
-    local maxMana = UnitPowerMax("player", 0)
-    local norMana = curMana / maxMana
-    if norMana < 0.7 then
-        state.manaL70 = true
-    end
-    if norMana < 0.8 then
-        state.manaL80 = true
-    end
-
-    local curEnergy = UnitPower("player", 3)
-    if curEnergy >= 30 then
-        state.energyG30 = true
-    end
-    if curEnergy >= 35 then
-        state.energyG35 = true
-    end
-    if curEnergy >= 40 then
-        state.energyG40 = true
-    end
-
-    local cp = GetComboPoints("player", "target")
-    if cp >= 3 then
-        state.cpG3 = true
     end
 
     -- Buffs --
@@ -192,7 +144,7 @@ spec.calcActionCat = function(mode, state)
     local st = (mode == Faceroll.MODE_ST)
     local aoe = (mode == Faceroll.MODE_AOE)
 
-    if not state.targetingenemy and state.hpL80 and not state.manaL70 and not state.combat and not state.rejuvenation then
+    if not state.targetingenemy and state.hp < 0.8 and state.mana >= 0.7 and not state.combat and not state.rejuvenation then
         return "rejuvenation"
 
     elseif not state.catform then
@@ -205,13 +157,13 @@ spec.calcActionCat = function(mode, state)
         if not state.fff and state.fffready then
             return "fff"
 
-        -- elseif not state.tigersfury and state.energyG30 then
+        -- elseif not state.tigersfury and state.energy >= 30 then
         --     return "tigersfury"
 
-        -- elseif not state.hold and state.cpG3 and state.energyG35 then
+        -- elseif not state.hold and state.combopoints >= 3 and state.energy >= 35 then
         --     return "bite"
 
-        -- elseif not state.hold and not state.rake and state.energyG35 then
+        -- elseif not state.hold and not state.rake and state.energy >= 35 then
         --     return "rake"
 
         elseif not state.hold and not state.rip and state.combopoints > 3 then
@@ -230,7 +182,7 @@ spec.calcActionBear = function(mode, state)
     if st or aoe then
         -- Bear Form
 
-        if not state.targetingenemy and state.hpL90 and not state.manaL80 and not state.combat and not state.rejuvenation then
+        if not state.targetingenemy and state.hp < 0.9 and state.mana >= 0.8 and not state.combat and not state.rejuvenation then
             return "rejuvenation"
 
         elseif state.targetingenemy then

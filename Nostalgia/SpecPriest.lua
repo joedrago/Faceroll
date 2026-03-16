@@ -15,41 +15,21 @@ Faceroll.enemyGridTrack(spec, "Devouring Plague", "DP", "621562")
 
 spec.overlay = Faceroll.createOverlay({
     "- Buffs -",
-    "innerfire",
+    { "b_innerfire", "Inner Fire" },
 
     "- Debuffs -",
-    "pain",
-    "devouringplague",
-    "vampirictouch",
+    { "d_pain", "Shadow Word: Pain" },
+    { "d_devouringplague", "Devouring Plague" },
+    { "d_vampirictouch", "Vampiric Touch" },
 
     "- Spells -",
-    "mindblast",
+    { "s_mindblast", "Mind Blast" },
     "vtdeadzone",
 })
 
 local vtDeadzone = Faceroll.deadzoneCreate("Vampiric Touch", 1.5, 0.5)
 
 spec.calcState = function(state)
-    -- Buffs
-    if Faceroll.isBuffActive("Inner Fire") then
-        state.innerfire = true
-    end
-
-    -- Debuffs
-    if Faceroll.getDotRemainingNorm("Shadow Word: Pain") > 0.1 then
-        state.pain = true
-    end
-    if Faceroll.getDotRemainingNorm("Devouring Plague") > 0.1 then
-        state.devouringplague = true
-    end
-    if Faceroll.getDotRemainingNorm("Vampiric Touch") > 0.1 then
-        state.vampirictouch = true
-    end
-
-    -- Spells
-    if Faceroll.isSpellAvailable("Mind Blast") then
-        state.mindblast = true
-    end
     if Faceroll.deadzoneUpdate(vtDeadzone) then
         state.vtdeadzone = true
     end
@@ -73,23 +53,23 @@ spec.actions = {
 spec.calcAction = function(mode, state)
     local aoe = (mode == Faceroll.MODE_AOE)
 
-    if not state.innerfire then
+    if not state.b_innerfire then
         return "innerfire"
 
     elseif state.targetingenemy then
         if aoe then
             return "mindsear"
 
-        elseif not state.pain then
+        elseif not state.d_pain then
             return "pain"
 
-        elseif not state.vampirictouch and not state.vtdeadzone then
+        elseif not state.d_vampirictouch and not state.vtdeadzone then
             return "vampirictouch"
 
-        elseif not aoe and not state.devouringplague then
+        elseif not aoe and not state.d_devouringplague then
             return "devouringplague"
 
-        elseif state.mindblast then
+        elseif state.s_mindblast then
             return "mindblast"
 
         else

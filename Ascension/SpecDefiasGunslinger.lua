@@ -13,11 +13,6 @@ spec.buffs = {}
 -- States
 
 spec.overlay = {
-    "- Resources -",
-    "energyL50",
-    "cp3",
-    "cp5",
-
     "- Abilities -",
     "charge",
     "mongoosebite",
@@ -32,20 +27,6 @@ spec.overlay = {
 }
 
 spec.calcState = function(state)
-    local energy = UnitPower("PLAYER", 3)
-    local cp = GetComboPoints("PLAYER", "TARGET")
-
-    if energy <= 50 then
-        state.energyL50 = true
-    end
-
-    if cp >= 3 then
-        state.cp3 = true
-    end
-    if cp >= 5 then
-        state.cp5 = true
-    end
-
     if Faceroll.isSpellAvailable("Charge") then
         state.charge = true
     end
@@ -98,13 +79,13 @@ spec.calcAction = function(mode, state)
         if not state.melee and state.charge then
             return "charge"
 
-        elseif state.energyL50 and state.raptorstrike and not state.raptorqueued then
+        elseif state.energy <= 50 and state.raptorstrike and not state.raptorqueued then
             return "raptorstrike"
 
         elseif state.mongoosebite then
             return "mongoosebite"
 
-        elseif state.grapeshot and state.cp5 then
+        elseif state.grapeshot and state.combopoints >= 5 then
             return "grapeshot"
 
         else

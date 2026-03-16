@@ -82,10 +82,7 @@ spec.calcState = function(state)
         state.shiftingpower = true
     end
 
-    local curMana = UnitPower("player", Enum.PowerType.Mana)
-    local maxMana = UnitPowerMax("player", Enum.PowerType.Mana)
-    local norMana = curMana / maxMana
-    if norMana < 0.1 then
+    if state.mana < 0.1 then
         state.lowmana = true
     end
 

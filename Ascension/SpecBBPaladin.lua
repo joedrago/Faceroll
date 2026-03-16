@@ -145,8 +145,6 @@ spec.options = {
 spec.overlay = Faceroll.createOverlay({
     "- Resources -",
     "selfheal",
-    "normHP",
-    "normMana",
     "group",
     "allbuffed",
     "twisting",
@@ -184,20 +182,9 @@ spec.calcState = function(state)
 
     -- Resources --
     Faceroll.deadzoneUpdate(healDeadzone)
-    local curHP = UnitHealth("player")
-    local maxHP = UnitHealthMax("player")
-    local norHP = curHP / maxHP
     if Faceroll.hasManaForSpell("Holy Light") and not Faceroll.deadzoneActive(healDeadzone) then
         state.selfheal = true
     end
-    state.normHP = norHP
-    if IsInGroup() then
-        state.group = true
-    end
-    local curMana = UnitPower("player")
-    local maxMana = UnitPowerMax("player")
-    local norMana = curMana / maxMana
-    state.normMana = norMana
 
     -- Buffs --
 
@@ -292,7 +279,7 @@ spec.calcAction = function(mode, state)
     -- local st = (mode == Faceroll.MODE_ST)
     local aoe = (mode == Faceroll.MODE_AOE)
 
-    if state.selfheal and (not state.combat and (state.normHP <= 0.7)) then
+    if state.selfheal and (not state.combat and (state.hp <= 0.7)) then
         return "heal"
 
     elseif not state.twisting and not state.sealcommand then
@@ -305,7 +292,7 @@ spec.calcAction = function(mode, state)
             return "sealcommand"
         end
 
-    elseif state.divineplea and state.normMana <= 0.70 then
+    elseif state.divineplea and state.mana <= 0.70 then
         return "divineplea"
 
     elseif not state.blessing then

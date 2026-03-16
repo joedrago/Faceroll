@@ -42,30 +42,30 @@ spec.overlay = Faceroll.createOverlay({
     "bear",
 
     "- Form -",
-    "f_bear",
-    "f_cat",
+    { "f_bear", 1 },
+    { "f_cat", 3 },
 
     "- Shared -",
-    "b_rejuv",
+    { "b_rejuv", "Rejuvenation" },
     "s_charge",
-    "s_fff",
-    "d_fff",
-    "s_berserk",
-    "b_berserk",
+    { "s_fff", "Faerie Fire (Feral)" },
+    { "d_fff", "Faerie Fire (Feral)" },
+    { "s_berserk", "Berserk" },
+    { "b_berserk", "Berserk" },
 
     "- Bear -",
-    "s_enrage",
-    "s_mangle",
-    "s_roar",
-    "d_roar",
+    { "s_enrage", "Enrage" },
+    { "s_mangle", "Mangle (Bear)" },
+    { "s_roar", "Demoralizing Roar" },
+    { "d_roar", "Demoralizing Roar" },
 
     "- Cat -",
-    "b_prowl",
-    "s_tigersfury",
-    "b_tigersfury",
-    "d_rake",
-    "d_rip",
-    "s_kick",
+    { "b_prowl", "Prowl" },
+    { "s_tigersfury", "Tiger's Fury" },
+    { "b_tigersfury", "Tiger's Fury" },
+    { "d_rake", "Rake" },
+    { "d_rip", "Rip" },
+    { "s_kick", "Skull Bash" },
 
     "targetcasting",
 })
@@ -76,18 +76,7 @@ spec.options = {
 }
 
 spec.calcState = function(state)
-    -- Form --
-    if GetShapeshiftForm() == 1 then
-        state.f_bear = true
-    end
-    if GetShapeshiftForm() == 3 then
-        state.f_cat = true
-    end
-
-    -- Shared --
-    if Faceroll.isBuffActive("Rejuvenation") then
-        state.b_rejuv = true
-    end
+    -- Charge is conditional on form
     if state.f_bear then
         if Faceroll.isSpellAvailable("Feral Charge - Bear") then
             state.s_charge = true
@@ -97,55 +86,8 @@ spec.calcState = function(state)
             state.s_charge = true
         end
     end
-    if Faceroll.isSpellAvailable("Faerie Fire (Feral)") then
-        state.s_fff = true
-    end
-    if Faceroll.getDotRemainingNorm("Faerie Fire (Feral)") > 0.1 then
-        state.d_fff = true
-    end
-    if Faceroll.isSpellAvailable("Berserk") then
-        state.s_berserk = true
-    end
-    if Faceroll.isBuffActive("Berserk") then
-        state.b_berserk = true
-    end
-
-    -- Bear --
-    if Faceroll.isSpellAvailable("Enrage") then
-        state.s_enrage = true
-    end
-    if Faceroll.isSpellAvailable("Mangle (Bear)") then
-        state.s_mangle = true
-    end
-    if Faceroll.isSpellAvailable("Demoralizing Roar") then
-        state.s_roar = true
-    end
-    if Faceroll.getDotRemainingNorm("Demoralizing Roar") > 0.1 then
-        state.d_roar = true
-    end
-
-    -- Cat --
-    if Faceroll.isBuffActive("Prowl") then
-        state.b_prowl = true
-    end
-    if Faceroll.isSpellAvailable("Tiger's Fury") then
-        state.s_tigersfury = true
-    end
-    if Faceroll.isBuffActive("Tiger's Fury") then
-        state.b_tigersfury = true
-    end
-    if Faceroll.getDotRemainingNorm("Rake") > 0.1 then
-        state.d_rake = true
-    end
-    if Faceroll.getDotRemainingNorm("Rip") > 0.1 then
-        state.d_rip = true
-    end
-    if Faceroll.isSpellAvailable("Skull Bash") then
-        state.s_kick = true
-    end
 
     local targetCastingSpell, _, _, _, targetCastingSpellEndTime = UnitCastingInfo("target")
-    local targetCastingSpellDone = 0
     if targetCastingSpell then
         state.targetcasting = true
     end

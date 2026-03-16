@@ -20,10 +20,6 @@ spec.overlay = Faceroll.createOverlay({
     "- Combat -",
     "nobleed",
 
-    "- Resources -",
-    "hpL80",
-    "manaL70",
-
     "- Buffs -",
     "rejuvenation",
     "tigersfury",
@@ -46,22 +42,6 @@ spec.calcState = function(state)
     end
     if IsInGroup() then
         state.group = true
-    end
-
-    -- Resources --
-
-    local curHP = UnitHealth("player")
-    local maxHP = UnitHealthMax("player")
-    local norHP = curHP / maxHP
-    if norHP < 0.8 then
-        state.hpL80 = true
-    end
-
-    local curMana = UnitPower("player", 0)
-    local maxMana = UnitPowerMax("player", 0)
-    local norMana = curMana / maxMana
-    if norMana < 0.7 then
-        state.manaL70 = true
     end
 
     -- Buffs --
@@ -114,7 +94,7 @@ spec.calcAction = function(mode, state)
     local st = (mode == Faceroll.MODE_ST)
     local aoe = (mode == Faceroll.MODE_AOE)
 
-    if not state.targetingenemy and state.hpL80 and not state.manaL70 and not state.combat and not state.rejuvenation then
+    if not state.targetingenemy and state.hp < 0.8 and state.mana >= 0.7 and not state.combat and not state.rejuvenation then
         return "rejuvenation"
 
     elseif not state.catform then

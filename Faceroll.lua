@@ -127,6 +127,34 @@ Faceroll.createState = function(spec, specKey)
         state.rage = UnitPower("PLAYER", 1)
         state.energy = UnitPower("PLAYER", 3)
         state.combopoints = GetComboPoints("PLAYER", "TARGET")
+
+        -- Auto-state from overlay table entries
+        if spec.overlay then
+            for _, entry in ipairs(spec.overlay) do
+                if type(entry) == "table" then
+                    local k = entry[1]
+                    local v = entry[2]
+                    local prefix = string.sub(k, 1, 2)
+                    if prefix == "s_" then
+                        if Faceroll.isSpellAvailable(v) then
+                            state[k] = true
+                        end
+                    elseif prefix == "b_" then
+                        if Faceroll.isBuffActive(v) then
+                            state[k] = true
+                        end
+                    elseif prefix == "d_" then
+                        if Faceroll.getDotRemainingNorm(v) > 0.1 then
+                            state[k] = true
+                        end
+                    elseif prefix == "f_" then
+                        if GetShapeshiftForm() == v then
+                            state[k] = true
+                        end
+                    end
+                end
+            end
+        end
     end
 
     return state
@@ -379,7 +407,8 @@ Faceroll.setDebugState = function(spec, state)
     local o = ""
 
     if Faceroll.debug ~= Faceroll.DEBUG_MINIMAL then
-        for _,k in ipairs(spec.overlay) do
+        for _,entry in ipairs(spec.overlay) do
+            local k = type(entry) == "table" and entry[1] or entry
             local v = state[k]
             if Faceroll.isSeparatorName(k) then
                 if strlenutf8(o) > 0 then

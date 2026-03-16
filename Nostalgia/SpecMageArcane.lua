@@ -11,43 +11,21 @@ local spec = Faceroll.createSpec("ARC", "a674db", "MAGE-1")
 -- States
 
 spec.overlay = Faceroll.createOverlay({
-    "drink",
-    "missilebarrage",
-    "arcanepower",
-    "icyveins",
-    "pombuff",
-    "normana",
+    { "b_drink", "Drink" },
+    { "b_missilebarrage", "Missile Barrage" },
+    { "b_arcanepower", "Arcane Power" },
+    { "b_icyveins", "Icy Veins" },
+    { "b_pombuff", "Presence of Mind" },
     "abstacks",
     "casting",
-    "evocation",
-    "pom",
+    { "s_evocation", "Evocation" },
+    { "s_pom", "Presence of Mind" },
     "amdeadzone",
 })
 
 local amDeadzone = Faceroll.deadzoneCreate("Arcane Missiles", 0.3, 2)
 
 spec.calcState = function(state)
-    if Faceroll.isBuffActive("Drink") then
-        state.drink = true
-    end
-
-    if Faceroll.isBuffActive("Missile Barrage") then
-        state.missilebarrage = true
-    end
-    if Faceroll.isBuffActive("Arcane Power") then
-        state.arcanepower = true
-    end
-    if Faceroll.isBuffActive("Icy Veins") then
-        state.icyveins = true
-    end
-    if Faceroll.isBuffActive("Presence of Mind") then
-        state.pombuff = true
-    end
-
-    local curMana = UnitPower("player", 0)
-    local maxMana = UnitPowerMax("player", 0)
-    state.normana = curMana / maxMana
-
     local castingSpell, _, _, _, castingSpellEndTime = UnitCastingInfo("player")
     if castingSpell then
         state.casting = castingSpell
@@ -62,13 +40,6 @@ spec.calcState = function(state)
     local abDebuff = Faceroll.getDebuff("Arcane Blast")
     if abDebuff ~= nil then
         state.abstacks = abDebuff.stacks
-    end
-
-    if Faceroll.isSpellAvailable("Evocation") then
-        state.evocation = true
-    end
-    if Faceroll.isSpellAvailable("Presence of Mind") then
-        state.pom = true
     end
 
     if Faceroll.deadzoneUpdate(amDeadzone) then
@@ -97,13 +68,13 @@ spec.calcAction = function(mode, state)
 
     if state.targetingenemy then
         if st then
-            if state.arcanepower or state.icyveins then
+            if state.b_arcanepower or state.b_icyveins then
                 return "arcaneblast"
 
-            elseif state.normana <= 0.3 and state.evocation then
+            elseif state.mana <= 0.3 and state.s_evocation then
                 return "evocation"
 
-            elseif not state.evocation and not state.amdeadzone and state.missilebarrage then
+            elseif not state.s_evocation and not state.amdeadzone and state.b_missilebarrage then
                 return "arcanemissiles"
 
             elseif not state.amdeadzone and ((state.abstacks == 4) or ((state.abstacks == 3) and state.casting == "Arcane Blast")) then
@@ -114,16 +85,16 @@ spec.calcAction = function(mode, state)
 
             end
         elseif aoe then
-            if state.pom then
+            if state.s_pom then
                 return "pom"
-            elseif state.pombuff and state.casting == "Blizzard" then
+            elseif state.b_pombuff and state.casting == "Blizzard" then
                 return "flamestrike"
             else
                 return "blizzard"
             end
         end
 
-    elseif state.normana < 0.9 and not state.combat and not state.drink then
+    elseif state.mana < 0.9 and not state.combat and not state.b_drink then
         return "drink"
     end
 end

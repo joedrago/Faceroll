@@ -33,8 +33,6 @@ spec.overlay = {
     "barbedshothighprio",
     "barbedshot2chg",
 
-    "- Resources -",
-    "energyG85",
 
     "- Pet HP -",
     "shouldmendpet",
@@ -87,13 +85,6 @@ spec.calcState = function(state)
     end
     if Faceroll.getBuffRemaining("Beast Cleave") < 2.5 then
         state.beastcleaveending = true
-    end
-
-    -- Resources --
-
-    local energy = UnitPower("player")
-    if energy >= 85 then
-        state.energyG85 = true
     end
 
     -- Pet HP --
@@ -215,7 +206,7 @@ spec.calcAction = function(mode, state)
             -- Dire Beast.
             return "direbeast"
 
-        elseif state.energyG85 then
+        elseif state.energy >= 85 then
             -- Use Cobra Shot if you are about to cap on Focus.
             return "cobrashot"
 

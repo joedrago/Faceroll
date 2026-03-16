@@ -15,39 +15,17 @@ spec.overlay = Faceroll.createOverlay({
     "battleshout",
 
     "- Debuffs -",
-    "rend",
-    "demoshout",
+    { "d_rend", "Rend" },
+    { "d_demoshout", "Demoralizing Shout" },
 
     "- Spells -",
-    "charge",
-    "clap",
-    "revenge",
-    "bloodrage",
+    { "s_charge", "Charge" },
+    { "s_clap", "Thunder Clap" },
+    { "s_revenge", "Revenge" },
+    { "s_bloodrage", "Bloodrage" },
 })
 
 spec.calcState = function(state)
-    -- Buffs --
-
-    if Faceroll.getDotRemainingNorm("Rend") > 0.1 then
-        state.rend = true
-    end
-    if Faceroll.getDotRemainingNorm("Demoralizing Sout") > 0.1 then
-        state.demoshout = true
-    end
-
-    if Faceroll.isSpellAvailable("Charge") then
-        state.charge = true
-    end
-    if Faceroll.isSpellAvailable("Thunder Clap") then
-        state.clap = true
-    end
-    if Faceroll.isSpellAvailable("Revenge") then
-        state.revenge = true
-    end
-    if Faceroll.isSpellAvailable("Bloodrage") then
-        state.bloodrage = true
-    end
-
     return state
 end
 
@@ -73,19 +51,19 @@ spec.calcAction = function(mode, state)
         -- if state.bloodrage then
         --     return "bloodrage"
 
-        if state.charge and not state.melee then
+        if state.s_charge and not state.melee then
             return "charge"
 
-        elseif state.rage >= 20 and state.melee and state.clap then
+        elseif state.rage >= 20 and state.melee and state.s_clap then
             return "clap"
 
-        elseif state.rage >= 10 and state.melee and not state.demoshout then
+        elseif state.rage >= 10 and state.melee and not state.d_demoshout then
             return "demoshout"
 
-        elseif state.melee and state.revenge then
+        elseif state.melee and state.s_revenge then
             return "revenge"
 
-        -- elseif state.rage >= 10 and not state.rend then
+        -- elseif state.rage >= 10 and not state.d_rend then
         --     return "rend"
 
         elseif aoe then

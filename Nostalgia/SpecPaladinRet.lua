@@ -14,7 +14,6 @@ spec.overlay = Faceroll.createOverlay({
     "- State -",
     "combat",
     "targetingenemy",
-    "hpL75",
     "healdeadzone",
     "hold",
 
@@ -23,31 +22,16 @@ spec.overlay = Faceroll.createOverlay({
     "needsseal",
 
     "- Spells -",
-    "judgement",
-    "handofreckoning",
+    { "s_judgement", "Judgement of Light" },
+    { "s_handofreckoning", "Hand of Reckoning" },
 })
 
 local healDeadzone = Faceroll.deadzoneCreate("Holy Light", 1.5, 0.5)
 
 spec.calcState = function(state)
-
-    local curHP = UnitHealth("player")
-    local maxHP = UnitHealthMax("player")
-    local norHP = curHP / maxHP
-    if norHP < 0.75 then
-        state.hpL75 = true
-    end
-
     Faceroll.deadzoneUpdate(healDeadzone)
     if Faceroll.deadzoneActive(healDeadzone) then
         state.healdeadzone = true
-    end
-
-    if Faceroll.isSpellAvailable("Judgement of Light") then
-        state.judgement = true
-    end
-    if Faceroll.isSpellAvailable("Hand of Reckoning") then
-        state.handofreckoning = true
     end
 
     return state
@@ -68,15 +52,15 @@ spec.calcAction = function(mode, state)
     local st = (mode == Faceroll.MODE_ST)
     local aoe = (mode == Faceroll.MODE_AOE)
 
-    if not state.combat and state.hpL75 and not state.healdeadzone then
+    if not state.combat and state.hp < 0.75 and not state.healdeadzone then
         return "healself"
 
     elseif state.targetingenemy then
 
-        if not state.combat and not state.group and state.handofreckoning then
+        if not state.combat and not state.group and state.s_handofreckoning then
             return "handofreckoning"
 
-        elseif state.judgement then
+        elseif state.s_judgement then
             return "judgement"
 
         -- elseif state.justjudged and mode == Faceroll.MODE_AOE then

@@ -45,13 +45,13 @@ spec.overlay = {
     "drinkending",
 
     "- Buffs -",
-    "magearmor",
+    { "b_magearmor", "Mage Armor" },
     "arcaneintellect",
-    "icebarrier",
+    { "b_icebarrier", "Ice Barrier" },
 
     "- Spells -",
-    "icebarrierready",
-    "coneofcold",
+    { "s_icebarrierready", "Ice Barrier" },
+    { "s_coneofcold", "Cone of Cold" },
     "frostbolt",
     "blizzard",
 }
@@ -76,10 +76,6 @@ spec.calcState = function(state)
 
     -- Buffs --
 
-    if Faceroll.isBuffActive("Mage Armor") then
-        state.magearmor = true
-    end
-
     if Faceroll.isBuffActive("Arcane Intellect") or Faceroll.isBuffActive("Arcane Brilliance") then
         state.arcaneintellect = true
     end
@@ -89,19 +85,7 @@ spec.calcState = function(state)
     if Faceroll.getBuffRemaining("Drink") < 4 then
         state.drinkending = true
     end
-    if Faceroll.isBuffActive("Ice Barrier") then
-        state.icebarrier = true
-    end
-
     -- Spells --
-
-    if Faceroll.isSpellAvailable("Ice Barrier") then
-        state.icebarrierready = true
-    end
-
-    if Faceroll.isSpellAvailable("Cone of Cold") then
-        state.coneofcold = true
-    end
 
     if Faceroll.hasManaForSpell("Frostbolt") then
         state.frostbolt = true
@@ -127,7 +111,7 @@ spec.actions = {
 }
 
 spec.calcAction = function(mode, state)
-    if not state.combat and not state.magearmor then
+    if not state.combat and not state.b_magearmor then
         return "magearmor"
 
     elseif not state.combat and not state.arcaneintellect then
@@ -137,10 +121,10 @@ spec.calcAction = function(mode, state)
         -- Single Target
 
         if state.targetingenemy then
-            if state.coneofcold and state.melee then
+            if state.s_coneofcold and state.melee then
                 return "coneofcold"
 
-            elseif not state.group and not state.icebarrier and state.icebarrierready then
+            elseif not state.group and not state.b_icebarrier and state.s_icebarrierready then
                 return "icebarrier"
 
             else

@@ -12,46 +12,23 @@ local spec = Faceroll.createSpec("ROGUE", "fff469", "ROGUE-2")
 
 spec.overlay = Faceroll.createOverlay({
     "- Buffs -",
-    "slice",
+    { "b_slice", "Slice and Dice" },
     "sinisterfinisher",
-    "stealth",
+    { "b_stealth", "Stealth" },
 
     "- Dots -",
-    "rupture",
+    { "d_rupture", "Rupture" },
 
     "- Spells -",
-    "kick",
-    "riposte",
+    { "s_kick", "Kick" },
+    { "s_riposte", "Riposte" },
 
     "- State -",
     "targetcasting",
 })
 
 spec.calcState = function(state)
-    -- Buffs --
-
-    if Faceroll.isBuffActive("Slice and Dice") then
-        state.slice = true
-    end
-    if Faceroll.isBuffActive("Stealth") then
-        state.stealth = true
-    end
-
-    if Faceroll.getDotRemainingNorm("Rupture") > 0 then
-        state.rupture = true
-    end
-
-    -- Spells --
-
-    if Faceroll.isSpellAvailable("Kick") then
-        state.kick = true
-    end
-    if Faceroll.isSpellAvailable("Riposte") then
-        state.riposte = true
-    end
-
     local targetCastingSpell, _, _, _, targetCastingSpellEndTime = UnitCastingInfo("target")
-    local targetCastingSpellDone = 0
     if targetCastingSpell then
         state.targetcasting = true
     end
@@ -81,23 +58,23 @@ spec.calcAction = function(mode, state)
         if aoe and state.melee then
             return "fanofknives"
 
-        elseif not aoe and state.stealth then
+        elseif not aoe and state.b_stealth then
             return "garrote"
 
-        -- elseif not aoe and not state.rupture and state.combopoints >= 5 then
+        -- elseif not aoe and not state.d_rupture and state.combopoints >= 5 then
         --     return "rupture"
 
-        elseif not aoe and state.targetcasting and state.kick then
+        elseif not aoe and state.targetcasting and state.s_kick then
             return "kick"
 
-        -- not aoe and state.rupture and
-        elseif not state.slice and state.combopoints >= 2 then
+        -- not aoe and state.d_rupture and
+        elseif not state.b_slice and state.combopoints >= 2 then
             return "slice"
 
         elseif state.combopoints >= 5 then
             return "eviscerate"
 
-        elseif state.riposte then
+        elseif state.s_riposte then
             return "riposte"
 
         else

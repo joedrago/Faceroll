@@ -33,11 +33,6 @@ spec.overlay = Faceroll.createOverlay({
     "channeling",
 
     "- Resources -",
-    "hpL50",
-    "manaL25",
-    "manaL50",
-    "manaL80",
-    "manafull",
 
     "- Consume -",
     "drink",
@@ -103,31 +98,6 @@ spec.calcState = function(state)
     if channelingSpell then
         -- local channelFinish = channelEndMS/1000 - GetTime()
         state.channeling = true
-    end
-
-    -- Resources --
-
-    local curHP = UnitHealth("player")
-    local maxHP = UnitHealthMax("player")
-    local norHP = curHP / maxHP
-    if norHP < 0.5 then
-        state.hpL50 = true
-    end
-
-    local curMana = UnitPower("player", 0)
-    local maxMana = UnitPowerMax("player", 0)
-    local norMana = curMana / maxMana
-    if norMana < 0.25 then
-        state.manaL25 = true
-    end
-    if norMana < 0.5 then
-        state.manaL50 = true
-    end
-    if norMana < 0.8 then
-        state.manaL80 = true
-    end
-    if norMana > 0.95 then
-        state.manafull = true
     end
 
     local waterCount = GetItemCount(CONJURED_WATER_NAME)
@@ -220,17 +190,17 @@ spec.calcAction = function(mode, state)
     if mode == Faceroll.MODE_ST or mode == Faceroll.MODE_AOE then
         local makeForever = state.brita and (mode == Faceroll.MODE_AOE)
 
-        if not state.combat and state.drink and state.drinkending and state.manaL80 then
+        if not state.combat and state.drink and state.drinkending and state.mana < 0.8 then
             -- we're going to need to drink more to finish drinking
             return "consume"
 
-        elseif not state.combat and state.drink and not state.manafull then
+        elseif not state.combat and state.drink and state.mana <= 0.95 then
             -- wait for full mana
             return nil
 
         -- TODO: make this conditional significantly less ugly
         elseif not state.combat
-           and (((state.brita and state.manaL25) or (not state.brita and (state.manaL50 or state.hpL50))) or (not state.brita and state.group and not state.manafull))
+           and (((state.brita and state.mana < 0.25) or (not state.brita and (state.mana < 0.5 or state.hp < 0.5))) or (not state.brita and state.group and state.mana <= 0.95))
            and not state.waterL1
            and not state.drink
            and not state.moving
@@ -255,7 +225,7 @@ spec.calcAction = function(mode, state)
         elseif not state.combat and not state.arcaneintellect then
             return "arcaneintellect"
 
-        elseif not state.combat and state.brita and not state.waterL100 and not state.manafull then
+        elseif not state.combat and state.brita and not state.waterL100 and state.mana <= 0.95 then
             -- we just finished preparing a big pile of water and buffs, top off
             return "consume"
 
@@ -266,11 +236,11 @@ spec.calcAction = function(mode, state)
                 -- Single Target
 
                 if state.targetingenemy then
-                    -- if state.coneofcold and state.melee and not state.manaL25 and state.hpL50 then
-                    --     -- hpL50 here is to take a hit or two while wanding for FSR
+                    -- if state.coneofcold and state.melee and state.mana >= 0.25 and state.hp < 0.5 then
+                    --     -- hp < 0.5 here is to take a hit or two while wanding for FSR
                     --     return "coneofcold"
 
-                    if not state.group and not state.icebarrier and state.icebarrierready and not state.manaL25 then
+                    if not state.group and not state.icebarrier and state.icebarrierready and state.mana >= 0.25 then
                         return "icebarrier"
 
                     -- elseif (state.melee and not state.group and not state.icebarrier) or not state.arcaneblast then
