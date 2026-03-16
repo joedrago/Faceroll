@@ -51,6 +51,7 @@ Classic\SpecDruidFeral.lua
 Classic\SpecMageArcane.lua
 Classic\SpecMageFrost.lua
 Classic\SpecPaladin.lua
+Classic\SpecPaladinRet.lua
 Classic\SpecPriest.lua
 Classic\SpecRogue.lua
 Classic\SpecShaman.lua

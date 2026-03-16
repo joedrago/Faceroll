@@ -6,6 +6,7 @@ if Faceroll == nil then
 end
 
 local spec = Faceroll.createSpec("BAL", "aa6600", "DRUID-1")
+Faceroll.aliasSpec(spec, "DRUID-CLASSIC") -- pre-talent points
 
 -----------------------------------------------------------------------------------------
 -- States
@@ -81,6 +82,14 @@ spec.actions = {
 
 spec.calcAction = function(mode, state)
     local aoe = (mode == Faceroll.MODE_AOE)
+
+    if state.level < 20 then
+        if state.level >= 4 and not state.moonfire and state.combat then
+            return "moonfire"
+        else
+            return "wrath"
+        end
+    end
 
     if not state.moonkin then
         return "moonkin"

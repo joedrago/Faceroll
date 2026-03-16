@@ -1,57 +1,59 @@
 -----------------------------------------------------------------------------------------
--- Classic Rogue
+-- Nostalgia Combat Rogue
 
 if Faceroll == nil then
     _, Faceroll = ...
 end
 
-local spec = Faceroll.createSpec("CR", "777799", "ROGUE-CLASSIC")
-
-spec.buffs = {}
+local spec = Faceroll.createSpec("ROGUE", "fff469", "ROGUE-2")
 
 -----------------------------------------------------------------------------------------
 -- States
 
-spec.overlay = {
-    "- Resources -",
-    "energy35",
-    "energy45",
-    "cp3",
-    "cp5",
+spec.overlay = Faceroll.createOverlay({
+    "- Buffs -",
+    "slice",
+    "sinisterfinisher",
+    "stealth",
 
-    "- Combat -",
-    "targetingenemy",
-    "combat",
-    "autoattack",
-}
+    "- Dots -",
+    "rupture",
+
+    "- Spells -",
+    "kick",
+    "riposte",
+
+    "- State -",
+    "targetcasting",
+})
 
 spec.calcState = function(state)
-    local energy = UnitPower("PLAYER", Enum.PowerType.Energy)
-    local cp = UnitPower("PLAYER", Enum.PowerType.ComboPoints)
+    -- Buffs --
 
-    if energy >= 35 then
-        state.energy35 = true
+    if Faceroll.isBuffActive("Slice and Dice") then
+        state.slice = true
     end
-    if energy >= 45 then
-        state.energy45 = true
-    end
-
-    if cp >= 3 then
-        state.cp3 = true
-    end
-    if cp >= 5 then
-        state.cp5 = true
+    if Faceroll.isBuffActive("Stealth") then
+        state.stealth = true
     end
 
-    -- Combat
-    if Faceroll.targetingEnemy() then
-        state.targetingenemy = true
+    if Faceroll.getDotRemainingNorm("Rupture") > 0 then
+        state.rupture = true
     end
-    if Faceroll.inCombat() then
-        state.combat = true
+
+    -- Spells --
+
+    if Faceroll.isSpellAvailable("Kick") then
+        state.kick = true
     end
-    if IsCurrentSpell(6603) then -- Autoattack
-        state.autoattack = true
+    if Faceroll.isSpellAvailable("Riposte") then
+        state.riposte = true
+    end
+
+    local targetCastingSpell, _, _, _, targetCastingSpellEndTime = UnitCastingInfo("target")
+    local targetCastingSpellDone = 0
+    if targetCastingSpell then
+        state.targetcasting = true
     end
 
     return state
@@ -63,31 +65,44 @@ end
 spec.actions = {
     "sinisterstrike",
     "eviscerate",
-    "attack",
+    "slice",
+    "riposte",
+    "kick",
+    "garrote",
+    "fanofknives",
+    -- "rupture",
 }
 
 spec.calcAction = function(mode, state)
-    if mode == Faceroll.MODE_ST then
-        -- Single Target
+    -- local st = (mode == Faceroll.MODE_ST)
+    local aoe = (mode == Faceroll.MODE_AOE)
 
-        if state.targetingenemy then
+    if state.targetingenemy then
+        if aoe and state.melee then
+            return "fanofknives"
 
-            if state.combat and not state.autoattack then
-                return "attack"
+        elseif not aoe and state.stealth then
+            return "garrote"
 
-            elseif state.cp3 then -- if state.energy35 and state.cp3 then
-                return "eviscerate"
+        -- elseif not aoe and not state.rupture and state.combopoints >= 5 then
+        --     return "rupture"
 
-            else --if state.energy45 then
-                return "sinisterstrike"
+        elseif not aoe and state.targetcasting and state.kick then
+            return "kick"
 
-            end
+        -- not aoe and state.rupture and
+        elseif not state.slice and state.combopoints >= 2 then
+            return "slice"
+
+        elseif state.combopoints >= 5 then
+            return "eviscerate"
+
+        elseif state.riposte then
+            return "riposte"
+
+        else
+            return "sinisterstrike"
         end
 
-    elseif mode == Faceroll.MODE_AOE then
-        -- AOE
-
     end
-
-    return nil
 end

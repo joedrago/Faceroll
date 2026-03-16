@@ -7,125 +7,147 @@ end
 
 local spec = Faceroll.createSpec("FERAL", "00aa00", "DRUID-2")
 
+Faceroll.enemyGridTrack(spec, "Rake", "RAKE", "621518")
+Faceroll.enemyGridTrack(spec, "Rip", "RIP", "626218")
+
+-----------------------------------------------------------------------------------------
+-- Macros
+
+-- /fr ST
+
+-- /fr AE
+
+-- /fra
+
+-- /cleartarget
+-- /targetenemy [noexists][dead]
+-- /startAttack
+-- /fr TAE
+
+-- #showtooltip Prowl
+-- /cast [noform:3] !Cat Form
+-- /cast [form:3] Prowl
+
 -----------------------------------------------------------------------------------------
 -- States
 
+-- f_ form
+-- s_ spell
+-- b_ buff
+-- d_ debuff
+
 spec.overlay = Faceroll.createOverlay({
-    "- Stances -",
-    "cat",
-
-    "- Combat -",
-    "group",
-    "aoe",
+    "- Options -",
     "nobleed",
-    "stealth",
+    "bear",
 
-    "- Resources -",
-    "hpL80",
-    "hpL90",
-    "manaL70",
-    "manaL80",
+    "- Form -",
+    "f_bear",
+    "f_cat",
 
-    "- Buffs -",
-    "thorns",
-    "rejuvenation",
-    "tigersfury",
-    "berserk",
+    "- Shared -",
+    "b_rejuv",
+    "s_charge",
+    "s_fff",
+    "d_fff",
+    "s_berserk",
+    "b_berserk",
 
-    "- Debuffs -",
-    "rake",
-    "rip",
-    "fff",
+    "- Bear -",
+    "s_enrage",
+    "s_mangle",
+    "s_roar",
+    "d_roar",
 
-    "- Spells -",
-    "enrage",
-    "mangle",
-    "fffready",
-    "charge",
+    "- Cat -",
+    "b_prowl",
+    "s_tigersfury",
+    "b_tigersfury",
+    "d_rake",
+    "d_rip",
+    "s_kick",
+
+    "targetcasting",
 })
 
 spec.options = {
     "nobleed",
+    "bear",
 }
 
 spec.calcState = function(state)
-    -- Stances --
-
+    -- Form --
     if GetShapeshiftForm() == 1 then
-        state.bear = true
+        state.f_bear = true
     end
     if GetShapeshiftForm() == 3 then
-        state.cat = true
+        state.f_cat = true
     end
 
-    -- Combat --
-
-    if IsInGroup() then
-        state.group = true
+    -- Shared --
+    if Faceroll.isBuffActive("Rejuvenation") then
+        state.b_rejuv = true
     end
-
-    local mobCount = 0
-    for i = 0, 5, 1 do
-        if _G["NamePlate"..i] ~= nil and _G["NamePlate"..i]:IsVisible() then
-            mobCount = mobCount + 1
+    if state.f_bear then
+        if Faceroll.isSpellAvailable("Feral Charge - Bear") then
+            state.s_charge = true
+        end
+    elseif state.f_cat then
+        if Faceroll.isSpellAvailable("Feral Charge - Cat") then
+            state.s_charge = true
         end
     end
-    if mobCount > 1 then
-        state.aoe = true
+    if Faceroll.isSpellAvailable("Faerie Fire (Feral)") then
+        state.s_fff = true
     end
-
-    -- Resources --
-
-    local curHP = UnitHealth("player")
-    local maxHP = UnitHealthMax("player")
-    local norHP = curHP / maxHP
-    if norHP < 0.8 then
-        state.hpL80 = true
+    if Faceroll.getDotRemainingNorm("Faerie Fire (Feral)") > 0.1 then
+        state.d_fff = true
     end
-    if norHP < 0.9 then
-        state.hpL90 = true
-    end
-
-    -- Buffs --
-
-    if Faceroll.isBuffActive("Thorns") then
-        state.thorns = true
-    end
-
-    if Faceroll.isBuffActive("Rejuvenation") then
-        state.rejuvenation = true
-    end
-
-    if Faceroll.isBuffActive("Tiger's Fury") then
-        state.tigersfury = true
-    end
-    if Faceroll.isBuffActive("Prowl") then
-        state.stealth = true
+    if Faceroll.isSpellAvailable("Berserk") then
+        state.s_berserk = true
     end
     if Faceroll.isBuffActive("Berserk") then
-        state.berserk = true
+        state.b_berserk = true
     end
 
-    -- Debuffs --
+    -- Bear --
+    if Faceroll.isSpellAvailable("Enrage") then
+        state.s_enrage = true
+    end
+    if Faceroll.isSpellAvailable("Mangle (Bear)") then
+        state.s_mangle = true
+    end
+    if Faceroll.isSpellAvailable("Demoralizing Roar") then
+        state.s_roar = true
+    end
+    if Faceroll.getDotRemainingNorm("Demoralizing Roar") > 0.1 then
+        state.d_roar = true
+    end
 
+    -- Cat --
+    if Faceroll.isBuffActive("Prowl") then
+        state.b_prowl = true
+    end
+    if Faceroll.isSpellAvailable("Tiger's Fury") then
+        state.s_tigersfury = true
+    end
+    if Faceroll.isBuffActive("Tiger's Fury") then
+        state.b_tigersfury = true
+    end
     if Faceroll.getDotRemainingNorm("Rake") > 0.1 then
-        state.rake = true
+        state.d_rake = true
     end
     if Faceroll.getDotRemainingNorm("Rip") > 0.1 then
-        state.rip = true
+        state.d_rip = true
+    end
+    if Faceroll.isSpellAvailable("Skull Bash") then
+        state.s_kick = true
     end
 
-    if Faceroll.getDotRemainingNorm("Faerie Fire (Feral)") > 0.1 then
-        state.fff = true
-    end
-
-    -- Spells --
-
-    if Faceroll.isSpellAvailable("Faerie Fire (Feral)") then
-        state.fffready = true
-    end
-    if Faceroll.isSpellAvailable("Feral Charge - Cat") then
-        state.charge = true
+    local targetCastingSpell, _, _, _, targetCastingSpellEndTime = UnitCastingInfo("target")
+    local targetCastingSpellDone = 0
+    if targetCastingSpell then
+        state.targetcasting = true
     end
 
     return state
@@ -135,62 +157,129 @@ end
 -- Actions
 
 spec.actions = {
-    "cat",
-    "thorns",
-    "rejuvenation",
-    "fff",
-    "mangle",
-    "swipe",
-    "rip",
-    "bite",
-    "rake",
-    "tigersfury",
+    -- #showtooltip
+    -- /cast !Bear Form
+    "bear",
+
+    -- #showtooltip
+    -- /cast [form:1] Feral Charge - Bear
+    -- /cast [form:3] Feral Charge - Cat
     "charge",
-    "ravage",
+
+    -- #showtooltip
+    -- /cast !Maul
+    -- /startAttack
+    "maul",
+
+    -- #showtooltip
+    -- /cast [form:1] Swipe (Bear)
+    -- /cast [form:3] Swipe (Cat)
+    "swipe",
+
+    -- Before having Mangle, make this macro but name it Mangle anyway:
+    -- #showtooltip
+    -- /cast Claw
+    -- /startAttack
+    --
+    -- then change it to...
+    ---
+    -- #showtooltip
+    -- /cast [form:1] Mangle (Bear)
+    -- /cast [form:3] Mangle (Cat)
+    "mangle",
+
+    -- #showtooltip
+    -- /cast !Cat Form
+    "cat",
+
+    "fff",
+    "enrage",
+    "roar",
+    "tigersfury",
+    "rip",
+    "bite",   -- make rip until you get this
+    "rake",   -- make Mangle macro until you get it
+    "ravage", -- make Mangle macro until you get it
+    "rejuv",
+    "kick",   -- Skull Bash
 }
 
 spec.calcAction = function(mode, state)
     local st = (mode == Faceroll.MODE_ST)
     local aoe = (mode == Faceroll.MODE_AOE)
 
-    if not state.group and not state.targetingenemy and state.hpL90 and not state.combat and not state.rejuvenation then
-        return "rejuvenation"
+    local wantsbear = state.bear or (state.level < 20)
 
-    elseif not state.cat then
-        return "cat"
+    if wantsbear then
+        -- Bear
 
-    elseif state.targetingenemy then
+        if not state.group and not state.targetingenemy and state.hp < 0.9 and not state.combat and not state.b_rejuv then
+            return "rejuv"
 
-        -- state.nobleed means "I am fighting bleed immune targets"
+        elseif state.targetingenemy then
+            if not state.f_bear then
+                return "bear"
 
-        if state.charge and not state.melee then
-            return "charge"
+            elseif state.s_charge and not state.melee then
+                return "charge"
 
-        elseif state.stealth and not state.combat then -- and not state.combat then
-            return "ravage"
+            -- elseif not state.s_charge and not state.melee and state.s_fff and not state.d_fff then
+            --     return "fff"
 
-        -- if not state.fff and state.fffready then
-        --     return "fff"
+            elseif state.s_enrage then
+                return "enrage"
 
-        elseif not state.berserk and not state.tigersfury and state.energy <= 30 then
-            return "tigersfury"
+            elseif state.melee and state.s_roar and not state.d_roar then
+                return "roar"
+            elseif aoe and state.melee then
+                return "swipe"
+            else
+                return "maul"
+            end
+        end
 
-        elseif aoe then
-            return "swipe"
+    else
+        -- Cat
 
-        elseif not state.nobleed and not state.rip and state.combopoints >= 5 then
-            return "rip"
+        if not state.group and not state.targetingenemy and state.hp < 0.9 and not state.combat and not state.b_rejuv then
+            return "rejuv"
 
-        elseif state.combopoints >= 5 then
-            return "bite"
+        elseif state.targetingenemy then
+            -- state.nobleed means "I am fighting bleed immune targets"
 
-        elseif not state.nobleed and not state.rake then
-            return "rake"
+            if not state.f_cat then
+                return "cat"
 
-        else
-            return "mangle"
+            elseif state.s_charge and not state.melee then
+                return "charge"
+
+            elseif state.b_prowl and not state.combat then
+                return "ravage"
+
+            elseif not aoe and state.targetcasting and state.s_kick then
+                return "kick"
+
+            -- elseif not state.s_charge and not state.melee and state.s_fff and not state.d_fff then
+            --     return "fff"
+
+            elseif not state.b_berserk and state.s_tigersfury and not state.b_tigersfury and state.energy <= 30 then
+                return "tigersfury"
+
+            elseif aoe and state.melee then
+                return "swipe"
+
+            elseif not state.nobleed and not state.d_rip and state.combopoints >= 5 then
+                return "rip"
+
+            elseif state.combopoints >= 5 then
+                return "bite"
+
+            elseif not state.nobleed and not state.d_rake then
+                return "rake"
+
+            else
+                return "mangle"
+            end
         end
     end
-
-    -- return nil
 end

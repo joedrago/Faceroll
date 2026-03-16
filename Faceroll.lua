@@ -94,11 +94,15 @@ Faceroll.createState = function(spec, specKey)
     -- Add in standard state for each wow version
     if Faceroll.ascension or Faceroll.classic then
         -- Combat
+        state.level = UnitLevel("player")
         if Faceroll.targetingEnemy() then
             state.targetingenemy = true
         end
         if Faceroll.inCombat() then
             state.combat = true
+        end
+        if IsInGroup() then
+            state.group = true
         end
         if IsCurrentSpell(6603) then -- Autoattack
             state.autoattack = true
@@ -114,7 +118,12 @@ Faceroll.createState = function(spec, specKey)
         end
 
         -- Resources
-        state.mana = UnitPower("PLAYER", 0)
+        local curHP = UnitHealth("player")
+        local maxHP = UnitHealthMax("player")
+        state.hp = curHP / maxHP
+        local curMana = UnitPower("player", 0)
+        local maxMana = UnitPowerMax("player", 0)
+        state.mana = curMana / maxMana
         state.rage = UnitPower("PLAYER", 1)
         state.energy = UnitPower("PLAYER", 3)
         state.combopoints = GetComboPoints("PLAYER", "TARGET")
@@ -132,12 +141,15 @@ Faceroll.createOverlay = function(extras)
             "- Combat -",
             "targetingenemy",
             "combat",
+            "group",
             "autoattack",
             "autoshot",
             "melee",
 
             "- Resources -",
-            "mana",
+            "level",
+            "hp", -- normalized
+            "mana", -- normalized
             "rage",
             "energy",
             "combopoints",
@@ -345,6 +357,13 @@ Faceroll.addDebugLine = function(line)
     table.insert(Faceroll.debugLines, line)
 end
 
+Faceroll.prettyFloat = function(f)
+    local s = string.format("%.3f", f)
+    s = s:gsub("0+$", "")
+    s = s:gsub("%.$", "")
+    return s
+end
+
 Faceroll.setDebugState = function(spec, state)
     if Faceroll.debug == Faceroll.DEBUG_OFF then
         return
@@ -368,7 +387,7 @@ Faceroll.setDebugState = function(spec, state)
                 end
                 o = o .. "\124cffffffaa" .. Faceroll.pad(k, 18) .. "\124r\n"
             elseif type(v) == "number" then
-                o = o .. Faceroll.pad(k, 18) .. "  : " .. Faceroll.textColor(v, "ffffaa") .. "\n"
+                o = o .. Faceroll.pad(k, 18) .. "  : " .. Faceroll.textColor(Faceroll.prettyFloat(v), "ffffaa") .. "\n"
             elseif type(v) == "string" then
                 o = o .. Faceroll.pad(k, 18) .. "  : " .. Faceroll.textColor(v, "ffaaff") .. "\n"
             else

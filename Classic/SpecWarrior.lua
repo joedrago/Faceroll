@@ -22,6 +22,7 @@ spec.overlay = Faceroll.createOverlay({
     "charge",
     "clap",
     "revenge",
+    "bloodrage",
 })
 
 spec.calcState = function(state)
@@ -43,6 +44,9 @@ spec.calcState = function(state)
     if Faceroll.isSpellAvailable("Revenge") then
         state.revenge = true
     end
+    if Faceroll.isSpellAvailable("Bloodrage") then
+        state.bloodrage = true
+    end
 
     return state
 end
@@ -58,28 +62,36 @@ spec.actions = {
     "bloodrage",
     "demoshout",
     "revenge",
+    "cleave",
 }
 
 spec.calcAction = function(mode, state)
     -- local st = (mode == Faceroll.MODE_ST)
-    -- local aoe = (mode == Faceroll.MODE_AOE)
+    local aoe = (mode == Faceroll.MODE_AOE)
 
-    if state.charge and not state.melee then
-        return "charge"
+    if state.targetingenemy then
+        -- if state.bloodrage then
+        --     return "bloodrage"
 
-    elseif state.rage >= 20 and state.melee and state.clap then
-        return "clap"
+        if state.charge and not state.melee then
+            return "charge"
 
-    elseif state.rage >= 10 and state.melee and not state.demoshout then
-        return "demoshout"
+        elseif state.rage >= 20 and state.melee and state.clap then
+            return "clap"
 
-    elseif state.melee and state.revenge then
-        return "revenge"
+        elseif state.rage >= 10 and state.melee and not state.demoshout then
+            return "demoshout"
 
-    -- elseif state.rage >= 10 and not state.rend then
-    --     return "rend"
+        elseif state.melee and state.revenge then
+            return "revenge"
 
-    else
-        return "strike"
+        -- elseif state.rage >= 10 and not state.rend then
+        --     return "rend"
+
+        elseif aoe then
+            return "cleave"
+        else
+            return "strike"
+        end
     end
 end
