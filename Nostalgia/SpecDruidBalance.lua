@@ -9,6 +9,42 @@ local spec = Faceroll.createSpec("BAL", "aa6600", "DRUID-1")
 Faceroll.aliasSpec(spec, "DRUID-CLASSIC") -- pre-talent points
 
 -----------------------------------------------------------------------------------------
+-- Macros (/frm)
+
+spec.macros = {
+
+["Human"] = [[
+/dismount
+/cancelform
+]],
+
+["Dash"] = [[
+#showtooltip Dash
+/cast [noform:3] !Cat Form
+/cast [form:3] Dash
+]],
+
+["Prowl"] = [[
+#showtooltip
+/cast [noform:3] !Cat Form
+/cast [form:3] Prowl
+]],
+
+["Moonkin"] = [[
+#showtooltip
+/cast !Moonkin Form
+]],
+
+["Hurricane"] = [[
+#showtooltip Hurricane
+/stopmacro [channeling]
+/stopmacro [noexist]
+/say .cast 27012
+]],
+
+}
+
+-----------------------------------------------------------------------------------------
 -- States
 
 spec.overlay = Faceroll.createOverlay({
@@ -33,13 +69,12 @@ end
 -- Actions
 
 spec.actions = {
-    "moonkin",
-    "moonfire",
-    "wrath",
-    "starfire",
-    "hurricane",
+    { "moonkin",        macro = "Moonkin" },
+    { "moonfire",       spell = "Moonfire" },
+    { "wrath",          spell = "Wrath" },
+    { "starfire",       spell = "Starfire" },
+    { "hurricane",      macro = "Hurricane" },
     "drink",
-    "starfire",
 }
 
 spec.calcAction = function(mode, state)

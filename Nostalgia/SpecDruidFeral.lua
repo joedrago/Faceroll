@@ -26,6 +26,23 @@ spec.macros = {
 /fro nobleed
 ]],
 
+["Human"] = [[
+/dismount
+/cancelform
+]],
+
+["Dash"] = [[
+#showtooltip Dash
+/cast [noform:3] !Cat Form
+/cast [form:3] Dash
+]],
+
+["Prowl"] = [[
+#showtooltip
+/cast [noform:3] !Cat Form
+/cast [form:3] Prowl
+]],
+
 ["Bear"] = [[
 #showtooltip
 /cast !Bear Form
@@ -71,12 +88,6 @@ spec.macros = {
 /cast [form:1] Mangle (Bear)
 /cast [form:3] Mangle (Cat)
 /startAttack
-]],
-
-["Prowl"] = [[
-#showtooltip
-/cast [noform:3] !Cat Form
-/cast [form:3] Prowl
 ]],
 
 }

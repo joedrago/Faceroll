@@ -195,6 +195,58 @@ Faceroll.createOverlay = function(extras)
     return overlay
 end
 
+-----------------------------------------------------------------------------------------
+-- Key-to-slot resolution (used by startup, /frb, /frbc)
+-- Supports vanilla action bars (ACTIONBUTTON7) and Bartender4 (CLICK BT4Button109:LeftButton)
+
+local function facerollKeyToBlizzKey(frKey)
+    local upper = string.upper(frKey)
+    upper = string.gsub(upper, "^PAD", "NUMPAD")
+    return upper
+end
+
+local vanillaSlots = {
+    ACTIONBUTTON = 0,
+    BONUSACTIONBUTTON = 0,
+    MULTIACTIONBAR1BUTTON = 60,
+    MULTIACTIONBAR2BUTTON = 48,
+    MULTIACTIONBAR3BUTTON = 36,
+    MULTIACTIONBAR4BUTTON = 24,
+}
+
+local function bindingToSlot(binding)
+    local bt4num = string.match(binding, "^CLICK BT4Button(%d+):")
+    if bt4num then return tonumber(bt4num) end
+    for prefix, offset in pairs(vanillaSlots) do
+        local num = string.match(binding, "^" .. prefix .. "(%d+)$")
+        if num then return offset + tonumber(num) end
+    end
+    return nil
+end
+
+local function buildKeyToSlotMap(spec)
+    local keyToSlot = {}
+    local keysToCheck = {}
+    for index, entry in ipairs(spec.actions) do
+        local action = type(entry) == "table" and entry[1] or entry
+        local key = spec.keys[action]
+        if key then keysToCheck[key] = true end
+    end
+    for key, _ in pairs(keysToCheck) do
+        local blizzKey = facerollKeyToBlizzKey(key)
+        local binding = GetBindingAction(blizzKey)
+        if binding and binding ~= "" then
+            local slot = bindingToSlot(binding)
+            if slot then
+                keyToSlot[key] = slot
+            end
+        end
+    end
+    return keyToSlot
+end
+
+-----------------------------------------------------------------------------------------
+
 Faceroll.startup = function()
     for _, spec in ipairs(Faceroll.availableSpecs) do
         if Faceroll.activeSpecs[spec.key] ~= nil then
@@ -226,10 +278,19 @@ Faceroll.startup = function()
                     -- print("["..spec.name.."] " .. action .. " -> UNMAPPED")
                 end
             end
+
         end
     end
 
     print("Faceroll.startup(): " .. #Faceroll.availableSpecs .. " available specs.")
+end
+
+Faceroll.isActionAvailable = function(action)
+    local spec = Faceroll.activeSpec()
+    if spec and spec.actionAvailable then
+        return spec.actionAvailable[action] == true
+    end
+    return false
 end
 
 Faceroll.activeSpec = function()
@@ -1293,24 +1354,74 @@ local function toggleDebug()
 end
 
 -----------------------------------------------------------------------------------------
+-- Action Availability
+
+local function buildActionAvailability()
+    for _, spec in ipairs(Faceroll.availableSpecs) do
+        if spec.actions ~= nil then
+            spec.actionAvailable = {}
+            local keyToSlot = buildKeyToSlotMap(spec)
+            for index, entry in ipairs(spec.actions) do
+                local action = type(entry) == "table" and entry[1] or entry
+                local key = spec.keys[action]
+                if key then
+                    local slot = keyToSlot[key]
+                    spec.actionAvailable[action] = (slot ~= nil and HasAction(slot) ~= nil)
+                else
+                    spec.actionAvailable[action] = false
+                end
+            end
+        end
+    end
+end
+
+-----------------------------------------------------------------------------------------
 -- Keybind dumping (/frk)
 
-local function dumpKeybinds()
+local function dumpKeybinds(arg)
     local spec = Faceroll.activeSpec()
-    if spec and spec.actions then
-        for actionIndex, entry in ipairs(spec.actions) do
-            local action = type(entry) == "table" and entry[1] or entry
-            local key = Faceroll.keys[action]
-            if key == nil then
-                key = Faceroll.keys[actionIndex]
-            end
-            if key == nil then
-                key = "UNKNOWN"
-            end
-            print(Faceroll.textColor("[frk] ", "333333") .. Faceroll.textColor(action, "aaffff") .. " " .. Faceroll.textColor(key, "ffffaa"))
-        end
-    else
+    if not spec or not spec.actions then
         print("Faceroll [/frk]: No active spec!")
+        return
+    end
+
+    local tag = Faceroll.textColor("[frk] ", "333333")
+    local debug = (arg == "debug")
+
+    if arg == "refresh" then
+        buildActionAvailability()
+        print(tag .. Faceroll.textColor("Refreshed action availability. ", "ffffaa") .. Faceroll.textColor("(/frk refresh)", "555555"))
+    end
+
+    local keyToSlot = debug and buildKeyToSlotMap(spec) or nil
+
+    for actionIndex, entry in ipairs(spec.actions) do
+        local action = type(entry) == "table" and entry[1] or entry
+        local key = Faceroll.keys[action]
+        if key == nil then
+            key = Faceroll.keys[actionIndex]
+        end
+        if key == nil then
+            key = "UNKNOWN"
+        end
+
+        local avail = Faceroll.isActionAvailable(action)
+        local availText = avail
+            and Faceroll.textColor("available", "aaffaa")
+            or Faceroll.textColor("unavailable", "ff5555")
+
+        local debugText = ""
+        if debug then
+            local blizzKey = facerollKeyToBlizzKey(key)
+            local binding = GetBindingAction(blizzKey) or ""
+            local slot = keyToSlot[key]
+            local hasAction = slot and HasAction(slot)
+            debugText = Faceroll.textColor(
+                " [blizz=" .. blizzKey .. " bind=" .. binding .. " slot=" .. tostring(slot) .. " has=" .. tostring(hasAction) .. "]",
+                "777777")
+        end
+
+        print(tag .. Faceroll.textColor(action, "aaffff") .. " " .. Faceroll.textColor(key, "ffffaa") .. " " .. availText .. debugText)
     end
 end
 
@@ -1470,6 +1581,7 @@ local function onEvent(self, event, arg1, arg2, ...)
         eventFrame:UnregisterEvent("PLAYER_LOGIN")
         onLoaded()
     elseif event == "PLAYER_ENTERING_WORLD" then
+        buildActionAvailability()
         onPlayerEnteringWorld()
         updateBits("PLAYER_ENTERING_WORLD")
     elseif event == "PLAYER_TARGET_CHANGED" then
@@ -1670,54 +1782,6 @@ end
 -----------------------------------------------------------------------------------------
 -- Action Bar Placement (/frb)
 
--- Resolve faceroll key names to action bar slots
--- Supports vanilla action bars (ACTIONBUTTON7) and Bartender4 (CLICK BT4Button109:LeftButton)
-local function facerollKeyToBlizzKey(frKey)
-    local upper = string.upper(frKey)
-    upper = string.gsub(upper, "^PAD", "NUMPAD")
-    return upper
-end
-
-local vanillaSlots = {
-    ACTIONBUTTON = 0,
-    BONUSACTIONBUTTON = 0,
-    MULTIACTIONBAR1BUTTON = 60,
-    MULTIACTIONBAR2BUTTON = 48,
-    MULTIACTIONBAR3BUTTON = 36,
-    MULTIACTIONBAR4BUTTON = 24,
-}
-
-local function bindingToSlot(binding)
-    local bt4num = string.match(binding, "^CLICK BT4Button(%d+):")
-    if bt4num then return tonumber(bt4num) end
-    for prefix, offset in pairs(vanillaSlots) do
-        local num = string.match(binding, "^" .. prefix .. "(%d+)$")
-        if num then return offset + tonumber(num) end
-    end
-    return nil
-end
-
-local function buildKeyToSlotMap(spec)
-    local keyToSlot = {}
-    local keysToCheck = {}
-    for index, entry in ipairs(spec.actions) do
-        local action = type(entry) == "table" and entry[1] or entry
-        local key = spec.keys[action]
-        if key then keysToCheck[key] = true end
-    end
-    for key, _ in pairs(keysToCheck) do
-        local blizzKey = facerollKeyToBlizzKey(key)
-        local binding = GetBindingAction(blizzKey)
-        if binding and binding ~= "" then
-            local slot = bindingToSlot(binding)
-            if slot then
-                keyToSlot[key] = slot
-            end
-        end
-    end
-    return keyToSlot
-end
-
 SLASH_FRB1 = '/frb'
 SlashCmdList["FRB"] = function()
     local spec = Faceroll.activeSpec()
@@ -1808,6 +1872,33 @@ SlashCmdList["FRBC"] = function()
     end
 
     print(tag .. "Cleared " .. cleared .. " slot(s).")
+end
+
+-----------------------------------------------------------------------------------------
+-- Setup: /frm + /frb + /frk refresh with confirmation (/frs etup)
+
+StaticPopupDialogs["FACEROLL_SETUP"] = {
+    text = "Faceroll: Create macros and populate action bars for the active spec?",
+    button1 = "Yes",
+    button2 = "Cancel",
+    OnAccept = function()
+        SlashCmdList["FRM"]()
+        SlashCmdList["FRB"]()
+        dumpKeybinds("refresh")
+    end,
+    timeout = 0,
+    whileDead = true,
+    hideOnEscape = true,
+}
+
+SLASH_FRSETUP1 = '/frsetup'
+SlashCmdList["FRSETUP"] = function()
+    local spec = Faceroll.activeSpec()
+    if spec == nil then
+        print(Faceroll.textColor("[frsetup] ", "ff5555") .. "No active spec.")
+        return
+    end
+    StaticPopup_Show("FACEROLL_SETUP")
 end
 
 -----------------------------------------------------------------------------------------
