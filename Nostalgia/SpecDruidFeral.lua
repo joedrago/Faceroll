@@ -7,34 +7,82 @@ end
 
 local spec = Faceroll.createSpec("FERAL", "00aa00", "DRUID-2")
 
+-----------------------------------------------------------------------------------------
+-- Enemy Grid
+
 Faceroll.enemyGridTrack(spec, "Rake", "RAKE", "621518")
 Faceroll.enemyGridTrack(spec, "Rip", "RIP", "626218")
 
 -----------------------------------------------------------------------------------------
--- Macros
+-- Macros (/frm)
 
--- /fr ST
+spec.macros = {
 
--- /fr AE
+["OBear"] = [[
+/fro bear
+]],
 
--- /fra
+["OBleed"] = [[
+/fro nobleed
+]],
 
--- /cleartarget
--- /targetenemy [noexists][dead]
--- /startAttack
--- /fr TAE
+["Bear"] = [[
+#showtooltip
+/cast !Bear Form
+]],
 
--- #showtooltip Prowl
--- /cast [noform:3] !Cat Form
--- /cast [form:3] Prowl
+["DireBear"] = [[
+#showtooltip
+/cast !Dire Bear Form
+]],
+
+["Cat"] = [[
+#showtooltip
+/cast !Cat Form
+]],
+
+["Charge"] = [[
+#showtooltip
+/cast [form:1] Feral Charge - Bear
+/cast [form:3] Feral Charge - Cat
+]],
+
+["Maul"] = [[
+#showtooltip
+/cast !Maul
+/startAttack
+]],
+
+["Swipe"] = [[
+#showtooltip
+/cast [form:1] Swipe (Bear)
+/cast [form:3] Swipe (Cat)
+/startAttack
+]],
+
+["Claw"] = [[
+#showtooltip
+/cast Claw
+/startAttack
+]],
+
+["Mangle"] = [[
+#showtooltip
+/cast [form:1] Mangle (Bear)
+/cast [form:3] Mangle (Cat)
+/startAttack
+]],
+
+["Prowl"] = [[
+#showtooltip
+/cast [noform:3] !Cat Form
+/cast [form:3] Prowl
+]],
+
+}
 
 -----------------------------------------------------------------------------------------
 -- States
-
--- f_ form
--- s_ spell
--- b_ buff
--- d_ debuff
 
 spec.overlay = Faceroll.createOverlay({
     "- Options -",
@@ -66,8 +114,6 @@ spec.overlay = Faceroll.createOverlay({
     { "d_rake", "Rake" },
     { "d_rip", "Rip" },
     { "s_kick", "Skull Bash" },
-
-    "targetcasting",
 })
 
 spec.options = {
@@ -87,11 +133,6 @@ spec.calcState = function(state)
         end
     end
 
-    local targetCastingSpell, _, _, _, targetCastingSpellEndTime = UnitCastingInfo("target")
-    if targetCastingSpell then
-        state.targetcasting = true
-    end
-
     return state
 end
 
@@ -99,51 +140,22 @@ end
 -- Actions
 
 spec.actions = {
-    -- #showtooltip
-    -- /cast !Bear Form
     "bear",
-
-    -- #showtooltip
-    -- /cast [form:1] Feral Charge - Bear
-    -- /cast [form:3] Feral Charge - Cat
     "charge",
-
-    -- #showtooltip
-    -- /cast !Maul
-    -- /startAttack
     "maul",
-
-    -- #showtooltip
-    -- /cast [form:1] Swipe (Bear)
-    -- /cast [form:3] Swipe (Cat)
     "swipe",
-
-    -- Before having Mangle, make this macro but name it Mangle anyway:
-    -- #showtooltip
-    -- /cast Claw
-    -- /startAttack
-    --
-    -- then change it to...
-    ---
-    -- #showtooltip
-    -- /cast [form:1] Mangle (Bear)
-    -- /cast [form:3] Mangle (Cat)
-    "mangle",
-
-    -- #showtooltip
-    -- /cast !Cat Form
+    "mangle",   -- use Claw macro until you learn Mangle
     "cat",
-
     "fff",
     "enrage",
     "roar",
     "tigersfury",
     "rip",
-    "bite",   -- make rip until you get this
-    "rake",   -- make Mangle macro until you get it
-    "ravage", -- make Mangle macro until you get it
+    "bite",     -- use Rip macro until you learn Ferocious Bite
+    "rake",     -- use Claw macro until you learn Rake
+    "ravage",   -- use Claw macro until you learn Ravage
     "rejuv",
-    "kick",   -- Skull Bash
+    "kick",     -- Skull Bash
 }
 
 spec.calcAction = function(mode, state)

@@ -28,8 +28,6 @@ spec.overlay = Faceroll.createOverlay({
     "kick",
     -- "judgement",
 
-    "- State -",
-    "targetcasting",
 })
 
 local healDeadzone = Faceroll.deadzoneCreate("Holy Light", 1.5, 0.5)
@@ -61,12 +59,6 @@ spec.calcState = function(state)
 
     if Faceroll.getSpellCooldown("Kick") < 1 then -- if Faceroll.isSpellAvailable("Kick") then
         state.kick = true
-    end
-
-    local targetCastingSpell, _, _, _, targetCastingSpellEndTime = UnitCastingInfo("target")
-    local targetCastingSpellDone = 0
-    if targetCastingSpell then
-        state.targetcasting = true
     end
 
     return state

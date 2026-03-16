@@ -98,6 +98,10 @@ Faceroll.createState = function(spec, specKey)
         if Faceroll.targetingEnemy() then
             state.targetingenemy = true
         end
+        local targetCastingSpell = UnitCastingInfo("target")
+        if targetCastingSpell then
+            state.targetcasting = true
+        end
         if Faceroll.inCombat() then
             state.combat = true
         end
@@ -168,6 +172,7 @@ Faceroll.createOverlay = function(extras)
         overlay = {
             "- Combat -",
             "targetingenemy",
+            "targetcasting",
             "combat",
             "group",
             "autoattack",
@@ -1614,5 +1619,50 @@ SlashCmdList["FRK"] = dumpKeybinds
 
 SLASH_FRUR1 = '/frur'
 SlashCmdList["FRUR"] = upgradeRanks
+
+SLASH_FRM1 = '/frm'
+SlashCmdList["FRM"] = function()
+    local spec = Faceroll.activeSpec()
+    if spec == nil then
+        print(Faceroll.textColor("[frm] ", "ff5555") .. "No active spec.")
+        return
+    end
+    if spec.macros == nil then
+        print(Faceroll.textColor("[frm] ", "ff5555") .. "Active spec has no macros defined.")
+        return
+    end
+
+    local AUTO_ICON = 1
+
+    local function trim(s)
+        return s:match("^%s*(.-)%s*$")
+    end
+
+    for name, body in pairs(spec.macros) do
+        local macroName = name .. " FR"
+        body = trim(body)
+        local tag = Faceroll.textColor("[frm] ", "333333")
+        local nameText = Faceroll.textColor(macroName, "aaffff")
+
+        local index = GetMacroIndexByName(macroName)
+        if index and index > 0 then
+            local _, existingIcon, existingBody = GetMacroInfo(index)
+            if trim(existingBody) == body then
+                print(tag .. nameText .. " " .. Faceroll.textColor("OK", "777777"))
+            else
+                EditMacro(index, macroName, existingIcon, body)
+                print(tag .. nameText .. " " .. Faceroll.textColor("Updated", "ffffaa"))
+            end
+        else
+            local _, numCharacter = GetNumMacros()
+            if numCharacter >= 18 then
+                print(tag .. nameText .. " " .. Faceroll.textColor("FAILED - no character macro slots", "ff5555"))
+            else
+                CreateMacro(macroName, AUTO_ICON, body, 1)
+                print(tag .. nameText .. " " .. Faceroll.textColor("Created", "aaffaa"))
+            end
+        end
+    end
+end
 
 -----------------------------------------------------------------------------------------

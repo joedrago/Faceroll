@@ -13,7 +13,6 @@ local spec = Faceroll.createSpec("ROGUE", "fff469", "ROGUE-2")
 spec.overlay = Faceroll.createOverlay({
     "- Buffs -",
     { "b_slice", "Slice and Dice" },
-    "sinisterfinisher",
     { "b_stealth", "Stealth" },
 
     "- Dots -",
@@ -23,16 +22,9 @@ spec.overlay = Faceroll.createOverlay({
     { "s_kick", "Kick" },
     { "s_riposte", "Riposte" },
 
-    "- State -",
-    "targetcasting",
 })
 
 spec.calcState = function(state)
-    local targetCastingSpell, _, _, _, targetCastingSpellEndTime = UnitCastingInfo("target")
-    if targetCastingSpell then
-        state.targetcasting = true
-    end
-
     return state
 end
 
