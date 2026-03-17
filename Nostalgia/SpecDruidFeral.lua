@@ -102,6 +102,11 @@ spec.macros = {
 -----------------------------------------------------------------------------------------
 -- States
 
+spec.options = {
+    "nobleed",
+    "bear",
+}
+
 spec.overlay = Faceroll.createOverlay({
     "- Options -",
     "nobleed",
@@ -133,11 +138,6 @@ spec.overlay = Faceroll.createOverlay({
     { "d_rip",        "Rip" },
     { "s_kick",       "Skull Bash" },
 })
-
-spec.options = {
-    "nobleed",
-    "bear",
-}
 
 spec.calcState = function(state)
     -- Charge is conditional on form
