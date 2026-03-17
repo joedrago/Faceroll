@@ -5,7 +5,7 @@ if Faceroll == nil then
     _, Faceroll = ...
 end
 
-local spec = Faceroll.createSpec("SPVE", "dd88dd", "PRIEST-CLASSIC")
+local spec = Faceroll.createSpec("SPVE", "dd88dd", "PRIEST-3")
 
 Faceroll.enemyGridTrack(spec, "Shadow Word: Pain", "SWP", "621518")
 Faceroll.enemyGridTrack(spec, "Devouring Plague", "DP", "621562")
@@ -41,13 +41,13 @@ end
 -- Actions
 
 spec.actions = {
-    "innerfire",
-    "pain",
-    "devouringplague",
-    "mindblast",
-    "mindflay",
-    "mindsear",
-    "vampirictouch",
+    { "innerfire",       spell = "Inner Fire", },
+    { "pain",            spell = "Shadow Word: Pain", },
+    { "devouringplague", spell = "Devouring Plague", },
+    { "mindblast",       spell = "Mind Blast", },
+    { "mindflay",        spell = "Mind Flay", },
+    { "mindsear",        spell = "Mind Sear", },
+    { "vampirictouch",   spell = "Vampiric Touch", },
 }
 
 spec.calcAction = function(mode, state)

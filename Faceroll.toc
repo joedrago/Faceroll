@@ -25,7 +25,6 @@ Faceroll.lua
 Nostalgia\SpecDruidBalance.lua
 Nostalgia\SpecDruidFeral.lua
 Nostalgia\SpecMageArcane.lua
-Nostalgia\SpecMageFrost.lua
 Nostalgia\SpecPaladinRet.lua
 Nostalgia\SpecPriest.lua
 Nostalgia\SpecRogue.lua

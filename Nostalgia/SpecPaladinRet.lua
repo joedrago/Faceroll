@@ -8,22 +8,27 @@ end
 local spec = Faceroll.createSpec("PAL", "ffffaa", "PALADIN-3")
 
 -----------------------------------------------------------------------------------------
+-- Macros (/frm)
+
+spec.macros = {
+
+["Attack"] = [[
+/startAttack
+]],
+
+}
+
+-----------------------------------------------------------------------------------------
 -- States
 
 spec.overlay = Faceroll.createOverlay({
     "- State -",
-    "combat",
-    "targetingenemy",
     "healdeadzone",
-    "hold",
-
-    "- Buffs -",
-    "needsblessing",
-    "needsseal",
 
     "- Spells -",
     { "s_judgement", "Judgement of Light" },
     { "s_handofreckoning", "Hand of Reckoning" },
+    { "s_consecration", "Consecration" },
 })
 
 local healDeadzone = Faceroll.deadzoneCreate("Holy Light", 1.5, 0.5)
@@ -41,11 +46,11 @@ end
 -- Actions
 
 spec.actions = {
-    "judgement",
-    "attack",
-    "healself",
-    "consecration",
-    "handofreckoning",
+    { "judgement",       spell = "Judgement of Light", },
+    { "attack",          macro = "Attack", },
+    { "healself",        spell = "Holy Light", },
+    { "consecration",    spell = "Consecration", },
+    { "handofreckoning", spell = "Hand of Reckoning", },
 }
 
 spec.calcAction = function(mode, state)
@@ -63,8 +68,8 @@ spec.calcAction = function(mode, state)
         elseif state.s_judgement then
             return "judgement"
 
-        -- elseif state.justjudged and mode == Faceroll.MODE_AOE then
-        --     return "consecration"
+        elseif state.s_consecration and aoe then
+            return "consecration"
 
         else
             return "attack"

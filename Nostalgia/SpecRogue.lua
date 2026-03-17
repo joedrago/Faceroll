@@ -6,6 +6,18 @@ if Faceroll == nil then
 end
 
 local spec = Faceroll.createSpec("ROGUE", "fff469", "ROGUE-2")
+Faceroll.aliasSpec(spec, "ROGUE-CLASSIC")
+
+-----------------------------------------------------------------------------------------
+-- Macros (/frm)
+
+spec.macros = {
+
+["SS"] = [[
+/cast Sinister Strike
+/startAttack
+]],
+}
 
 -----------------------------------------------------------------------------------------
 -- States
@@ -32,14 +44,14 @@ end
 -- Actions
 
 spec.actions = {
-    "sinisterstrike",
-    "eviscerate",
-    "slice",
-    "riposte",
-    "kick",
-    "garrote",
-    "fanofknives",
-    -- "rupture",
+    { "sinisterstrike",  macro = "SS" },
+    { "eviscerate",      spell = "Eviscerate" },
+    { "slice",           spell = "Slice and Dice" },
+    { "riposte",         spell = "Riposte" },
+    { "kick",            spell = "Kick" },
+    { "garrote",         spell = "Garrote" },
+    { "fanofknives",     spell = "Fan of Knives" },
+    { "rupture",         spell = "Rupture" },
 }
 
 spec.calcAction = function(mode, state)
@@ -47,20 +59,20 @@ spec.calcAction = function(mode, state)
     local aoe = (mode == Faceroll.MODE_AOE)
 
     if state.targetingenemy then
-        if aoe and state.melee then
+        if aoe and state.melee and Faceroll.isActionAvailable("fanofknives") then
             return "fanofknives"
 
-        elseif not aoe and state.b_stealth then
+        elseif not aoe and state.b_stealth and Faceroll.isActionAvailable("garrote") then
             return "garrote"
 
-        -- elseif not aoe and not state.d_rupture and state.combopoints >= 5 then
-        --     return "rupture"
+        elseif not aoe and not state.d_rupture and state.combopoints >= 5 and Faceroll.isActionAvailable("Rupture") then
+            return "rupture"
 
         elseif not aoe and state.targetcasting and state.s_kick then
             return "kick"
 
         -- not aoe and state.d_rupture and
-        elseif not state.b_slice and state.combopoints >= 2 then
+        elseif not state.b_slice and state.combopoints >= 2 and Faceroll.isActionAvailable("slice") then
             return "slice"
 
         elseif state.combopoints >= 5 then

@@ -8,6 +8,23 @@ end
 local spec = Faceroll.createSpec("WAR", "ff6666", "WARRIOR-3")
 
 -----------------------------------------------------------------------------------------
+-- Macros (/frm)
+
+spec.macros = {
+
+["Heroic"] = [[
+/cast !@Heroic Strike@
+/startAttack
+]],
+
+["Cleave"] = [[
+/cast !@Cleave@
+/startAttack
+]],
+
+}
+
+-----------------------------------------------------------------------------------------
 -- States
 
 spec.overlay = Faceroll.createOverlay({
@@ -33,14 +50,14 @@ end
 -- Actions
 
 spec.actions = {
-    "strike",
-    "charge",
-    "rend",
-    "clap",
-    "bloodrage",
-    "demoshout",
-    "revenge",
-    "cleave",
+    { "strike",     macro = "Heroic" },
+    { "charge",     spell = "Charge" },
+    { "rend",       spell = "Rend" },
+    { "clap",       spell = "Thunder Clap" },
+    { "bloodrage",  spell = "Bloodrage" },
+    { "demoshout",  spell = "Demoralizing Shout" },
+    { "revenge",    spell = "Revenge" },
+    { "cleave",     macro = "Cleave" },
 }
 
 spec.calcAction = function(mode, state)
@@ -57,7 +74,7 @@ spec.calcAction = function(mode, state)
         elseif state.rage >= 20 and state.melee and state.s_clap then
             return "clap"
 
-        elseif state.rage >= 10 and state.melee and not state.d_demoshout then
+        elseif state.rage >= 10 and state.melee and not state.d_demoshout and Faceroll.isActionAvailable("demoshout") then
             return "demoshout"
 
         elseif state.melee and state.s_revenge then
@@ -66,7 +83,7 @@ spec.calcAction = function(mode, state)
         -- elseif state.rage >= 10 and not state.d_rend then
         --     return "rend"
 
-        elseif aoe then
+        elseif aoe and Faceroll.isActionAvailable("cleave") then
             return "cleave"
         else
             return "strike"
