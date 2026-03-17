@@ -32,13 +32,13 @@ spec.overlay = Faceroll.createOverlay({
     "battleshout",
 
     "- Debuffs -",
-    { "d_rend", "Rend" },
+    { "d_rend",      "Rend" },
     { "d_demoshout", "Demoralizing Shout" },
 
     "- Spells -",
-    { "s_charge", "Charge" },
-    { "s_clap", "Thunder Clap" },
-    { "s_revenge", "Revenge" },
+    { "s_charge",    "Charge" },
+    { "s_clap",      "Thunder Clap" },
+    { "s_revenge",   "Revenge" },
     { "s_bloodrage", "Bloodrage" },
 })
 

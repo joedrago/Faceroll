@@ -48,15 +48,15 @@ spec.macros = {
 -- States
 
 spec.overlay = Faceroll.createOverlay({
-    { "b_drink", "Drink" },
+    { "b_drink",          "Drink" },
     { "b_missilebarrage", "Missile Barrage" },
-    { "b_arcanepower", "Arcane Power" },
-    { "b_icyveins", "Icy Veins" },
-    { "b_pombuff", "Presence of Mind" },
+    { "b_arcanepower",    "Arcane Power" },
+    { "b_icyveins",       "Icy Veins" },
+    { "b_pombuff",        "Presence of Mind" },
     "abstacks",
     "casting",
-    { "s_evocation", "Evocation" },
-    { "s_pom", "Presence of Mind" },
+    { "s_evocation",      "Evocation" },
+    { "s_pom",            "Presence of Mind" },
     "amdeadzone",
 })
 

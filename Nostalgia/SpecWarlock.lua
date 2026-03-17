@@ -14,7 +14,7 @@ spec.buffs = {}
 
 spec.overlay = Faceroll.createOverlay({
     { "d_curseofagony", "Curse of Agony" },
-    { "d_corruption", "Corruption" },
+    { "d_corruption",   "Corruption" },
     "drainsoul",
 })
 

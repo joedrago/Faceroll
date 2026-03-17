@@ -49,16 +49,16 @@ spec.macros = {
 
 spec.overlay = Faceroll.createOverlay({
     "- Stances -",
-    { "f_moonkin", 5 },
+    { "f_moonkin",  5 },
 
     "- Combat -",
-    { "b_drink", "Drink" },
+    { "b_drink",    "Drink" },
 
     "- Debuffs -",
     { "d_moonfire", "Moonfire" },
 
     "- Buffs -",
-    { "b_lunar", "Eclipse (Lunar)" },
+    { "b_lunar",    "Eclipse (Lunar)" },
 })
 
 spec.calcState = function(state)

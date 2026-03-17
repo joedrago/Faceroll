@@ -24,14 +24,14 @@ spec.macros = {
 
 spec.overlay = Faceroll.createOverlay({
     "- Buffs -",
-    { "b_slice", "Slice and Dice" },
+    { "b_slice",   "Slice and Dice" },
     { "b_stealth", "Stealth" },
 
     "- Dots -",
     { "d_rupture", "Rupture" },
 
     "- Spells -",
-    { "s_kick", "Kick" },
+    { "s_kick",    "Kick" },
     { "s_riposte", "Riposte" },
 
 })

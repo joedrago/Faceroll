@@ -26,9 +26,9 @@ spec.overlay = Faceroll.createOverlay({
     "healdeadzone",
 
     "- Spells -",
-    { "s_judgement", "Judgement of Light" },
+    { "s_judgement",       "Judgement of Light" },
     { "s_handofreckoning", "Hand of Reckoning" },
-    { "s_consecration", "Consecration" },
+    { "s_consecration",    "Consecration" },
 })
 
 local healDeadzone = Faceroll.deadzoneCreate("Holy Light", 1.5, 0.5)

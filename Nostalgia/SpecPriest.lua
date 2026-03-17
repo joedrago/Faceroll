@@ -15,15 +15,15 @@ Faceroll.enemyGridTrack(spec, "Devouring Plague", "DP", "621562")
 
 spec.overlay = Faceroll.createOverlay({
     "- Buffs -",
-    { "b_innerfire", "Inner Fire" },
+    { "b_innerfire",      "Inner Fire" },
 
     "- Debuffs -",
-    { "d_pain", "Shadow Word: Pain" },
+    { "d_pain",           "Shadow Word: Pain" },
     { "d_devouringplague", "Devouring Plague" },
-    { "d_vampirictouch", "Vampiric Touch" },
+    { "d_vampirictouch",  "Vampiric Touch" },
 
     "- Spells -",
-    { "s_mindblast", "Mind Blast" },
+    { "s_mindblast",      "Mind Blast" },
     "vtdeadzone",
 })
 
