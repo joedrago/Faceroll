@@ -6,6 +6,7 @@
 #ifdef WABITS_LUA
 #include "wabits_lua.h"
 #include <windows.h>
+#include <shellapi.h>
 #else
 #include <winsock.h>
 #endif
@@ -145,7 +146,6 @@ static wabitsBool y4mColorSpaceParse(const char * formatString, struct y4mFrameI
     if (!strcmp(formatString, "C420jpeg")) {
         frame->format = WABITS_PIXEL_FORMAT_YUV420;
         frame->depth = 8;
-        // Chroma sample position is center.
         return WABITS_TRUE;
     }
     if (!strcmp(formatString, "C420mpeg2")) {
@@ -196,7 +196,6 @@ static wabitsBool y4mColorSpaceParse(const char * formatString, struct y4mFrameI
     if (!strcmp(formatString, "C444alpha")) {
         frame->format = WABITS_PIXEL_FORMAT_YUV444;
         frame->depth = 8;
-        // frame->hasAlpha = WABITS_TRUE;
         return WABITS_TRUE;
     }
     if (!strcmp(formatString, "C422")) {
@@ -207,7 +206,6 @@ static wabitsBool y4mColorSpaceParse(const char * formatString, struct y4mFrameI
     if (!strcmp(formatString, "C420")) {
         frame->format = WABITS_PIXEL_FORMAT_YUV420;
         frame->depth = 8;
-        // Chroma sample position is center.
         return WABITS_TRUE;
     }
     if (!strcmp(formatString, "Cmono")) {
@@ -274,7 +272,6 @@ wabitsBool y4mRead(FILE * inputFile, struct Image * image, struct y4mFrameIterat
     struct y4mFrameIterator frame;
     frame.width = -1;
     frame.height = -1;
-    // Default to the color space "C420" to match the defaults of aomenc and ffmpeg.
     frame.depth = 8;
     frame.format = WABITS_PIXEL_FORMAT_YUV420;
     frame.inputFile = NULL;
@@ -283,10 +280,8 @@ wabitsBool y4mRead(FILE * inputFile, struct Image * image, struct y4mFrameIterat
     wabitsRWDataRealloc(&raw, Y4M_MAX_LINE_SIZE);
 
     if (iter && *iter) {
-        // Continue reading FRAMEs from this y4m stream
         frame = **iter;
     } else {
-        // Open a fresh y4m and read its header
         frame.inputFile = inputFile;
         frame.displayFilename = "(ffmpeg)";
 
@@ -307,19 +302,19 @@ wabitsBool y4mRead(FILE * inputFile, struct Image * image, struct y4mFrameIterat
             fprintf(stderr, "Not a y4m file: %s\n", frame.displayFilename);
             goto cleanup;
         }
-        ADVANCE(10); // skip past header
+        ADVANCE(10);
 
         char tmpBuffer[32];
 
         while (p != end) {
             switch (*p) {
-                case 'W': // width
+                case 'W':
                     frame.width = y4mReadUnsignedInt((const char *)p + 1, (const char *)end);
                     break;
-                case 'H': // height
+                case 'H':
                     frame.height = y4mReadUnsignedInt((const char *)p + 1, (const char *)end);
                     break;
-                case 'C': // color space
+                case 'C':
                     if (!getHeaderString(p, end, tmpBuffer, 31)) {
                         fprintf(stderr, "Bad y4m header: %s\n", frame.displayFilename);
                         goto cleanup;
@@ -330,7 +325,7 @@ wabitsBool y4mRead(FILE * inputFile, struct Image * image, struct y4mFrameIterat
                         goto cleanup;
                     }
                     break;
-                case 'F': // framerate
+                case 'F':
                     if (!getHeaderString(p, end, tmpBuffer, 31)) {
                         fprintf(stderr, "Bad y4m header: %s\n", frame.displayFilename);
                         goto cleanup;
@@ -346,12 +341,10 @@ wabitsBool y4mRead(FILE * inputFile, struct Image * image, struct y4mFrameIterat
                     break;
             }
 
-            // Advance past header section
             while ((*p != '\n') && (*p != ' ')) {
                 ADVANCE(1);
             }
             if (*p == '\n') {
-                // Done with y4m header
                 break;
             }
 
@@ -418,10 +411,9 @@ cleanup:
         }
 
         if (result && frame.inputFile) {
-            ungetc(fgetc(frame.inputFile), frame.inputFile); // Kick frame.inputFile to force EOF
+            ungetc(fgetc(frame.inputFile), frame.inputFile);
 
             if (!feof(frame.inputFile)) {
-                // Remember y4m state for next time
                 *iter = malloc(sizeof(struct y4mFrameIterator));
                 if (*iter == NULL) {
                     fprintf(stderr, "Inter-frame state memory allocation failure\n");
@@ -438,7 +430,7 @@ cleanup:
 }
 
 // --------------------------------------------------------------------------------------
-// Config + FFmpeg process management (Windows/WABITS_LUA only)
+// Config + FFmpeg process management + System tray (Windows/WABITS_LUA only)
 
 #ifdef WABITS_LUA
 
@@ -473,7 +465,6 @@ static int wabitsConfigParse(struct WabitsConfig * cfg, const char * filename)
         if (*p == '#' || *p == '\n' || *p == '\r' || *p == '\0')
             continue;
 
-        // Trim trailing whitespace
         char * end = p + strlen(p) - 1;
         while (end > p && (*end == '\n' || *end == '\r' || *end == ' ' || *end == '\t')) {
             *end = '\0';
@@ -500,6 +491,9 @@ static int wabitsConfigParse(struct WabitsConfig * cfg, const char * filename)
     return 1;
 }
 
+// --------------------------------------------------------------------------------------
+// FFmpeg process management
+
 static HANDLE ffmpegProcess = NULL;
 static HANDLE ffmpegJob = NULL;
 
@@ -521,7 +515,6 @@ static FILE * ffmpegSpawn(const struct WabitsConfig * cfg)
 {
     SECURITY_ATTRIBUTES sa = { sizeof(SECURITY_ATTRIBUTES), NULL, TRUE };
 
-    // Create pipe for ffmpeg stdout -> our input
     HANDLE pipeRead, pipeWrite;
     if (!CreatePipe(&pipeRead, &pipeWrite, &sa, 0)) {
         fprintf(stderr, "Failed to create pipe: %lu\n", GetLastError());
@@ -529,7 +522,6 @@ static FILE * ffmpegSpawn(const struct WabitsConfig * cfg)
     }
     SetHandleInformation(pipeRead, HANDLE_FLAG_INHERIT, 0);
 
-    // Build ffmpeg command line
     char cmdline[2048];
     if (cfg->verbose) {
         snprintf(cmdline, sizeof(cmdline),
@@ -542,7 +534,6 @@ static FILE * ffmpegSpawn(const struct WabitsConfig * cfg)
     }
     printf("Starting: %s\n", cmdline);
 
-    // Redirect stderr to NUL unless verbose
     HANDLE hStdErr;
     if (cfg->verbose) {
         hStdErr = GetStdHandle(STD_ERROR_HANDLE);
@@ -561,7 +552,6 @@ static FILE * ffmpegSpawn(const struct WabitsConfig * cfg)
     PROCESS_INFORMATION pi;
     ZeroMemory(&pi, sizeof(pi));
 
-    // Create job object so ffmpeg dies if we crash
     ffmpegJob = CreateJobObject(NULL, NULL);
     if (ffmpegJob) {
         JOBOBJECT_EXTENDED_LIMIT_INFORMATION jeli;
@@ -570,7 +560,7 @@ static FILE * ffmpegSpawn(const struct WabitsConfig * cfg)
         SetInformationJobObject(ffmpegJob, JobObjectExtendedLimitInformation, &jeli, sizeof(jeli));
     }
 
-    if (!CreateProcessA(NULL, cmdline, NULL, NULL, TRUE, 0, NULL, NULL, &si, &pi)) {
+    if (!CreateProcessA(NULL, cmdline, NULL, NULL, TRUE, CREATE_NO_WINDOW, NULL, NULL, &si, &pi)) {
         fprintf(stderr, "Failed to start ffmpeg: %lu\n", GetLastError());
         fprintf(stderr, "Make sure ffmpeg is in your PATH.\n");
         CloseHandle(pipeRead);
@@ -590,7 +580,6 @@ static FILE * ffmpegSpawn(const struct WabitsConfig * cfg)
     if (!cfg->verbose)
         CloseHandle(hStdErr);
 
-    // Convert pipe handle to FILE*
     int fd = _open_osfhandle((intptr_t)pipeRead, _O_RDONLY | _O_BINARY);
     if (fd == -1) {
         fprintf(stderr, "Failed to convert pipe handle\n");
@@ -640,6 +629,188 @@ static int ffmpegCapturePng(const struct WabitsConfig * cfg, const char * filena
     return (int)exitCode;
 }
 
+// --------------------------------------------------------------------------------------
+// System tray
+
+#define WM_TRAYICON (WM_USER + 1)
+#define WM_WORKER_DONE (WM_USER + 2)
+#define ID_TRAY_EXIT 1001
+
+static HWND g_trayWindow = NULL;
+static NOTIFYICONDATAA g_nid;
+static FILE * g_inputFile = NULL;
+static volatile int g_workerRunning = 1;
+static HANDLE g_workerHandle = NULL;
+
+static HICON createKeyboardIcon()
+{
+    // 16x16 pixel art keyboard: D=body, k=key, space=transparent
+    static const char * art[16] = {
+        "                ",
+        "                ",
+        "DDDDDDDDDDDDDDDD",
+        "DkkDkkDkkDkkDkkD",
+        "DDDDDDDDDDDDDDDD",
+        "DDkkDkkDkkDkkDDD",
+        "DDDDDDDDDDDDDDDD",
+        "DDDkkDkkDkkDDDDD",
+        "DDDDDDDDDDDDDDDD",
+        "DDDDkkkkkkkkDDDD",
+        "DDDDDDDDDDDDDDDD",
+        "                ",
+        "                ",
+        "                ",
+        "                ",
+        "                ",
+    };
+
+    const int S = 16;
+    uint32_t pixels[16 * 16];
+    for (int y = 0; y < S; y++) {
+        for (int x = 0; x < S; x++) {
+            switch (art[y][x]) {
+                case 'D': pixels[y * S + x] = 0xFF505050; break;
+                case 'k': pixels[y * S + x] = 0xFFE0E0E0; break;
+                default:  pixels[y * S + x] = 0x00000000; break;
+            }
+        }
+    }
+
+    BITMAPV5HEADER bi;
+    ZeroMemory(&bi, sizeof(bi));
+    bi.bV5Size = sizeof(bi);
+    bi.bV5Width = S;
+    bi.bV5Height = -S; // top-down
+    bi.bV5Planes = 1;
+    bi.bV5BitCount = 32;
+    bi.bV5Compression = BI_BITFIELDS;
+    bi.bV5RedMask = 0x00FF0000;
+    bi.bV5GreenMask = 0x0000FF00;
+    bi.bV5BlueMask = 0x000000FF;
+    bi.bV5AlphaMask = 0xFF000000;
+
+    void * bits;
+    HDC dc = GetDC(NULL);
+    HBITMAP colorBmp = CreateDIBSection(dc, (BITMAPINFO *)&bi, DIB_RGB_COLORS, &bits, NULL, 0);
+    memcpy(bits, pixels, sizeof(pixels));
+    ReleaseDC(NULL, dc);
+
+    HBITMAP maskBmp = CreateBitmap(S, S, 1, 1, NULL);
+
+    ICONINFO ii;
+    ii.fIcon = TRUE;
+    ii.xHotspot = 0;
+    ii.yHotspot = 0;
+    ii.hbmMask = maskBmp;
+    ii.hbmColor = colorBmp;
+
+    HICON icon = CreateIconIndirect(&ii);
+
+    DeleteObject(colorBmp);
+    DeleteObject(maskBmp);
+
+    return icon;
+}
+
+static LRESULT CALLBACK trayWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+{
+    switch (msg) {
+        case WM_TRAYICON:
+            if (lParam == WM_RBUTTONUP) {
+                HMENU menu = CreatePopupMenu();
+                AppendMenuA(menu, MF_STRING | MF_GRAYED, 0, "Faceroll");
+                AppendMenuA(menu, MF_SEPARATOR, 0, NULL);
+                AppendMenuA(menu, MF_STRING, ID_TRAY_EXIT, "Exit");
+                POINT pt;
+                GetCursorPos(&pt);
+                SetForegroundWindow(hwnd);
+                TrackPopupMenu(menu, TPM_RIGHTALIGN | TPM_BOTTOMALIGN, pt.x, pt.y, 0, hwnd, NULL);
+                DestroyMenu(menu);
+            }
+            break;
+        case WM_COMMAND:
+            if (LOWORD(wParam) == ID_TRAY_EXIT) {
+                DestroyWindow(hwnd);
+            }
+            break;
+        case WM_WORKER_DONE:
+            DestroyWindow(hwnd);
+            break;
+        case WM_DESTROY:
+            Shell_NotifyIconA(NIM_DELETE, &g_nid);
+            PostQuitMessage(0);
+            break;
+        default:
+            return DefWindowProcA(hwnd, msg, wParam, lParam);
+    }
+    return 0;
+}
+
+static void trayCreate()
+{
+    WNDCLASSEXA wc;
+    ZeroMemory(&wc, sizeof(wc));
+    wc.cbSize = sizeof(wc);
+    wc.lpfnWndProc = trayWndProc;
+    wc.hInstance = GetModuleHandle(NULL);
+    wc.lpszClassName = "WabitsTray";
+    RegisterClassExA(&wc);
+
+    g_trayWindow = CreateWindowExA(0, "WabitsTray", "Wabits", 0,
+        0, 0, 0, 0, HWND_MESSAGE, NULL, wc.hInstance, NULL);
+
+    ZeroMemory(&g_nid, sizeof(g_nid));
+    g_nid.cbSize = sizeof(g_nid);
+    g_nid.hWnd = g_trayWindow;
+    g_nid.uID = 1;
+    g_nid.uFlags = NIF_ICON | NIF_MESSAGE | NIF_TIP;
+    g_nid.uCallbackMessage = WM_TRAYICON;
+    g_nid.hIcon = createKeyboardIcon();
+    strncpy(g_nid.szTip, "Faceroll", sizeof(g_nid.szTip) - 1);
+    Shell_NotifyIconA(NIM_ADD, &g_nid);
+}
+
+static DWORD WINAPI y4mWorkerThread(LPVOID param)
+{
+    struct Image image;
+    image.planes[0] = malloc(256 * 256);
+    image.planes[1] = malloc(256 * 256);
+    image.planes[2] = malloc(256 * 256);
+
+    struct y4mFrameIterator * frameIter = NULL;
+
+    while (g_workerRunning) {
+        if (feof(g_inputFile))
+            break;
+        if (!y4mRead(g_inputFile, &image, &frameIter))
+            break;
+
+        uint32_t bits = 0;
+        uint8_t * yPlane = image.planes[0];
+        for (int bitIndex = 0; bitIndex < 32; ++bitIndex) {
+            int bitX = bitIndex % 4;
+            int bitY = bitIndex / 4;
+            int pixelX = (int)(2 + bitX * ((float)image.width / 4));
+            int pixelY = (int)(2 + bitY * ((float)image.height / 8));
+            uint8_t pixel = yPlane[pixelX + (pixelY * image.width)];
+            if (pixel > 127) {
+                bits += (1 << bitIndex);
+            }
+        }
+        wlUpdate(bits);
+    }
+
+    free(image.planes[0]);
+    free(image.planes[1]);
+    free(image.planes[2]);
+
+    // Tell the main thread we're done
+    if (g_trayWindow) {
+        PostMessage(g_trayWindow, WM_WORKER_DONE, 0, 0);
+    }
+    return 0;
+}
+
 #endif // WABITS_LUA
 
 // --------------------------------------------------------------------------------------
@@ -649,7 +820,19 @@ static int ffmpegCapturePng(const struct WabitsConfig * cfg, const char * filena
 int main(int argc, char * argv[])
 {
 #ifdef WABITS_LUA
-    // Windows + Lua mode: read config, spawn ffmpeg internally
+    // Single instance check
+    HANDLE instanceMutex = CreateMutexA(NULL, TRUE, "WabitsFacerollMutex");
+    if (GetLastError() == ERROR_ALREADY_EXISTS) {
+        CloseHandle(instanceMutex);
+        return 0;
+    }
+
+    // Redirect all output to log file (truncated on startup)
+    freopen("wabits.log", "w", stdout);
+    _dup2(_fileno(stdout), _fileno(stderr));
+    setvbuf(stdout, NULL, _IONBF, 0);
+    setvbuf(stderr, NULL, _IONBF, 0);
+
     struct WabitsConfig cfg;
     wabitsConfigInit(&cfg);
     if (!wabitsConfigParse(&cfg, "wabits.cfg")) {
@@ -667,16 +850,37 @@ int main(int argc, char * argv[])
         return ffmpegCapturePng(&cfg, argv[1]);
     }
 
-    FILE * inputFile = ffmpegSpawn(&cfg);
-    if (!inputFile) {
+    g_inputFile = ffmpegSpawn(&cfg);
+    if (!g_inputFile) {
         return 1;
     }
 
     if (!wlStartup()) {
-        fclose(inputFile);
+        fclose(g_inputFile);
         ffmpegCleanup();
         return 1;
     }
+
+    // Create tray icon and start worker thread
+    trayCreate();
+    g_workerHandle = CreateThread(NULL, 0, y4mWorkerThread, NULL, 0, NULL);
+
+    // Main thread runs the message pump
+    MSG msg;
+    while (GetMessage(&msg, NULL, 0, 0) > 0) {
+        TranslateMessage(&msg);
+        DispatchMessage(&msg);
+    }
+
+    // Cleanup
+    g_workerRunning = 0;
+    wlShutdown();
+    ffmpegCleanup();
+    if (g_workerHandle) {
+        WaitForSingleObject(g_workerHandle, 3000);
+        CloseHandle(g_workerHandle);
+    }
+    fclose(g_inputFile);
 
 #else
     // Mac (stdin pipe) or Windows without Lua (legacy UDP mode)
@@ -706,7 +910,6 @@ int main(int argc, char * argv[])
     server.sin_family = AF_INET;
     server.sin_addr.s_addr = inet_addr(SERVERADDRESS);
     server.sin_port = htons(9001);
-#endif
 
     struct Image image;
     image.planes[0] = malloc(256 * 256);
@@ -736,21 +939,12 @@ int main(int argc, char * argv[])
             }
         }
 
-#ifdef WABITS_LUA
-        wlUpdate(bits);
-#else
         sprintf(udpBuffer, "%u", bits);
         if (sendto(sockfd, udpBuffer, (int)strlen(udpBuffer), 0, (const struct sockaddr *)&server, sizeof(server)) < 0) {
             fprintf(stderr, "Error in sendto()\n");
             return -1;
         }
-#endif
     }
-
-#ifdef WABITS_LUA
-    wlShutdown();
-    fclose(inputFile);
-    ffmpegCleanup();
 #endif
     return 0;
 }

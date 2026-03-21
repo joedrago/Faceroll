@@ -2,6 +2,7 @@ wabits/build
 wabits/obj
 /Settings.lua
 /wabits.exe
+/wabits.log
 /wabits.cfg
 /run.bat
 *.pdb
