@@ -1,2 +1,8 @@
 wabits/build
+wabits/obj
 /Settings.lua
+/wabits.exe
+/run.bat
+*.pdb
+*.ilk
+.claude

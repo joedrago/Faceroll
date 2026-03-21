@@ -1,6 +1,8 @@
 @echo off
 
-REM Run this with no arguments begin capture and Lua processing. Adjust the crop
+REM Copy this file to the repo root as run.bat and edit the crop rectangle below.
+REM
+REM Run with no arguments to begin capture and Lua processing. Adjust the crop
 REM rectangle (X:Y:W:H) to correspond to the mod's rectangle. Pass the name of a
 REM PNG on the commandline to output the rectangle's capture once for
 REM positioning debugging.
