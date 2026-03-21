@@ -1609,6 +1609,10 @@ local function onEvent(self, event, arg1, arg2, ...)
         updateBits("UNIT_SPELLCAST_CHANNEL_STOP")
     elseif event == "ACTIONBAR_UPDATE_STATE" then
         updateBits("ACTIONBAR_UPDATE_STATE")
+    elseif event == "CHARACTER_POINTS_CHANGED" or event == "ACTIVE_TALENT_GROUP_CHANGED" then
+        buildActionAvailability()
+        enabledFrameUpdate()
+        updateBits(event)
     elseif event == "PLAYER_REGEN_ENABLED" then
         Faceroll.leftCombat = GetTime()
         updateBits("PLAYER_REGEN_ENABLED")
@@ -1681,6 +1685,8 @@ if Faceroll.classic or Faceroll.ascension then
     eventFrame:RegisterEvent("UNIT_POWER_UPDATE")
     eventFrame:RegisterEvent("BAG_UPDATE")
     eventFrame:RegisterEvent("ACTIONBAR_UPDATE_STATE")
+    eventFrame:RegisterEvent("CHARACTER_POINTS_CHANGED")
+    eventFrame:RegisterEvent("ACTIVE_TALENT_GROUP_CHANGED")
 end
 
 DEFAULT_CHAT_FRAME.editBox:HookScript("OnShow", function()
