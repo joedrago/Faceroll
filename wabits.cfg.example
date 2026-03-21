@@ -1,0 +1,11 @@
+# Crop rectangle for screen capture (X:Y:W:H)
+crop=30:60:2221:9
+
+# Capture source (usually "desktop")
+capture=desktop
+
+# Frames per second
+fps=10
+
+# Show ffmpeg output (0=quiet, 1=verbose)
+verbose=0

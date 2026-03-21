@@ -5,6 +5,7 @@
 #include <io.h>
 #ifdef WABITS_LUA
 #include "wabits_lua.h"
+#include <windows.h>
 #else
 #include <winsock.h>
 #endif
@@ -31,23 +32,6 @@ typedef int SOCKET;
 // SPDX-License-Identifier: BSD-2-Clause
 //
 // If anything I'm borrowing BSD code from myself, heh.
-
-// #!/bin/bash
-//
-// PIPELINE="-y -f avfoundation -i $1 -vf crop=60:60:2209:9"
-//
-// if [ -z "$1" ]; then
-//     ffmpeg -f avfoundation -list_devices true -i ""
-//     exit
-// fi
-//
-// if [ ! -z "$2" ]; then
-//     echo "Creating test capture PNG: $2"
-//     ffmpeg ${PIPELINE} -vframes 1 "$2"
-//     exit
-// fi
-//
-// ffmpeg ${PIPELINE} -f yuv4mpegpipe -r 5 - | /Users/joe/work/wabits/build/wabits
 
 typedef int wabitsBool;
 #define WABITS_TRUE 1
@@ -283,7 +267,7 @@ struct Image
             goto cleanup; \
     } while (0)
 
-wabitsBool y4mRead(struct Image * image, struct y4mFrameIterator ** iter)
+wabitsBool y4mRead(FILE * inputFile, struct Image * image, struct y4mFrameIterator ** iter)
 {
     wabitsBool result = WABITS_FALSE;
 
@@ -303,8 +287,8 @@ wabitsBool y4mRead(struct Image * image, struct y4mFrameIterator ** iter)
         frame = **iter;
     } else {
         // Open a fresh y4m and read its header
-        frame.inputFile = stdin;
-        frame.displayFilename = "(stdin)";
+        frame.inputFile = inputFile;
+        frame.displayFilename = "(ffmpeg)";
 
         int headerBytes = y4mReadLine(frame.inputFile, &raw, frame.displayFilename);
         if (headerBytes < 0) {
@@ -453,14 +437,254 @@ cleanup:
     return result;
 }
 
+// --------------------------------------------------------------------------------------
+// Config + FFmpeg process management (Windows/WABITS_LUA only)
+
+#ifdef WABITS_LUA
+
+struct WabitsConfig
+{
+    char crop[256];
+    char capture[256];
+    int fps;
+    int verbose;
+};
+
+static void wabitsConfigInit(struct WabitsConfig * cfg)
+{
+    memset(cfg, 0, sizeof(*cfg));
+    strncpy(cfg->capture, "desktop", sizeof(cfg->capture) - 1);
+    cfg->fps = 10;
+    cfg->verbose = 0;
+}
+
+static int wabitsConfigParse(struct WabitsConfig * cfg, const char * filename)
+{
+    FILE * f = fopen(filename, "r");
+    if (!f) {
+        return 0;
+    }
+
+    char line[512];
+    while (fgets(line, sizeof(line), f)) {
+        char * p = line;
+        while (*p == ' ' || *p == '\t')
+            p++;
+        if (*p == '#' || *p == '\n' || *p == '\r' || *p == '\0')
+            continue;
+
+        // Trim trailing whitespace
+        char * end = p + strlen(p) - 1;
+        while (end > p && (*end == '\n' || *end == '\r' || *end == ' ' || *end == '\t')) {
+            *end = '\0';
+            --end;
+        }
+
+        char * eq = strchr(p, '=');
+        if (!eq)
+            continue;
+        *eq = '\0';
+        char * key = p;
+        char * val = eq + 1;
+
+        if (!strcmp(key, "crop"))
+            strncpy(cfg->crop, val, sizeof(cfg->crop) - 1);
+        else if (!strcmp(key, "capture"))
+            strncpy(cfg->capture, val, sizeof(cfg->capture) - 1);
+        else if (!strcmp(key, "fps"))
+            cfg->fps = atoi(val);
+        else if (!strcmp(key, "verbose"))
+            cfg->verbose = atoi(val);
+    }
+    fclose(f);
+    return 1;
+}
+
+static HANDLE ffmpegProcess = NULL;
+static HANDLE ffmpegJob = NULL;
+
+static void ffmpegCleanup()
+{
+    if (ffmpegProcess) {
+        TerminateProcess(ffmpegProcess, 0);
+        WaitForSingleObject(ffmpegProcess, 2000);
+        CloseHandle(ffmpegProcess);
+        ffmpegProcess = NULL;
+    }
+    if (ffmpegJob) {
+        CloseHandle(ffmpegJob);
+        ffmpegJob = NULL;
+    }
+}
+
+static FILE * ffmpegSpawn(const struct WabitsConfig * cfg)
+{
+    SECURITY_ATTRIBUTES sa = { sizeof(SECURITY_ATTRIBUTES), NULL, TRUE };
+
+    // Create pipe for ffmpeg stdout -> our input
+    HANDLE pipeRead, pipeWrite;
+    if (!CreatePipe(&pipeRead, &pipeWrite, &sa, 0)) {
+        fprintf(stderr, "Failed to create pipe: %lu\n", GetLastError());
+        return NULL;
+    }
+    SetHandleInformation(pipeRead, HANDLE_FLAG_INHERIT, 0);
+
+    // Build ffmpeg command line
+    char cmdline[2048];
+    if (cfg->verbose) {
+        snprintf(cmdline, sizeof(cmdline),
+            "ffmpeg -y -f gdigrab -i %s -vf crop=%s -pix_fmt yuv422p -f yuv4mpegpipe -r %d -",
+            cfg->capture, cfg->crop, cfg->fps);
+    } else {
+        snprintf(cmdline, sizeof(cmdline),
+            "ffmpeg -hide_banner -loglevel error -y -f gdigrab -i %s -vf crop=%s -pix_fmt yuv422p -f yuv4mpegpipe -r %d -",
+            cfg->capture, cfg->crop, cfg->fps);
+    }
+    printf("Starting: %s\n", cmdline);
+
+    // Redirect stderr to NUL unless verbose
+    HANDLE hStdErr;
+    if (cfg->verbose) {
+        hStdErr = GetStdHandle(STD_ERROR_HANDLE);
+    } else {
+        hStdErr = CreateFileA("NUL", GENERIC_WRITE, FILE_SHARE_WRITE, &sa, OPEN_EXISTING, 0, NULL);
+    }
+
+    STARTUPINFOA si;
+    ZeroMemory(&si, sizeof(si));
+    si.cb = sizeof(si);
+    si.dwFlags = STARTF_USESTDHANDLES;
+    si.hStdOutput = pipeWrite;
+    si.hStdError = hStdErr;
+    si.hStdInput = NULL;
+
+    PROCESS_INFORMATION pi;
+    ZeroMemory(&pi, sizeof(pi));
+
+    // Create job object so ffmpeg dies if we crash
+    ffmpegJob = CreateJobObject(NULL, NULL);
+    if (ffmpegJob) {
+        JOBOBJECT_EXTENDED_LIMIT_INFORMATION jeli;
+        ZeroMemory(&jeli, sizeof(jeli));
+        jeli.BasicLimitInformation.LimitFlags = JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE;
+        SetInformationJobObject(ffmpegJob, JobObjectExtendedLimitInformation, &jeli, sizeof(jeli));
+    }
+
+    if (!CreateProcessA(NULL, cmdline, NULL, NULL, TRUE, 0, NULL, NULL, &si, &pi)) {
+        fprintf(stderr, "Failed to start ffmpeg: %lu\n", GetLastError());
+        fprintf(stderr, "Make sure ffmpeg is in your PATH.\n");
+        CloseHandle(pipeRead);
+        CloseHandle(pipeWrite);
+        if (!cfg->verbose)
+            CloseHandle(hStdErr);
+        return NULL;
+    }
+
+    if (ffmpegJob) {
+        AssignProcessToJobObject(ffmpegJob, pi.hProcess);
+    }
+
+    ffmpegProcess = pi.hProcess;
+    CloseHandle(pi.hThread);
+    CloseHandle(pipeWrite);
+    if (!cfg->verbose)
+        CloseHandle(hStdErr);
+
+    // Convert pipe handle to FILE*
+    int fd = _open_osfhandle((intptr_t)pipeRead, _O_RDONLY | _O_BINARY);
+    if (fd == -1) {
+        fprintf(stderr, "Failed to convert pipe handle\n");
+        ffmpegCleanup();
+        return NULL;
+    }
+    FILE * f = _fdopen(fd, "rb");
+    if (!f) {
+        fprintf(stderr, "Failed to create FILE from pipe\n");
+        _close(fd);
+        ffmpegCleanup();
+        return NULL;
+    }
+
+    return f;
+}
+
+static int ffmpegCapturePng(const struct WabitsConfig * cfg, const char * filename)
+{
+    char cmdline[2048];
+    snprintf(cmdline, sizeof(cmdline),
+        "ffmpeg -y -f gdigrab -i %s -vf crop=%s -vframes 1 \"%s\"",
+        cfg->capture, cfg->crop, filename);
+    printf("Capturing: %s\n", cmdline);
+
+    STARTUPINFOA si;
+    ZeroMemory(&si, sizeof(si));
+    si.cb = sizeof(si);
+
+    PROCESS_INFORMATION pi;
+    ZeroMemory(&pi, sizeof(pi));
+
+    if (!CreateProcessA(NULL, cmdline, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi)) {
+        fprintf(stderr, "Failed to start ffmpeg: %lu\n", GetLastError());
+        return 1;
+    }
+
+    WaitForSingleObject(pi.hProcess, INFINITE);
+    DWORD exitCode = 1;
+    GetExitCodeProcess(pi.hProcess, &exitCode);
+    CloseHandle(pi.hProcess);
+    CloseHandle(pi.hThread);
+
+    if (exitCode == 0) {
+        printf("Saved: %s\n", filename);
+    }
+    return (int)exitCode;
+}
+
+#endif // WABITS_LUA
+
+// --------------------------------------------------------------------------------------
+
 #define SERVERADDRESS "127.0.0.1"
 
 int main(int argc, char * argv[])
 {
+#ifdef WABITS_LUA
+    // Windows + Lua mode: read config, spawn ffmpeg internally
+    struct WabitsConfig cfg;
+    wabitsConfigInit(&cfg);
+    if (!wabitsConfigParse(&cfg, "wabits.cfg")) {
+        fprintf(stderr, "Could not open wabits.cfg\n");
+        fprintf(stderr, "Copy wabits.cfg.example to wabits.cfg and edit the crop rectangle.\n");
+        return 1;
+    }
+    if (cfg.crop[0] == '\0') {
+        fprintf(stderr, "No crop= set in wabits.cfg\n");
+        return 1;
+    }
+
+    // PNG capture mode: wabits.exe capture.png
+    if (argc > 1) {
+        return ffmpegCapturePng(&cfg, argv[1]);
+    }
+
+    FILE * inputFile = ffmpegSpawn(&cfg);
+    if (!inputFile) {
+        return 1;
+    }
+
+    if (!wlStartup()) {
+        fclose(inputFile);
+        ffmpegCleanup();
+        return 1;
+    }
+
+#else
+    // Mac (stdin pipe) or Windows without Lua (legacy UDP mode)
+    FILE * inputFile = stdin;
+
 #ifdef _WIN32
     _setmode(_fileno(stdin), _O_BINARY);
 
-#ifndef WABITS_LUA
     WSADATA wsaData;
     int iResult = WSAStartup(MAKEWORD(2, 2), &wsaData);
     if (iResult != 0) {
@@ -468,13 +692,7 @@ int main(int argc, char * argv[])
         return 1;
     }
 #endif
-#endif
 
-#ifdef WABITS_LUA
-    if (!wlStartup()) {
-        return 1;
-    }
-#else
     char udpBuffer[32];
 
     SOCKET sockfd = socket(AF_INET, SOCK_DGRAM, 0);
@@ -498,11 +716,10 @@ int main(int argc, char * argv[])
     struct y4mFrameIterator * frameIter = NULL;
 
     for (;;) {
-        if (feof(stdin)) {
+        if (feof(inputFile)) {
             break;
         }
-        if (!y4mRead(&image, &frameIter)) {
-            fprintf(stderr, "ERROR: Cannot read y4m through standard input");
+        if (!y4mRead(inputFile, &image, &frameIter)) {
             break;
         }
 
@@ -514,7 +731,6 @@ int main(int argc, char * argv[])
             int pixelX = (int)(2 + bitX * ((float)image.width / 4));
             int pixelY = (int)(2 + bitY * ((float)image.height / 8));
             uint8_t pixel = yPlane[pixelX + (pixelY * image.width)];
-            // printf("[%dx%d] bit[%u]: (%u, %u) (%u, %u): %u\n", image.width, image.height, bitIndex, bitX, bitY, pixelX, pixelY, pixel);
             if (pixel > 127) {
                 bits += (1 << bitIndex);
             }
@@ -523,7 +739,6 @@ int main(int argc, char * argv[])
 #ifdef WABITS_LUA
         wlUpdate(bits);
 #else
-        // printf("Frame bits: %u\r", bits);
         sprintf(udpBuffer, "%u", bits);
         if (sendto(sockfd, udpBuffer, (int)strlen(udpBuffer), 0, (const struct sockaddr *)&server, sizeof(server)) < 0) {
             fprintf(stderr, "Error in sendto()\n");
@@ -534,6 +749,8 @@ int main(int argc, char * argv[])
 
 #ifdef WABITS_LUA
     wlShutdown();
+    fclose(inputFile);
+    ffmpegCleanup();
 #endif
     return 0;
 }
