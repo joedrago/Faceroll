@@ -16,6 +16,6 @@ ffmpeg %PIPELINE% -vframes 1 "%1"
 goto end
 
 :run
-ffmpeg %PIPELINE% -pix_fmt yuv422p -f yuv4mpegpipe -r 10 - | wabits.exe
+ffmpeg -hide_banner -loglevel error %PIPELINE% -pix_fmt yuv422p -f yuv4mpegpipe -r 10 - 2>NUL | wabits.exe
 
 :end

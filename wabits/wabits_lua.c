@@ -33,10 +33,18 @@ static void wlMutexUnlock(wlMutex m)
     ReleaseMutex(m);
 }
 
-static void wlThreadStart(wlThreadFunc func)
+static HANDLE hookThreadHandle = NULL;
+static DWORD hookThreadId = 0;
+static HANDLE gamepadThreadHandle = NULL;
+
+static void wlThreadStart(wlThreadFunc func, HANDLE * outHandle, DWORD * outThreadId)
 {
-    DWORD ignored = 0;
-    CreateThread(NULL, 0, func, NULL, 0, &ignored);
+    DWORD threadId = 0;
+    HANDLE h = CreateThread(NULL, 0, func, NULL, 0, &threadId);
+    if (outHandle)
+        *outHandle = h;
+    if (outThreadId)
+        *outThreadId = threadId;
 }
 
 static void wlSleep(int milliseconds)
@@ -44,7 +52,7 @@ static void wlSleep(int milliseconds)
     Sleep((DWORD)milliseconds);
 }
 
-static HWND lastWowWindow = INVALID_HANDLE_VALUE;
+static HWND lastWowWindow = NULL;
 static int wlIsWowInForeground()
 {
     HWND win = GetForegroundWindow();
@@ -53,7 +61,6 @@ static int wlIsWowInForeground()
         int len = GetWindowTextA(win, titleBuffer, 1023);
         if (len > 0) {
             titleBuffer[len] = 0;
-            // printf("Foreground Window: %s\n", titleBuffer);
             if (!strcmp(titleBuffer, "World of Warcraft")) {
                 lastWowWindow = win;
                 return 1;
@@ -69,9 +76,7 @@ static int wlIsWowInForeground()
 
 static void wlQueueNativeKeyPress(int vkCode)
 {
-    // printf("wlQueueNativeKeyPress(native): %d\n", vkCode);
-
-    if (lastWowWindow != INVALID_HANDLE_VALUE) {
+    if (lastWowWindow && IsWindow(lastWowWindow)) {
         PostMessage(lastWowWindow, WM_KEYDOWN, (WPARAM)vkCode, 0);
         wlSleep(20);
         PostMessage(lastWowWindow, WM_KEYUP, (WPARAM)vkCode, 0);
@@ -113,7 +118,6 @@ void wlOnUpdate(lua_State * L, uint32_t bits)
 int wlOnKeyCode(lua_State * L, int keyCode)
 {
     wlMutexLock(luaMutex);
-    // printf("onKeyCode start %d\n", keyCode);
 
     int ret = 0;
     lua_getglobal(L, "onKeyCode");
@@ -153,19 +157,17 @@ void wlOnReset(lua_State * L)
 // --------------------------------------------------------------------------------------
 // Win32 Hook Code
 
-static HHOOK hookHandle = INVALID_HANDLE_VALUE;
+static HHOOK hookHandle = NULL;
 
 static LRESULT CALLBACK keyHandler(int nCode, WPARAM wParam, LPARAM lParam)
 {
     if (nCode == HC_ACTION && wParam == WM_KEYDOWN) {
         KBDLLHOOKSTRUCT * kb = (KBDLLHOOKSTRUCT *)lParam;
-        // printf("kb->vkCode: %u\n", kb->vkCode);
         if (wlIsWowInForeground()) {
             if (kb->vkCode == VK_LSHIFT || kb->vkCode == VK_LCONTROL) {
                 wlOnReset(L);
             } else {
                 if (wlOnKeyCode(L, kb->vkCode)) {
-                    // dont process key!
                     return 1;
                 }
             }
@@ -174,23 +176,25 @@ static LRESULT CALLBACK keyHandler(int nCode, WPARAM wParam, LPARAM lParam)
     return CallNextHookEx(hookHandle, nCode, wParam, lParam);
 }
 
-static int hookThreadRunning = 1;
+static volatile int hookThreadRunning = 1;
 static int32_t hookThread(void * p)
 {
     printf("hookThread() startup\n");
 
     hookHandle = SetWindowsHookEx(WH_KEYBOARD_LL, keyHandler, NULL, 0);
     if (hookHandle == NULL) {
+        printf("hookThread() SetWindowsHookEx failed: %lu\n", GetLastError());
         return 0;
     }
 
-    while (hookThreadRunning) {
-        MSG message;
-        while (GetMessage(&message, NULL, 0, 0)) {
-            TranslateMessage(&message);
-            DispatchMessage(&message);
-        }
+    MSG message;
+    while (GetMessage(&message, NULL, 0, 0) > 0) {
+        TranslateMessage(&message);
+        DispatchMessage(&message);
     }
+
+    UnhookWindowsHookEx(hookHandle);
+    hookHandle = NULL;
 
     printf("hookThread() shutdown\n");
     return 0;
@@ -215,7 +219,7 @@ static int32_t hookThread(void * p)
 #define WABITS_GAMEPAD_X 1013
 #define WABITS_GAMEPAD_Y 1014
 
-static int gamepadThreadRunning = 1;
+static volatile int gamepadThreadRunning = 1;
 static int32_t gamepadThread(void * p)
 {
     printf("gamepadThread() startup\n");
@@ -284,9 +288,48 @@ static int32_t gamepadThread(void * p)
 
 // --------------------------------------------------------------------------------------
 
+void wlShutdown()
+{
+    printf("wlShutdown()\n");
+
+    // Signal gamepad thread to stop
+    gamepadThreadRunning = 0;
+
+    // Tell the hook thread's message loop to quit, which triggers unhook
+    if (hookThreadId) {
+        PostThreadMessage(hookThreadId, WM_QUIT, 0, 0);
+    }
+
+    // Wait for threads to finish (up to 2 seconds each)
+    if (hookThreadHandle) {
+        WaitForSingleObject(hookThreadHandle, 2000);
+        CloseHandle(hookThreadHandle);
+        hookThreadHandle = NULL;
+    }
+    if (gamepadThreadHandle) {
+        WaitForSingleObject(gamepadThreadHandle, 2000);
+        CloseHandle(gamepadThreadHandle);
+        gamepadThreadHandle = NULL;
+    }
+
+    // Safety net: if the hook thread didn't clean up, do it here
+    if (hookHandle) {
+        UnhookWindowsHookEx(hookHandle);
+        hookHandle = NULL;
+    }
+}
+
+static BOOL WINAPI consoleCtrlHandler(DWORD ctrlType)
+{
+    wlShutdown();
+    return FALSE; // let Windows do default handling (exit) after we clean up
+}
+
 int wlStartup()
 {
     printf("wlStartup()\n");
+
+    SetConsoleCtrlHandler(consoleCtrlHandler, TRUE);
 
     luaMutex = wlMutexCreate();
 
@@ -322,8 +365,8 @@ int wlStartup()
         FindClose(hFind);
     }
 
-    wlThreadStart(hookThread);
-    wlThreadStart(gamepadThread);
+    wlThreadStart(hookThread, &hookThreadHandle, &hookThreadId);
+    wlThreadStart(gamepadThread, &gamepadThreadHandle, NULL);
 
     if (luaL_dofile(L, "wabits/wabits.lua") == LUA_OK) {
         lua_pop(L, lua_gettop(L));
@@ -335,16 +378,7 @@ int wlStartup()
     return 1;
 }
 
-void wlShutdown()
-{
-    printf("wlShutdown()\n");
-
-    hookThreadRunning = 0;
-    gamepadThreadRunning = 0;
-}
-
 void wlUpdate(uint32_t bits)
 {
-    // printf("wlUpdate(0x%x)\n", bits);
     wlOnUpdate(L, bits);
 }
