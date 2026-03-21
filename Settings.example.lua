@@ -52,13 +52,13 @@ Faceroll.keys["signal_aoe"] = "pad6"
 
 -- The little "OFF" / "SV" spec text
 Faceroll.enabledFrameAnchor = "BOTTOMLEFT"
-Faceroll.enabledFrameX = 489
+Faceroll.enabledFrameX = 485
 Faceroll.enabledFrameY = 68
 Faceroll.enabledFrameFontSize = 10
 
 -- The list of active options
 Faceroll.optionsFrameAnchor = "BOTTOMLEFT"
-Faceroll.optionsFrameX = 488
+Faceroll.optionsFrameX = 485
 Faceroll.optionsFrameY = 100
 Faceroll.optionsFrameFontSize = 10
 Faceroll.optionsFrameColor = "ffffaa"

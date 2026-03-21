@@ -1918,30 +1918,22 @@ end
 
 SLASH_FRBC1 = '/frbc'
 SlashCmdList["FRBC"] = function()
-    local spec = Faceroll.activeSpec()
-    if spec == nil then
-        print(Faceroll.textColor("[frbc] ", "ff5555") .. "No active spec.")
-        return
-    end
-    if spec.actions == nil then
-        print(Faceroll.textColor("[frbc] ", "ff5555") .. "Active spec has no actions defined.")
-        return
-    end
-
-    local keyToSlot = buildKeyToSlotMap(spec)
     local tag = Faceroll.textColor("[frbc] ", "333333")
     local cleared = 0
 
-    for index, entry in ipairs(spec.actions) do
-        local action = type(entry) == "table" and entry[1] or entry
-        local key = spec.keys[action]
+    for i = 1, #Faceroll.keys do
+        local key = Faceroll.keys[i]
         if key then
-            local slot = keyToSlot[key]
-            if slot then
-                PickupAction(slot)
-                ClearCursor()
-                cleared = cleared + 1
-                print(tag .. Faceroll.textColor(action, "aaffff") .. " slot " .. slot .. " " .. Faceroll.textColor("cleared", "ffffaa"))
+            local blizzKey = facerollKeyToBlizzKey(key)
+            local binding = GetBindingAction(blizzKey)
+            if binding and binding ~= "" then
+                local slot = bindingToSlot(binding)
+                if slot then
+                    PickupAction(slot)
+                    ClearCursor()
+                    cleared = cleared + 1
+                    print(tag .. "slot " .. slot .. " (key " .. i .. ") " .. Faceroll.textColor("cleared", "ffffaa"))
+                end
             end
         end
     end

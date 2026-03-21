@@ -23,7 +23,7 @@ spec.macros = {
 ]],
 
 ["OBleed"] = [[
-/fro nobleed
+/fro bleed
 ]],
 
 ["Human"] = [[
@@ -103,13 +103,13 @@ spec.macros = {
 -- States
 
 spec.options = {
-    "nobleed",
+    "bleed",
     "bear",
 }
 
 spec.overlay = Faceroll.createOverlay({
     "- Options -",
-    "nobleed",
+    "bleed",
     "bear",
 
     "- Form -",
@@ -217,7 +217,7 @@ spec.calcAction = function(mode, state)
             return "rejuv"
 
         elseif state.targetingenemy then
-            -- state.nobleed means "I am fighting bleed immune targets"
+            -- state.bleed means "I want to bleed targets"
 
             if not state.f_cat then
                 return "cat"
@@ -240,13 +240,13 @@ spec.calcAction = function(mode, state)
             elseif aoe and state.melee then
                 return "swipe"
 
-            elseif not state.nobleed and not state.d_rip and state.combopoints >= 5 then
+            elseif state.bleed and not state.d_rip and state.combopoints >= 5 then
                 return "rip"
 
             elseif state.combopoints >= 5 then
                 return "bite"
 
-            elseif not state.nobleed and not state.d_rake then
+            elseif state.bleed and not state.d_rake then
                 return "rake"
 
             else
