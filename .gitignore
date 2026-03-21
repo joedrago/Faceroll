@@ -2,6 +2,7 @@ wabits/build
 wabits/obj
 /Settings.lua
 /wabits.exe
+/*.png
 /wabits.log
 /wabits.cfg
 /run.bat

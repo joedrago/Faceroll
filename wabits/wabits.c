@@ -820,13 +820,6 @@ static DWORD WINAPI y4mWorkerThread(LPVOID param)
 int main(int argc, char * argv[])
 {
 #ifdef WABITS_LUA
-    // Single instance check
-    HANDLE instanceMutex = CreateMutexA(NULL, TRUE, "WabitsFacerollMutex");
-    if (GetLastError() == ERROR_ALREADY_EXISTS) {
-        CloseHandle(instanceMutex);
-        return 0;
-    }
-
     // Redirect all output to log file (truncated on startup)
     freopen("wabits.log", "w", stdout);
     _dup2(_fileno(stdout), _fileno(stderr));
@@ -845,9 +838,16 @@ int main(int argc, char * argv[])
         return 1;
     }
 
-    // PNG capture mode: wabits.exe capture.png
+    // PNG capture mode: wabits.exe capture.png (allowed alongside a running instance)
     if (argc > 1) {
         return ffmpegCapturePng(&cfg, argv[1]);
+    }
+
+    // Single instance check (only for the tray/capture mode, not PNG)
+    HANDLE instanceMutex = CreateMutexA(NULL, TRUE, "WabitsFacerollMutex");
+    if (GetLastError() == ERROR_ALREADY_EXISTS) {
+        CloseHandle(instanceMutex);
+        return 0;
     }
 
     g_inputFile = ffmpegSpawn(&cfg);
