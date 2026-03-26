@@ -49,13 +49,14 @@ spec.macros = {
 
 spec.overlay = Faceroll.createOverlay({
     "- Stances -",
-    { "f_moonkin",  5 },
+    { "b_moonkin",  "Moonkin Form" },
 
     "- Combat -",
     { "b_drink",    "Drink" },
 
     "- Debuffs -",
     { "d_moonfire", "Moonfire" },
+    { "d_swarm",    "Insect Swarm" },
 
     "- Buffs -",
     { "b_lunar",    "Eclipse (Lunar)" },
@@ -74,13 +75,14 @@ spec.actions = {
     { "wrath",          spell = "Wrath" },
     { "starfire",       spell = "Starfire" },
     { "hurricane",      macro = "Hurricane" },
+    { "swarm",          spell = "Insect Swarm" },
     "drink",
 }
 
 spec.calcAction = function(mode, state)
     local aoe = (mode == Faceroll.MODE_AOE)
 
-    if not state.f_moonkin and Faceroll.isActionAvailable("moonkin") then
+    if not state.b_moonkin and Faceroll.isActionAvailable("moonkin") then
         return "moonkin"
 
     elseif state.targetingenemy then
@@ -89,6 +91,8 @@ spec.calcAction = function(mode, state)
 
         elseif not state.d_moonfire and (state.group or state.combat) and Faceroll.isActionAvailable("moonfire") then
             return "moonfire"
+        elseif not state.d_swarm and (state.group or state.combat) and Faceroll.isActionAvailable("swarm") then
+            return "swarm"
         elseif state.b_lunar and Faceroll.isActionAvailable("starfire") then
             return "starfire"
         else

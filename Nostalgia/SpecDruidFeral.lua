@@ -10,8 +10,8 @@ local spec = Faceroll.createSpec("FERAL", "00aa00", "DRUID-2")
 -----------------------------------------------------------------------------------------
 -- Enemy Grid
 
-Faceroll.enemyGridTrack(spec, "Rake", "RAKE", "621518")
-Faceroll.enemyGridTrack(spec, "Rip", "RIP", "626218")
+-- Faceroll.enemyGridTrack(spec, "Rake", "RAKE", "621518")
+-- Faceroll.enemyGridTrack(spec, "Rip", "RIP", "626218")
 
 -----------------------------------------------------------------------------------------
 -- Macros (/frm)
@@ -39,6 +39,7 @@ spec.macros = {
 
 ["Prowl"] = [[
 #showtooltip
+/cancelform [noform:3]
 /cast [noform:3] !@Cat Form@
 /cast [form:3] @Prowl@
 ]],
@@ -50,6 +51,7 @@ spec.macros = {
 
 ["Cat"] = [[
 #showtooltip
+/cancelform [noform:3]
 /cast !@Cat Form@
 ]],
 
@@ -231,8 +233,8 @@ spec.calcAction = function(mode, state)
             elseif not aoe and state.targetcasting and state.s_kick then
                 return "kick"
 
-            -- elseif not state.s_charge and not state.melee and state.s_fff and not state.d_fff then
-            --     return "fff"
+            elseif not state.s_charge and not state.melee and state.s_fff and not state.d_fff then
+                return "fff"
 
             elseif not state.b_berserk and state.s_tigersfury and not state.b_tigersfury and state.energy <= 30 and Faceroll.isActionAvailable("tigersfury") then
                 return "tigersfury"
