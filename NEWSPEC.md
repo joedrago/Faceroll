@@ -1,0 +1,1052 @@
+# Implementing a Faceroll Spec — Complete Guide
+
+This document teaches you everything you need to implement a fully functional WoW WotLK spec file for the Faceroll addon. After reading this, you should be able to take a request like "implement Retribution Paladin" and produce a spec file that works from level 10 to 80 with no further guidance.
+
+---
+
+## 1. What Faceroll Does
+
+Faceroll is a WoW addon that automates action selection. Each spec file is the "brain" for one class/spec combination. The pipeline is:
+
+1. **Harvest state** — read buffs, dots, cooldowns, resources, combat status
+2. **Decide action** — pick the best thing to press right now (ST and AOE independently)
+3. **Signal the bridge** — tell the external key-press system which keybind to mash
+
+Your spec file defines steps 1 and 2. Everything else is handled by the framework.
+
+---
+
+## 2. File Setup
+
+### Naming Convention
+
+- `SpecClass0.lua` — the "classic" spec, before first talent point (level 1-9)
+- `SpecClass1Specname.lua` — talent tree 1 (e.g., `SpecMage1Arcane.lua`)
+- `SpecClass2Specname.lua` — talent tree 2 (e.g., `SpecMage2Fire.lua`)
+- `SpecClass3Specname.lua` — talent tree 3 (e.g., `SpecMage3Frost.lua`)
+
+### Header and Initialization
+
+Every file starts with:
+
+```lua
+-----------------------------------------------------------------------------------------
+-- Nostalgia Arcane Mage (1)
+
+if Faceroll == nil then
+    _, Faceroll = ...
+end
+
+local spec = Faceroll.createSpec("ARC", "a674db", "MAGE-1")
+```
+
+- **First argument**: a short display name, 5 characters or fewer (e.g., "ARC", "FERAL", "BM")
+- **Second argument**: a hex color that represents this spec's identity (no `#` prefix)
+- **Third argument**: the spec key — `CLASS-N` where CLASS is uppercase and N is the tree number. For spec 0 files, use `CLASS-CLASSIC` (e.g., `"MAGE-CLASSIC"`)
+
+### Faceroll.toc
+
+Add your file to `Faceroll.toc` in the `# -- Nostalgia WoW Specs --` section, sorted alphabetically.
+
+---
+
+## 3. The /frsetup Pipeline — Why Everything "Just Works"
+
+This is the single most important concept. Understanding this makes leveling-compatible specs trivial.
+
+### The Flow
+
+When a player types `/frsetup`, three things happen in order:
+
+1. **`/frm`** — Create macros. For each entry in `spec.macros`, resolve any `@spell@` or `@@spell@@` patterns and create the macro. If a spell doesn't exist (because you haven't trained it yet), the macro **fails to create on purpose**.
+2. **`/frb`** — Place actions. For each entry in `spec.actions` that has a `macro =` or `spell =` hint, place it on the corresponding action bar slot. If the macro doesn't exist (because it failed in step 1), the slot stays empty.
+3. **Rebuild key map** — Faceroll scans the action bar to learn which slots have actions and which are empty.
+
+### The Consequence
+
+After `/frsetup`, `Faceroll.isActionAvailable("actionname")` returns `true` only if the action's bar slot has something in it. If a spell wasn't known, the macro wasn't created, the slot is empty, and `isActionAvailable` returns `false`.
+
+**This means you never need explicit level checks.** The bar state *is* your level gate. Your `calcAction` can reference abilities the character doesn't have yet, and they'll be silently skipped because `isActionAvailable` (or the `s_` shorthand) will return false.
+
+The player only needs to `/frsetup` once after training new spells or talents. Each run progressively fills in more of the action bar as spells become available.
+
+### @ Syntax (Spell Existence Gate)
+
+```
+@Spell Name@
+```
+
+Wrapping a spell name in single `@` means: "only include this spell if the character knows it." If the spell isn't in the spellbook, the entire macro fails to create. This is intentional — it's how you gate actions behind spell availability.
+
+**Fallback chains:**
+
+```
+@Dire Bear Form|Bear Form@
+```
+
+Try the first spell; if unknown, try the second. Use this when a spell upgrades (e.g., Bear Form → Dire Bear Form) so a single macro works at any level.
+
+### @@ Syntax (Spell ID Resolution)
+
+```
+@@Blizzard@@
+```
+
+Double `@@` resolves to the spell's numeric ID (highest rank known). This is specifically needed for `.cast` ground-targeted macros that use GM commands, where the spell ID is required instead of the name.
+
+---
+
+## 4. Macros Deep Dive
+
+Declare macros in `spec.macros`. Each key is the macro name (will be stored as `"Name FR"` in character macros), and the value is the macro body.
+
+### Simple Cast
+
+```lua
+["Frostbolt"] = [[
+#showtooltip
+/cast @Frostbolt@
+]],
+```
+
+The `@Frostbolt@` gate means this macro won't be created if Frostbolt isn't known.
+
+### Channel Guard
+
+For spells you don't want to interrupt a channel for:
+
+```lua
+["Blast"] = [[
+#showtooltip
+/cast [nochanneling] @Arcane Blast@
+]],
+```
+
+### On-Next-Hit Melee Abilities
+
+Abilities like Maul, Heroic Strike, and Cleave are "on next melee hit" — they queue onto your next auto-attack. These need:
+- The `!` prefix to prevent toggling off if pressed twice
+- `/startAttack` to ensure auto-attack is running
+
+```lua
+["Maul"] = [[
+#showtooltip
+/cast !@Maul@
+/startAttack
+]],
+```
+
+### Plain Auto-Attack
+
+For specs that just need to swing (early Paladin, early Warrior):
+
+```lua
+["Attack"] = [[
+/startAttack
+]],
+```
+
+### Ground-Targeted Spells (.cast)
+
+Spells like Blizzard, Hurricane, Flamestrike, and Rain of Fire are ground-targeted. On private servers using GM-style `.cast`, they need the spell ID via `@@`:
+
+```lua
+["Blizzard"] = [[
+#showtooltip Blizzard
+/stopmacro [channeling]
+/stopmacro [noexist]
+/say .cast @@Blizzard@@
+]],
+```
+
+The `/stopmacro [channeling]` prevents re-casting while already channeling. The `/stopmacro [noexist]` prevents casting with no target. The `@@Blizzard@@` resolves to the spell ID of the highest rank of Blizzard you know.
+
+### Form-Conditional Macros
+
+When a spell has different versions per form (e.g., Feral Charge in bear vs cat):
+
+```lua
+["Charge"] = [[
+#showtooltip
+/cast [form:1] @Feral Charge - Bear@
+/cast [form:3] @Feral Charge - Cat@
+]],
+```
+
+### Multi-Spell Fallback
+
+When a spell upgrades at higher levels:
+
+```lua
+["Bear"] = [[
+#showtooltip
+/cast !@Dire Bear Form|Bear Form@
+]],
+```
+
+Tries Dire Bear Form first; falls back to Bear Form if not yet trained.
+
+### Option Toggle Macros
+
+For toggling spec options (see Section 8):
+
+```lua
+["OBurst"] = [[
+/fro burst
+]],
+```
+
+Convention: prefix option toggle macros with `O`.
+
+---
+
+## 5. Overlay & Automatic State Tracking
+
+The overlay definition serves two purposes: it configures the debug overlay display (`/frd`), and it **auto-populates state fields** using shorthand prefixes.
+
+### Structure
+
+```lua
+spec.overlay = Faceroll.createOverlay({
+    "- Buffs -",                              -- header (display only)
+    { "b_slice",    "Slice and Dice" },       -- auto-check buff
+    { "b_stealth",  "Stealth" },
+
+    "- Debuffs -",
+    { "d_rupture",  "Rupture" },              -- auto-check dot on target
+
+    "- Spells -",
+    { "s_kick",     "Kick" },                 -- auto-check spell availability
+    { "s_riposte",  "Riposte" },
+
+    "- Forms -",
+    { "f_bear",     1 },                      -- auto-check shapeshift form
+
+    "- Custom -",
+    "abstacks",                               -- no prefix: you set this in calcState
+})
+```
+
+### Shorthand Prefixes
+
+| Prefix | What It Checks | Argument | Result in state |
+|--------|---------------|----------|-----------------|
+| `s_` | Is spell usable and off cooldown? | spell name | `true` or `false` |
+| `b_` | Is buff active on player? | buff name | `true` or `false` |
+| `d_` | Is DoT active on target (>10% duration remaining)? | spell name | `true` or `false` |
+| `f_` | Is player in this shapeshift form? | form number | `true` or `false` |
+
+These are checked **automatically before your calcState runs**. You don't need to query them manually.
+
+### Headers
+
+Strings starting with `"-"` are treated as section headers. They show up in the debug overlay for organization but are ignored everywhere else. Use them liberally — they make the overlay much easier to scan:
+
+```lua
+"- Buffs -",
+"- Debuffs -",
+"- Spells -",
+"- Cooldowns -",
+"- Procs -",
+```
+
+### Auto-Populated Base State
+
+These fields are always available in `state` without any overlay entries:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `state.level` | number | Character level |
+| `state.targetingenemy` | bool | Currently targeting an attackable enemy |
+| `state.targetcasting` | bool | Target is casting a spell |
+| `state.combat` | bool | In combat |
+| `state.group` | bool | In a party or raid |
+| `state.autoattack` | bool | Auto-attack is active |
+| `state.melee` | bool | Within melee range of target |
+| `state.hp` | float | Normalized health (1.0 = full) |
+| `state.mana` | float | Normalized mana (1.0 = full) |
+| `state.rage` | number | Raw rage (0-100) |
+| `state.energy` | number | Raw energy (0-100) |
+| `state.combopoints` | number | Combo points (0-5) |
+
+---
+
+## 6. calcState — Custom State
+
+`calcState` runs after all automatic state population. Use it for anything the shorthand prefixes can't handle.
+
+```lua
+spec.calcState = function(state)
+    return state
+end
+```
+
+If the overlay shorthands cover everything you need, this function can just `return state`.
+
+### Common Custom State Patterns
+
+**Debuff stacks** (e.g., Arcane Blast stacks):
+
+```lua
+spec.calcState = function(state)
+    state.abstacks = 0
+    local abDebuff = Faceroll.getDebuff("Arcane Blast")
+    if abDebuff ~= nil then
+        state.abstacks = abDebuff.stacks
+    end
+    return state
+end
+```
+
+**Target health percentage:**
+
+```lua
+state.targethp = 0
+if state.targetingenemy then
+    state.targethp = UnitHealth("target") / UnitHealthMax("target")
+end
+```
+
+**Current casting spell:**
+
+```lua
+local castingSpell = UnitCastingInfo("player")
+if castingSpell then
+    state.casting = castingSpell
+else
+    local channelingSpell = UnitChannelInfo("player")
+    if channelingSpell then
+        state.casting = channelingSpell
+    end
+end
+```
+
+**Totem presence:**
+
+```lua
+if Faceroll.isTotemActive("Searing Totem") then
+    state.totems_st = true
+end
+```
+
+**Conditional state based on form** (e.g., Feral Charge availability depends on bear vs cat):
+
+```lua
+if state.f_bear then
+    if Faceroll.isSpellAvailable("Feral Charge - Bear") then
+        state.s_charge = true
+    end
+elseif state.f_cat then
+    if Faceroll.isSpellAvailable("Feral Charge - Cat") then
+        state.s_charge = true
+    end
+end
+```
+
+### Deadzones
+
+A deadzone prevents your spec from re-queuing a spell while it's still being cast or its effect is still in flight. Without a deadzone, Faceroll might recommend casting Vampiric Touch again immediately after the cast bar finishes but before the server confirms the DoT applied.
+
+**When to use:** Any casted spell (non-instant) where re-casting prematurely wastes a GCD. Common examples: Healing Wave, Vampiric Touch, any channeled spell where you track the DoT separately.
+
+**Setup:**
+
+```lua
+-- Outside calcState (file scope):
+local vtDeadzone = Faceroll.deadzoneCreate("Vampiric Touch", 1.5, 0.5)
+-- args: spell name, cast-time-remaining threshold, deadzone duration after cast
+
+-- Inside calcState:
+spec.calcState = function(state)
+    if Faceroll.deadzoneUpdate(vtDeadzone) then
+        state.vtdeadzone = true
+    end
+    return state
+end
+
+-- Inside calcAction:
+-- "not state.vtdeadzone" before recommending vampiric touch
+```
+
+`deadzoneCreate(spellName, castTimeRemaining, duration)`:
+- `castTimeRemaining` — when the remaining cast time drops below this threshold, the deadzone activates
+- `duration` — how long the deadzone stays active after the cast
+
+`deadzoneUpdate(deadzone)` — call every frame in calcState. Returns `true` if the deadzone is currently active.
+
+---
+
+## 7. Enemy Grid Tracking
+
+For multi-DoT specs, Faceroll can track your DoTs across all visible enemies using the Kui Nameplates integration.
+
+```lua
+Faceroll.enemyGridTrack(spec, "Shadow Word: Pain", "SWP", "621518")
+Faceroll.enemyGridTrack(spec, "Devouring Plague", "DP", "621562")
+```
+
+Arguments:
+1. `spec` — the spec object
+2. Spell name — exact name of the DoT as it appears on enemy debuffs
+3. Short name — 3-6 character abbreviation for the grid UI
+4. Color — hex color for the grid cell
+
+**When to use:** Shadow Priest (SWP, DP, VT), Affliction Warlock (Corruption, UA, CoA), Balance Druid (Moonfire, Insect Swarm), or any spec that applies DoTs to multiple targets. The grid shows remaining duration on each mob so the player knows which target needs a refresh.
+
+Place these calls right after `createSpec`, before the macros section.
+
+---
+
+## 8. Options & Radio System
+
+Options let the player toggle behavior at runtime without editing code.
+
+### Boolean Toggles
+
+```lua
+spec.options = {
+    "burst",
+}
+```
+
+This creates a state field `state.burst` (default false). The player toggles it with `/fro burst`. Your `calcAction` can branch on it:
+
+```lua
+if state.burst and state.s_cooldown then
+    return "cooldown"
+end
+```
+
+Create a macro so the player can keybind the toggle:
+
+```lua
+["OBurst"] = [[
+/fro burst
+]],
+```
+
+### Radio Groups
+
+For mutually exclusive options:
+
+```lua
+spec.options = {
+    "dps|mode",
+    "tank|mode",
+}
+```
+
+`/frr mode` cycles between `dps` and `tank`. Only one in the group is true at a time. Use for specs that have distinct playstyles (Feral bear vs cat, Protection vs DPS stance dancing).
+
+### When to Use Options
+
+- Feral Druid: `"bleed"` toggle for bleed-based rotation, `"bear"` toggle for tank mode
+- Any dual-role spec where the player might want to switch behavior mid-session
+- Burst windows that the player controls manually
+
+---
+
+## 9. Actions
+
+```lua
+spec.actions = {
+    { "sinisterstrike",  macro = "SS" },           -- 1st keybind slot
+    { "eviscerate",      spell = "Eviscerate" },   -- 2nd keybind slot
+    { "slice",           spell = "Slice and Dice" },
+    { "kick",            spell = "Kick" },
+    { "fanofknives",     spell = "Fan of Knives" },
+    "drink",                                        -- no bar placement
+}
+```
+
+### Key Mapping
+
+Actions are bound to Faceroll's keybind slots in order. The 1st action maps to `Faceroll.keys[1]`, the 2nd to `Faceroll.keys[2]`, etc. **Put your most-frequently-pressed action first** — this is the slot that will be mashed most.
+
+### Hints
+
+- `spell = "Name"` — `/frsetup` places the highest rank of this spell on the bar slot
+- `macro = "Name"` — `/frsetup` places the macro named `"Name FR"` on the bar slot (the macro must be defined in `spec.macros`)
+- String-only entries (like `"drink"`) — no bar placement. Used for actions that the player sets up manually or that don't correspond to a castable ability
+
+### Ordering Strategy
+
+1. **Filler/builder** first (Sinister Strike, Shadow Bolt, Frostbolt) — pressed most
+2. **Spenders and maintenance** next (Eviscerate, Slice and Dice)
+3. **Cooldowns and situational** later (interrupts, defensive, AOE)
+4. **Non-bar actions** last (drink, stop)
+
+---
+
+## 10. calcAction — The Heart of the Spec
+
+This is where your WotLK knowledge meets Faceroll's state system. The function receives a mode (ST or AOE) and the fully-populated state, and returns the name of the action to press (or `nil` for nothing).
+
+### Structure
+
+```lua
+spec.calcAction = function(mode, state)
+    local st = (mode == Faceroll.MODE_ST)
+    local aoe = (mode == Faceroll.MODE_AOE)
+
+    -- preamble: self-prep when not targeting enemy
+    -- ...
+
+    -- priority list: what to press when targeting enemy
+    if state.targetingenemy then
+        -- ...
+    end
+end
+```
+
+Always start with the `local st` and `local aoe` lines. Even if you only use one, it signals intent and keeps the pattern consistent.
+
+### 10a. The Preamble — Self-Prep When Not Targeting
+
+Before the `if state.targetingenemy` block, handle everything the character should do when idle or between pulls. The philosophy: **when the player drops target or leaves combat, the character should automatically prep for the next fight.**
+
+**Form/stance maintenance:**
+
+```lua
+if not state.b_moonkin and Faceroll.isActionAvailable("moonkin") then
+    return "moonkin"
+```
+
+**Self-buffs:**
+
+```lua
+if not state.b_lightningshield then
+    return "lightningshield"
+```
+
+**Out-of-combat self-healing** (solo only):
+
+```lua
+elseif not state.combat and not state.group and state.hp < 0.6 and not state.healdeadzone then
+    return "healself"
+```
+
+Note the `not state.group` — if you're in a group, let the healer handle it. The deadzone check prevents spam-casting heals.
+
+**Drinking:**
+
+```lua
+elseif state.mana < 0.9 and not state.combat and not state.b_drink and Faceroll.isActionAvailable("drink") then
+    return "drink"
+```
+
+The preamble items often don't need `state.targetingenemy` — they apply regardless. Place them before the targeting check. Some specs (like the self-buff checks) can also fire while targeting an enemy, in which case they go inside the targetingenemy block but before combat priorities.
+
+### 10b. The Priority List — Combat Decisions
+
+Inside `if state.targetingenemy`, list priorities from highest to lowest using `if/elseif` chains:
+
+```lua
+if state.targetingenemy then
+    -- 1. Interrupts (highest priority)
+    if not aoe and state.targetcasting and state.s_kick then
+        return "kick"
+
+    -- 2. Short-window procs
+    elseif state.b_riposte and state.s_riposte then
+        return "riposte"
+
+    -- 3. DoT/debuff maintenance
+    elseif not state.d_rupture and state.combopoints >= 5 then
+        return "rupture"
+
+    -- 4. Buff maintenance
+    elseif not state.b_slice and state.combopoints >= 2 then
+        return "slice"
+
+    -- 5. Resource spenders
+    elseif state.combopoints >= 5 then
+        return "eviscerate"
+
+    -- 6. AOE abilities
+    elseif aoe and state.melee and Faceroll.isActionAvailable("fanofknives") then
+        return "fanofknives"
+
+    -- 7. Filler (always last)
+    else
+        return "sinisterstrike"
+    end
+end
+```
+
+### General Priority Order
+
+Most specs follow this rough hierarchy:
+
+1. **Interrupts** — if target is casting and your interrupt is ready
+2. **Emergency/defensive** — if health is critical
+3. **Stealth/opener abilities** — if stealthed (Garrote, Ravage, Ambush)
+4. **Short-duration procs** — react before they expire (Art of War, Missile Barrage, Riposte)
+5. **Cooldowns** — offensive cooldowns if conditions are right
+6. **DoT/debuff maintenance** — apply missing DoTs, refresh expiring ones
+7. **Buff maintenance** — keep self-buffs up (Slice and Dice, Savage Roar)
+8. **Resource spenders** — spend combo points, use Execute-range abilities
+9. **AOE abilities** — when in AOE mode
+10. **Filler** — the default spam button (Sinister Strike, Shadow Bolt, Frostbolt)
+
+### 10c. ST vs AOE Branching
+
+There are two common patterns:
+
+**Early split** — when ST and AOE rotations are completely different:
+
+```lua
+if state.targetingenemy then
+    if st then
+        -- entire ST rotation
+    elseif aoe then
+        -- entire AOE rotation
+    end
+end
+```
+
+**Inline branching** — when most priorities are shared but a few differ:
+
+```lua
+if state.targetingenemy then
+    if state.targetcasting and state.s_kick then
+        return "kick"                          -- shared priority
+    elseif aoe and state.melee then
+        return "fanofknives"                   -- AOE-specific
+    elseif not state.d_rupture and ... then
+        return "rupture"                       -- ST-specific
+    else
+        return "sinisterstrike"                -- shared filler
+    end
+end
+```
+
+Inline branching is usually cleaner. Use early split only when the two rotations have almost nothing in common.
+
+### 10d. isActionAvailable() — When to Use and When Not To
+
+`Faceroll.isActionAvailable("actionname")` checks whether the action's keybind slot has something on the action bar. This is your "do I even have this button?" check.
+
+**USE it when:**
+- The ability comes from a talent the spec might not have yet while leveling
+- The macro uses `@Spell@` gating and might not have been created
+- The ability is a later-level spell that won't be on the bar at low levels
+- You're not already checking `s_` for this ability
+
+**DON'T use it when:**
+- You're already checking `s_spellname` — if `s_` returns false, the spell is either on cooldown or unavailable. The `s_` check is strictly more informative than `isActionAvailable`.
+- The spell is a baseline ability every character of this class has by level 10
+- The ability can only proc from a talent that defines the spec (e.g., if you're in the Shadow Priest spec file and checking Mind Blast, you definitely have Mind Blast)
+- The ability is your filler spell — if the filler isn't available, something is very wrong
+
+**The rule of thumb:** `isActionAvailable` = "is this button on my bar?" / `s_` = "is this button ready to press right now?" If you're checking `s_`, you don't also need `isActionAvailable`. If you're NOT tracking the spell with `s_` in the overlay but still want to conditionally use it, that's when `isActionAvailable` shines.
+
+### 10e. Group Awareness
+
+`state.group` is true when in a party or raid. Use it to adjust behavior:
+
+**Don't self-heal in groups** (the healer handles it):
+
+```lua
+if not state.combat and not state.group and state.hp < 0.6 then
+    return "healself"
+end
+```
+
+**Skip maintenance that's wasteful solo:**
+
+Some dots or debuffs are only worth applying in groups (long fights). Solo, mobs die too fast for the DoT to tick fully. Use `state.group` to gate these:
+
+```lua
+elseif state.group and not state.d_faeriefire then
+    return "faeriefire"
+```
+
+**Solo pulling:**
+
+Some specs want to pull with a ranged ability when solo but not in groups:
+
+```lua
+if not state.combat and not state.group and state.s_handofreckoning then
+    return "handofreckoning"    -- solo pull with taunt
+end
+```
+
+---
+
+## 11. Researching a Spec's Priority List
+
+When implementing a spec you're not deeply familiar with, research the WotLK rotation.
+
+### Where to Search
+
+Use web searches with these queries:
+- `"wotlk classic [spec name] [class] pve rotation priority"` — e.g., "wotlk classic retribution paladin pve rotation priority"
+- `"wotlk classic [spec] [class] dps guide"` — for DPS specs
+- `"wotlk classic [spec] [class] tank guide rotation"` — for tank specs
+
+Best sources:
+- **Icy Veins** (icy-veins.com) — structured guides with explicit priority lists
+- **Warcraft Tavern** (warcrafttavern.com) — detailed PvE rotation breakdowns
+- **Wowhead** (wowhead.com) — community guides with comments
+
+### What to Extract
+
+From each guide, identify:
+
+1. **Self-buffs to maintain** — things that should always be active (seals, auras, shields, weapon enchants). These go in the preamble.
+2. **ST priority list** — the numbered or described priority for single-target damage. This becomes your `if/elseif` chain.
+3. **AOE priority list** — often just 1-2 abilities (Blizzard, Fan of Knives, Consecration). This becomes your `aoe` branch.
+4. **Resource thresholds** — when to spend combo points, when to dump rage, mana management breakpoints.
+5. **Proc reactions** — abilities that light up when a proc occurs (Missile Barrage → Arcane Missiles, Art of War → Exorcism). Track the proc as a `b_` buff.
+6. **Cooldown usage** — offensive cooldowns and when to pop them. Track with `s_`.
+7. **DoTs to maintain** — which debuffs to keep on the target. Track with `d_`.
+
+### What to Identify About Each Spell
+
+For every spell in the rotation, determine:
+
+- **Baseline or talented?** Baseline spells are available to all characters of the class. Talented spells need `isActionAvailable()` gating for leveling.
+- **Instant or casted?** Casted spells may need a deadzone if you track their DoT/effect separately.
+- **Melee or ranged?** Melee abilities might need `state.melee` checks.
+- **On-next-hit?** Abilities like Maul and Heroic Strike need the `!` macro syntax.
+- **Ground-targeted?** Blizzard, Rain of Fire, etc. need `.cast @@ID@@` macros.
+- **Channeled?** Channels need `[nochanneling]` guards in macros.
+
+### Translating Priority to Code
+
+A guide might say: "Keep Slice and Dice up > Rupture at 5 CP > Eviscerate at 5 CP > Sinister Strike"
+
+This translates directly:
+
+```lua
+if not state.b_slice and state.combopoints >= 2 then
+    return "slice"
+elseif not state.d_rupture and state.combopoints >= 5 then
+    return "rupture"
+elseif state.combopoints >= 5 then
+    return "eviscerate"
+else
+    return "sinisterstrike"
+end
+```
+
+Each priority becomes an `elseif`. The condition is: "should I do this right now?" If yes, return it. If no, fall through to the next priority.
+
+### Leveling Gracefully
+
+The guides describe max-level rotations, but your spec needs to work from level 10. This is handled automatically:
+
+- Spells the character doesn't know yet won't be macro'd (`@Spell@` fails)
+- Actions without macros/spells on the bar return `false` from `isActionAvailable`
+- State tracked with `s_` returns `false` for spells not yet learned
+- DoTs tracked with `d_` return `false` if the spell hasn't been applied
+
+The max-level rotation naturally degrades at lower levels. A level 20 Rogue without Fan of Knives will simply skip that `elseif` and fall through to Sinister Strike. No level checks needed.
+
+---
+
+## 12. Annotated Example
+
+Here is a complete teaching spec. It shows a hypothetical melee/caster hybrid to demonstrate all major patterns. Read the comments carefully — they explain every design decision.
+
+```lua
+-----------------------------------------------------------------------------------------
+-- Nostalgia Retribution Paladin (3)
+--
+-- This is a teaching example showing all the key patterns.
+
+if Faceroll == nil then
+    _, Faceroll = ...
+end
+
+-- "RET" is the short name, "ffffaa" is a pale gold, "PALADIN-3" is tree 3
+local spec = Faceroll.createSpec("RET", "ffffaa", "PALADIN-3")
+
+-----------------------------------------------------------------------------------------
+-- Macros (/frm)
+--
+-- These are created by /frsetup. The @spell@ gates ensure macros only exist
+-- if the character knows the spell. This is how leveling "just works".
+
+spec.macros = {
+
+-- Basic auto-attack. Every ret paladin has this.
+["Attack"] = [[
+/startAttack
+]],
+
+-- Crusader Strike might not be trained yet at low levels.
+-- @Crusader Strike@ gates it — no spell, no macro, no bar slot.
+["CS"] = [[
+#showtooltip
+/cast @Crusader Strike@
+/startAttack
+]],
+
+-- Consecration is ground-targeted on this server, needs .cast with spell ID
+["Consecration"] = [[
+#showtooltip Consecration
+/stopmacro [channeling]
+/stopmacro [noexist]
+/say .cast @@Consecration@@
+]],
+
+}
+
+-----------------------------------------------------------------------------------------
+-- States
+--
+-- The overlay both configures the debug display AND auto-populates state.
+-- Headers organize the overlay visually.
+
+-- Deadzone prevents recommending Holy Light while already casting it
+local healDeadzone = Faceroll.deadzoneCreate("Holy Light", 1.5, 0.5)
+
+spec.overlay = Faceroll.createOverlay({
+    "- State -",
+    "healdeadzone",                                 -- manual: set in calcState
+
+    "- Buffs -",
+    { "b_seal",          "Seal of Command" },       -- auto: is Seal of Command active?
+
+    "- Procs -",
+    { "b_artofwar",      "The Art of War" },        -- auto: did Art of War proc?
+
+    "- Spells -",
+    { "s_judgement",      "Judgement of Light" },    -- auto: is Judgement off cooldown?
+    { "s_cs",             "Crusader Strike" },       -- auto: is CS off cooldown?
+    { "s_ds",             "Divine Storm" },          -- auto: is DS off cooldown?
+    { "s_consecration",   "Consecration" },          -- auto: is Consecration off cooldown?
+    { "s_exorcism",       "Exorcism" },              -- auto: is Exorcism off cooldown?
+    { "s_hofreckoning",   "Hand of Reckoning" },     -- auto: is taunt off cooldown?
+})
+
+spec.calcState = function(state)
+    -- Update the heal deadzone — returns true if we're in a deadzone
+    Faceroll.deadzoneUpdate(healDeadzone)
+    if Faceroll.deadzoneActive(healDeadzone) then
+        state.healdeadzone = true
+    end
+
+    return state
+end
+
+-----------------------------------------------------------------------------------------
+-- Actions
+--
+-- Order = keybind slot order. Most-pressed first.
+-- "attack" is the filler so it goes first.
+
+spec.actions = {
+    { "attack",         macro = "Attack" },         -- slot 1: auto attack
+    { "cs",             macro = "CS" },             -- slot 2: Crusader Strike
+    { "judgement",      spell = "Judgement of Light" },
+    { "ds",             spell = "Divine Storm" },
+    { "exorcism",       spell = "Exorcism" },
+    { "consecration",   macro = "Consecration" },
+    { "hofreckoning",   spell = "Hand of Reckoning" },
+    { "healself",       spell = "Holy Light" },
+}
+
+spec.calcAction = function(mode, state)
+    local st = (mode == Faceroll.MODE_ST)
+    local aoe = (mode == Faceroll.MODE_AOE)
+
+    ---------------------------------------------------------------
+    -- Preamble: self-prep when not targeting an enemy
+    ---------------------------------------------------------------
+
+    -- Keep seal up at all times (before or during combat)
+    if not state.b_seal and Faceroll.isActionAvailable("judgement") then
+        -- We don't have a "seal" action — but this signals the player needs to seal up.
+        -- In practice you'd add a seal action. This is just showing the pattern.
+    end
+
+    -- Self-heal when solo and low HP
+    if not state.combat and not state.group and state.hp < 0.75 and not state.healdeadzone then
+        return "healself"
+
+    ---------------------------------------------------------------
+    -- Priority list: combat decisions
+    ---------------------------------------------------------------
+    elseif state.targetingenemy then
+
+        -- Solo pulling: use taunt to pull from range
+        if not state.combat and not state.group and state.s_hofreckoning then
+            return "hofreckoning"
+
+        -- Art of War proc: instant Exorcism, use it before it fades
+        -- No isActionAvailable needed — b_artofwar can only proc if we have the talent,
+        -- and having the talent means we have Exorcism.
+        elseif state.b_artofwar and state.s_exorcism then
+            return "exorcism"
+
+        -- Judgement on cooldown (high priority rotational ability)
+        -- Using s_judgement means we know it exists AND is ready. No isActionAvailable needed.
+        elseif state.s_judgement then
+            return "judgement"
+
+        -- Crusader Strike on cooldown
+        -- Using s_cs. No isActionAvailable needed.
+        elseif state.s_cs then
+            return "cs"
+
+        -- Divine Storm on cooldown (talented, but s_ handles availability)
+        elseif state.s_ds then
+            return "ds"
+
+        -- Consecration in AOE mode
+        -- isActionAvailable IS needed here because we're not tracking s_consecration
+        -- for the decision (we always want to check it in AOE), and the .cast macro
+        -- might not exist at low levels.
+        elseif aoe and state.s_consecration then
+            return "consecration"
+
+        -- Filler: auto-attack
+        else
+            return "attack"
+        end
+    end
+end
+```
+
+### What This Example Demonstrates
+
+- **Preamble pattern**: self-heal when solo, before targeting check
+- **isActionAvailable reasoning**: not needed when `s_` is already checked, needed for gated macros
+- **Deadzone**: prevents heal spam
+- **Group awareness**: no self-heal in groups, solo pulling
+- **Proc reaction**: Art of War → Exorcism, high in the priority list
+- **AOE branching**: inline `aoe and` check for Consecration
+- **Macro patterns**: Attack, @-gated CS, @@-gated ground target Consecration
+- **No level checks**: everything degrades gracefully via the @-gate → isActionAvailable chain
+
+---
+
+## 13. Existing Files to Study
+
+Read these for real-world patterns at different complexity levels:
+
+| File | What It Shows |
+|------|--------------|
+| `Nostalgia/SpecDruid2Feral.lua` | Most complex: options/radios, form switching, stealth openers, combo points, conditional state per form, bear vs cat branching |
+| `Nostalgia/SpecMage1Arcane.lua` | Caster: deadzone on Arcane Missiles, debuff stack tracking, cast-bar reading, proc management (Missile Barrage), mana thresholds |
+| `Nostalgia/SpecShaman2Enhancement.lua` | Hybrid melee/caster: totem tracking, self-heal deadzone, target HP percentage, interrupt priority |
+| `Nostalgia/SpecRogue2Combat.lua` | Melee: stealth opener (Garrote), combo point spenders, buff maintenance (Slice and Dice), interrupt |
+| `Nostalgia/SpecPaladin3Retribution.lua` | Simple melee: heal deadzone, solo pull with taunt, judgement priority, minimal overlay |
+| `Nostalgia/SpecPriest3Shadow.lua` | Multi-DoT caster: enemy grid tracking, deadzone on VT, DoT priority chain |
+
+---
+
+## 14. Style Guide
+
+### Formatting
+
+- Use `-----------------------------------------------------------------------------------------` as section separators
+- Section comment pattern: `-- Nostalgia [Spec] [Class] ([N])` for the header
+- `-- Macros (/frm)`, `-- States`, `-- Actions` as section labels
+- Consistent `elseif` indentation — each condition at the same level
+- One blank line between the macro closing `]]` and the next macro's `["Name"]`
+
+### Naming
+
+- Overlay state names should be human-readable: `b_slice` not `b_snd`, `d_rupture` not `d_rup`
+- Action names should be lowercase, no spaces: `"sinisterstrike"`, `"fanofknives"`, `"mindblast"`
+- Macro names should be short but recognizable: `"SS"`, `"CS"`, `"Blast"`, `"Attack"`
+
+### Comments
+
+- Don't over-comment. The overlay + calcAction structure is self-documenting.
+- Do comment non-obvious decisions: why you're checking `not aoe` somewhere, why a certain priority is ordered a certain way.
+- Use `-- commented out code` sparingly for abilities you might want to enable later.
+
+### Overlay Organization
+
+Group related tracking together with headers:
+
+```lua
+spec.overlay = Faceroll.createOverlay({
+    "- Buffs -",
+    { "b_buff1", "Buff One" },
+    { "b_buff2", "Buff Two" },
+
+    "- Debuffs -",
+    { "d_dot1", "DoT One" },
+
+    "- Procs -",
+    { "b_proc1", "Proc Name" },
+
+    "- Spells -",
+    { "s_spell1", "Spell One" },
+    { "s_spell2", "Spell Two" },
+
+    "- Custom -",
+    "manualstate1",
+    "manualstate2",
+})
+```
+
+---
+
+## 15. API Quick Reference
+
+### Spec Lifecycle
+
+| Function | Description |
+|----------|-------------|
+| `Faceroll.createSpec(name, color, specKey)` | Create a spec. Returns spec table. |
+| `Faceroll.aliasSpec(spec, key)` | Register an alternate spec key (rarely needed now that spec 0 files exist). |
+| `Faceroll.createOverlay(entries)` | Build overlay table from entries. |
+| `Faceroll.enemyGridTrack(spec, spell, shortName, color)` | Register a DoT for multi-target tracking. |
+
+### State Queries
+
+| Function | Returns | Description |
+|----------|---------|-------------|
+| `Faceroll.isSpellAvailable(name)` | bool | Spell is usable and off cooldown (CD < 1.5s) |
+| `Faceroll.isBuffActive(name)` | bool | Buff is active on player |
+| `Faceroll.getBuff(name)` | table or nil | `{duration, stacks, expirationTime}` |
+| `Faceroll.getBuffStacks(name)` | number | Stack count of buff |
+| `Faceroll.getBuffRemaining(name)` | number | Seconds remaining on buff |
+| `Faceroll.getDot(name)` | table or nil | `{duration, stacks, expirationTime}` on target |
+| `Faceroll.getDotRemainingNorm(name)` | float | Normalized remaining (0.0-1.0), -1 if missing |
+| `Faceroll.isDotActive(name)` | bool | DoT is on target |
+| `Faceroll.getDotStacks(name)` | number | Stack count of DoT on target |
+| `Faceroll.getDebuff(name)` | table or nil | `{duration, stacks, expirationTime}` debuff on player |
+| `Faceroll.isActionAvailable(action)` | bool | Action's bar slot has something in it |
+| `Faceroll.isTotemActive(name)` | bool | Totem with this substring is active |
+| `Faceroll.isSpellQueued(name)` | bool | On-next-hit spell is queued |
+| `Faceroll.hasManaForSpell(name)` | bool | Player has enough mana for spell |
+| `Faceroll.getSpellCooldown(name)` | number | Seconds remaining on cooldown |
+| `Faceroll.getSpellCharges(name)` | (cur, max) | Current and max charges |
+| `Faceroll.inShapeshiftForm(name)` | bool | In named shapeshift form |
+
+### Deadzone
+
+| Function | Returns | Description |
+|----------|---------|-------------|
+| `Faceroll.deadzoneCreate(spell, castThreshold, duration)` | deadzone | Create a deadzone tracker |
+| `Faceroll.deadzoneUpdate(deadzone)` | bool | Update and return if active |
+| `Faceroll.deadzoneActive(deadzone)` | bool | Check if currently in deadzone |
+
+### Constants
+
+| Constant | Value | Description |
+|----------|-------|-------------|
+| `Faceroll.MODE_ST` | 1 | Single-target mode |
+| `Faceroll.MODE_AOE` | 2 | Area-of-effect mode |
+
+### Slash Commands (Player Reference)
+
+| Command | Description |
+|---------|-------------|
+| `/frsetup` | Full setup: create macros, place actions, rebuild keys |
+| `/frm` | Create/update macros only |
+| `/frb` | Place actions on bar only |
+| `/fra` | Toggle Faceroll on/off |
+| `/frd` | Cycle debug overlay (off → minimal → full) |
+| `/fro name` | Toggle option |
+| `/frr group` | Cycle radio group |
+| `/frstop` | Temporarily deactivate (breaks stuck macro loops) |
+| `/frk` | Dump keybinds |
