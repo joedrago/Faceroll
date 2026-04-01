@@ -8,29 +8,15 @@
 Bridge.lua
 Faceroll.lua
 
-# -- Ascension WoW Bronzebeard Specs --
-# Ascension\SpecBBDruidBear.lua
-# Ascension\SpecBBDruidCat.lua
-# Ascension\SpecBBDruidTree.lua
-# Ascension\SpecBBDruidBoom.lua
-# Ascension\SpecBBMage.lua
-# Ascension\SpecBBPaladin.lua
-# Ascension\SpecBBPriest.lua
-# Ascension\SpecBBRogue.lua
-# Ascension\SpecBBShaman.lua
-# Ascension\SpecBBWarlockDungeon.lua
-# Ascension\SpecBBWarlockGrind.lua
-
 # -- Nostalgia WoW Specs --
-Nostalgia\SpecDruidBalance.lua
-Nostalgia\SpecDruidFeral.lua
-Nostalgia\SpecMageArcane.lua
-Nostalgia\SpecPaladinRet.lua
-Nostalgia\SpecPriest.lua
-Nostalgia\SpecRogue.lua
-Nostalgia\SpecShaman.lua
-Nostalgia\SpecWarlock.lua
-Nostalgia\SpecWarrior.lua
+Nostalgia\SpecDruid1Balance.lua
+Nostalgia\SpecDruid2Feral.lua
+Nostalgia\SpecMage1Arcane.lua
+Nostalgia\SpecPaladin3Retribution.lua
+Nostalgia\SpecPriest3Shadow.lua
+Nostalgia\SpecRogue2Combat.lua
+Nostalgia\SpecShaman2Enhancement.lua
+Nostalgia\SpecWarrior3Protection.lua
 
 Settings.lua
 Startup.lua
