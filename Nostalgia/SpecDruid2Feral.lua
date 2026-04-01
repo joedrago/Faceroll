@@ -1,5 +1,5 @@
 -----------------------------------------------------------------------------------------
--- Classic Feral Druid
+-- Nostalgia Feral Druid (2)
 
 if Faceroll == nil then
     _, Faceroll = ...

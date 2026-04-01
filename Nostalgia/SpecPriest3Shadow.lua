@@ -1,5 +1,5 @@
 -----------------------------------------------------------------------------------------
--- Nostalgia WoW Shadow Priest
+-- Nostalgia Shadow Priest (3)
 
 if Faceroll == nil then
     _, Faceroll = ...

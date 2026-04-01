@@ -1,12 +1,11 @@
 -----------------------------------------------------------------------------------------
--- Nostalgia Enhancement Shaman
+-- Nostalgia Enhancement Shaman (2)
 
 if Faceroll == nil then
     _, Faceroll = ...
 end
 
 local spec = Faceroll.createSpec("SHAM", "333399", "SHAMAN-2")
-Faceroll.aliasSpec(spec, "SHAMAN-CLASSIC")
 
 -----------------------------------------------------------------------------------------
 -- Enemy Grid

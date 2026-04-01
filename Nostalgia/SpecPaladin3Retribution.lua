@@ -1,5 +1,5 @@
 -----------------------------------------------------------------------------------------
--- Nostalgia Ret Paladin
+-- Nostalgia Retribution Paladin (3)
 
 if Faceroll == nil then
     _, Faceroll = ...

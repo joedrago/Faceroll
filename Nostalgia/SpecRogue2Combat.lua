@@ -1,12 +1,11 @@
 -----------------------------------------------------------------------------------------
--- Nostalgia Combat Rogue
+-- Nostalgia Combat Rogue (2)
 
 if Faceroll == nil then
     _, Faceroll = ...
 end
 
 local spec = Faceroll.createSpec("ROGUE", "fff469", "ROGUE-2")
-Faceroll.aliasSpec(spec, "ROGUE-CLASSIC")
 
 -----------------------------------------------------------------------------------------
 -- Macros (/frm)

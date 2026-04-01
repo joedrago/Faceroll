@@ -1,12 +1,11 @@
 -----------------------------------------------------------------------------------------
--- Classic Balance Druid
+-- Nostalgia Balance Druid (1)
 
 if Faceroll == nil then
     _, Faceroll = ...
 end
 
 local spec = Faceroll.createSpec("BAL", "aa6600", "DRUID-1")
-Faceroll.aliasSpec(spec, "DRUID-CLASSIC") -- pre-talent points
 
 -----------------------------------------------------------------------------------------
 -- Macros (/frm)

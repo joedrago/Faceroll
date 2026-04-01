@@ -1,5 +1,5 @@
 -----------------------------------------------------------------------------------------
--- Classic Prot Warrior
+-- Nostalgia Protection Warrior (3)
 
 if Faceroll == nil then
     _, Faceroll = ...

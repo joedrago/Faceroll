@@ -9,13 +9,41 @@ Bridge.lua
 Faceroll.lua
 
 # -- Nostalgia WoW Specs --
+Nostalgia\SpecDruid0.lua
 Nostalgia\SpecDruid1Balance.lua
 Nostalgia\SpecDruid2Feral.lua
+Nostalgia\SpecDruid3Restoration.lua
+Nostalgia\SpecHunter0.lua
+Nostalgia\SpecHunter1BeastMastery.lua
+Nostalgia\SpecHunter2Marksmanship.lua
+Nostalgia\SpecHunter3Survival.lua
+Nostalgia\SpecMage0.lua
 Nostalgia\SpecMage1Arcane.lua
+Nostalgia\SpecMage2Fire.lua
+Nostalgia\SpecMage3Frost.lua
+Nostalgia\SpecPaladin0.lua
+Nostalgia\SpecPaladin1Holy.lua
+Nostalgia\SpecPaladin2Protection.lua
 Nostalgia\SpecPaladin3Retribution.lua
+Nostalgia\SpecPriest0.lua
+Nostalgia\SpecPriest1Discipline.lua
+Nostalgia\SpecPriest2Holy.lua
 Nostalgia\SpecPriest3Shadow.lua
+Nostalgia\SpecRogue0.lua
+Nostalgia\SpecRogue1Assassination.lua
 Nostalgia\SpecRogue2Combat.lua
+Nostalgia\SpecRogue3Subtlety.lua
+Nostalgia\SpecShaman0.lua
+Nostalgia\SpecShaman1Elemental.lua
 Nostalgia\SpecShaman2Enhancement.lua
+Nostalgia\SpecShaman3Restoration.lua
+Nostalgia\SpecWarlock0.lua
+Nostalgia\SpecWarlock1Affliction.lua
+Nostalgia\SpecWarlock2Demonology.lua
+Nostalgia\SpecWarlock3Destruction.lua
+Nostalgia\SpecWarrior0.lua
+Nostalgia\SpecWarrior1Arms.lua
+Nostalgia\SpecWarrior2Fury.lua
 Nostalgia\SpecWarrior3Protection.lua
 
 Settings.lua

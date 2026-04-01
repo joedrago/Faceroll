@@ -1,5 +1,5 @@
 -----------------------------------------------------------------------------------------
--- Nostalgia Arcane Mage
+-- Nostalgia Arcane Mage (1)
 
 if Faceroll == nil then
     _, Faceroll = ...
