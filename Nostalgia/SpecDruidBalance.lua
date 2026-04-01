@@ -91,10 +91,12 @@ spec.calcAction = function(mode, state)
 
         elseif not state.d_moonfire and (state.group or state.combat) and Faceroll.isActionAvailable("moonfire") then
             return "moonfire"
-        elseif not state.d_swarm and (state.group or state.combat) and Faceroll.isActionAvailable("swarm") then
-            return "swarm"
+        -- elseif not state.d_swarm and (state.group or state.combat) and Faceroll.isActionAvailable("swarm") then
+        --     return "swarm"
         elseif state.b_lunar and Faceroll.isActionAvailable("starfire") then
             return "starfire"
+        elseif state.moving and Faceroll.isActionAvailable("moonfire") then
+            return "moonfire"
         else
             return "wrath"
         end

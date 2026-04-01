@@ -1453,6 +1453,16 @@ function facerollActivateToggle()
     end
 end
 
+-- this is a weird hack but I'm curious
+function facerollStop()
+    if Faceroll.active then
+        facerollDeactivate()
+        C_Timer.After(0.6, function()
+            facerollActivate()
+        end)
+    end
+end
+
 -----------------------------------------------------------------------------------------
 -- onLoaded() - the entry point which doesn't fire until we're loaded/logged-in
 
@@ -1717,6 +1727,9 @@ end
 
 SLASH_FRA1 = '/fra'
 SlashCmdList["FRA"] = facerollActivateToggle
+
+SLASH_FRSTOP1 = '/frstop'
+SlashCmdList["FRSTOP"] = facerollStop
 
 SLASH_FRTICK1 = '/frtick'
 SlashCmdList["FRTICK"] = tickReset
