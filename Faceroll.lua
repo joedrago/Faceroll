@@ -124,12 +124,13 @@ Faceroll.createState = function(spec, specKey)
         -- Resources
         local curHP = UnitHealth("player")
         local maxHP = UnitHealthMax("player")
-        state.hp = curHP / maxHP
+        state.hp = maxHP > 0 and curHP / maxHP or 0
         local curMana = UnitPower("player", 0)
         local maxMana = UnitPowerMax("player", 0)
-        state.mana = curMana / maxMana
+        state.mana = maxMana > 0 and curMana / maxMana or 0
         state.rage = UnitPower("PLAYER", 1)
         state.energy = UnitPower("PLAYER", 3)
+        state.runicpower = UnitPower("PLAYER", 6)
         state.combopoints = GetComboPoints("PLAYER", "TARGET")
 
         -- Auto-state from overlay table entries
@@ -1598,38 +1599,198 @@ eventFrame = CreateFrame("Frame")
 local initialized = false
 local spellsChangedTimer = nil
 
-local function setupWouldChange()
+local function syncMacros(dry)
+    local spec = Faceroll.activeSpec()
+    if spec == nil or spec.macros == nil then
+        return false
+    end
+
+    local AUTO_ICON = 1
+
+    local function trim(s)
+        return s:match("^%s*(.-)%s*$")
+    end
+
+    -- Scan spellbook once for :SpellName: resolution
+    local bestRanks = scanSpellbook()
+
+    for name, body in pairs(spec.macros) do
+        local macroName = name .. " FR"
+        body = trim(body)
+        local tag = Faceroll.textColor("[frm] ", "333333")
+        local nameText = Faceroll.textColor(macroName, "aaffff")
+
+        -- Resolve @SpellA|SpellB@ patterns (check-only, keeps first known spell name)
+        -- Resolve @@SpellA|SpellB@@ patterns (replaces with best-rank spell ID of first known)
+        -- Pipe-separated fallbacks: tries each name left-to-right, uses first found
+        local resolveNotes = {}
+        local resolveFailed = false
+
+        local function findBestMatch(candidates)
+            for _, spellName in ipairs(candidates) do
+                local best = bestRanks[spellName]
+                if best then return spellName, best end
+            end
+            return nil, nil
+        end
+
+        local function splitCandidates(str)
+            local candidates = {}
+            for name in string.gmatch(str, "[^|]+") do
+                table.insert(candidates, name)
+            end
+            return candidates
+        end
+
+        body = string.gsub(body, "@@([^@]+)@@", function(pattern)
+            local candidates = splitCandidates(pattern)
+            local matched, best = findBestMatch(candidates)
+            if matched then
+                if not dry then
+                    table.insert(resolveNotes, Faceroll.textColor(matched, "ffffaa")
+                        .. " -> " .. Faceroll.textColor("rank " .. best.rank .. " (id " .. best.id .. ")", "aaffaa"))
+                end
+                return tostring(best.id)
+            else
+                resolveFailed = true
+                if not dry then
+                    table.insert(resolveNotes, Faceroll.textColor(pattern, "ffffaa")
+                        .. " " .. Faceroll.textColor("not in spellbook", "ff5555"))
+                end
+                return "@@" .. pattern .. "@@"
+            end
+        end)
+        body = string.gsub(body, "@([^@]+)@", function(pattern)
+            local candidates = splitCandidates(pattern)
+            local matched, best = findBestMatch(candidates)
+            if matched then
+                if not dry then
+                    local rankText = best.rank > 0
+                        and "known (rank " .. best.rank .. ")"
+                        or "known"
+                    table.insert(resolveNotes, Faceroll.textColor(matched, "ffffaa")
+                        .. " " .. Faceroll.textColor(rankText, "aaffaa"))
+                end
+                return matched
+            else
+                resolveFailed = true
+                if not dry then
+                    table.insert(resolveNotes, Faceroll.textColor(pattern, "ffffaa")
+                        .. " " .. Faceroll.textColor("not in spellbook", "ff5555"))
+                end
+                return "@" .. pattern .. "@"
+            end
+        end)
+
+        if resolveFailed then
+            if not dry then
+                print(tag .. nameText .. " " .. Faceroll.textColor("Skipped (unlearned spell)", "777777"))
+                for _, note in ipairs(resolveNotes) do
+                    print(tag .. "  " .. note)
+                end
+            end
+        else
+            local index = GetMacroIndexByName(macroName)
+            if index and index > 0 then
+                local _, existingIcon, existingBody = GetMacroInfo(index)
+                if trim(existingBody) ~= body then
+                    if dry then
+                        return true
+                    end
+                    EditMacro(index, macroName, existingIcon, body)
+                    print(tag .. nameText .. " " .. Faceroll.textColor("Updated", "ffffaa"))
+                else
+                    if not dry then
+                        print(tag .. nameText .. " " .. Faceroll.textColor("OK", "777777"))
+                    end
+                end
+            else
+                if dry then
+                    return true
+                end
+                local _, numCharacter = GetNumMacros()
+                if numCharacter >= 18 then
+                    print(tag .. nameText .. " " .. Faceroll.textColor("FAILED - no character macro slots", "ff5555"))
+                else
+                    CreateMacro(macroName, AUTO_ICON, body, 1)
+                    print(tag .. nameText .. " " .. Faceroll.textColor("Created", "aaffaa"))
+                end
+            end
+            if not dry then
+                for _, note in ipairs(resolveNotes) do
+                    print(tag .. "  " .. note)
+                end
+            end
+        end
+    end
+
+    return false
+end
+
+local function syncActionBars(dry)
     local spec = Faceroll.activeSpec()
     if spec == nil or spec.actions == nil then
         return false
     end
 
     local keyToSlot = buildKeyToSlotMap(spec)
+    local tag = Faceroll.textColor("[frb] ", "333333")
+    local placed = 0
 
-    for _, entry in ipairs(spec.actions) do
+    for actionIndex, entry in ipairs(spec.actions) do
         if type(entry) == "table" then
             local action = entry[1]
             local macroName = entry.macro
             local spellName = entry.spell
+
             local key = spec.keys[action]
-            if key then
+            if key == nil then
+                if not dry then
+                    print(tag .. Faceroll.textColor(action, "aaffff") .. " " .. Faceroll.textColor("no keybind", "ff5555"))
+                end
+            else
                 local slot = keyToSlot[key]
-                if slot then
-                    local actionType, actionId, subType, actionSpellId = GetActionInfo(slot)
-                    if macroName then
-                        local fullName = macroName .. " FR"
-                        local macroIndex = GetMacroIndexByName(fullName)
-                        if macroIndex and macroIndex > 0 then
-                            if actionType ~= "macro" or actionId ~= macroIndex then
+                if slot == nil then
+                    if not dry then
+                        print(tag .. Faceroll.textColor(action, "aaffff") .. " key " .. Faceroll.textColor(key, "ffffaa") .. " " .. Faceroll.textColor("not bound to any bar slot", "ff5555"))
+                    end
+                elseif macroName then
+                    local fullName = macroName .. " FR"
+                    local macroIndex = GetMacroIndexByName(fullName)
+                    if macroIndex and macroIndex > 0 then
+                        local actionType, actionId = GetActionInfo(slot)
+                        if actionType ~= "macro" or actionId ~= macroIndex then
+                            if dry then
                                 return true
                             end
+                            PickupMacro(macroIndex)
+                            PlaceAction(slot)
+                            ClearCursor()
+                            placed = placed + 1
+                            print(tag .. Faceroll.textColor(action, "aaffff") .. " " .. Faceroll.textColor(fullName, "ffffaa") .. " -> slot " .. slot .. " " .. Faceroll.textColor("OK", "aaffaa"))
                         end
-                    elseif spellName then
-                        if GetSpellInfo(spellName) then
-                            local currentName = actionSpellId and GetSpellInfo(actionSpellId) or nil
-                            if currentName ~= spellName then
+                    else
+                        if not dry then
+                            print(tag .. Faceroll.textColor(action, "aaffff") .. " " .. Faceroll.textColor("macro not found: " .. fullName .. " (run /frm first)", "ff5555"))
+                        end
+                    end
+                elseif spellName then
+                    if GetSpellInfo(spellName) then
+                        local actionType, actionId, subType, actionSpellId = GetActionInfo(slot)
+                        local currentName = actionSpellId and GetSpellInfo(actionSpellId) or nil
+                        if currentName ~= spellName then
+                            if dry then
                                 return true
                             end
+                            PickupSpell(spellName)
+                            PlaceAction(slot)
+                            ClearCursor()
+                            placed = placed + 1
+                            print(tag .. Faceroll.textColor(action, "aaffff") .. " " .. Faceroll.textColor(spellName, "ffffaa") .. " -> slot " .. slot .. " " .. Faceroll.textColor("OK", "aaffaa"))
+                        end
+                    else
+                        if not dry then
+                            print(tag .. Faceroll.textColor(action, "aaffff") .. " " .. Faceroll.textColor(spellName .. " (not learned yet)", "777777"))
                         end
                     end
                 end
@@ -1637,6 +1798,9 @@ local function setupWouldChange()
         end
     end
 
+    if not dry then
+        print(tag .. "Placed " .. placed .. " action(s).")
+    end
     return false
 end
 local function onEvent(self, event, arg1, arg2, ...)
@@ -1692,7 +1856,7 @@ local function onEvent(self, event, arg1, arg2, ...)
         end
         spellsChangedTimer = C_Timer.NewTimer(2, function()
             spellsChangedTimer = nil
-            if setupWouldChange() then
+            if syncMacros(true) or syncActionBars(true) then
                 SlashCmdList["FRSETUP"]()
             end
         end)
@@ -1822,114 +1986,7 @@ SlashCmdList["FRUR"] = upgradeRanks
 
 SLASH_FRM1 = '/frm'
 SlashCmdList["FRM"] = function()
-    local spec = Faceroll.activeSpec()
-    if spec == nil then
-        print(Faceroll.textColor("[frm] ", "ff5555") .. "No active spec.")
-        return
-    end
-    if spec.macros == nil then
-        print(Faceroll.textColor("[frm] ", "ff5555") .. "Active spec has no macros defined.")
-        return
-    end
-
-    local AUTO_ICON = 1
-
-    local function trim(s)
-        return s:match("^%s*(.-)%s*$")
-    end
-
-    -- Scan spellbook once for :SpellName: resolution
-    local bestRanks = scanSpellbook()
-
-    for name, body in pairs(spec.macros) do
-        local macroName = name .. " FR"
-        body = trim(body)
-        local tag = Faceroll.textColor("[frm] ", "333333")
-        local nameText = Faceroll.textColor(macroName, "aaffff")
-
-        -- Resolve @SpellA|SpellB@ patterns (check-only, keeps first known spell name)
-        -- Resolve @@SpellA|SpellB@@ patterns (replaces with best-rank spell ID of first known)
-        -- Pipe-separated fallbacks: tries each name left-to-right, uses first found
-        local resolveNotes = {}
-        local resolveFailed = false
-
-        local function findBestMatch(candidates)
-            for _, spellName in ipairs(candidates) do
-                local best = bestRanks[spellName]
-                if best then return spellName, best end
-            end
-            return nil, nil
-        end
-
-        local function splitCandidates(str)
-            local candidates = {}
-            for name in string.gmatch(str, "[^|]+") do
-                table.insert(candidates, name)
-            end
-            return candidates
-        end
-
-        body = string.gsub(body, "@@([^@]+)@@", function(pattern)
-            local candidates = splitCandidates(pattern)
-            local matched, best = findBestMatch(candidates)
-            if matched then
-                table.insert(resolveNotes, Faceroll.textColor(matched, "ffffaa")
-                    .. " -> " .. Faceroll.textColor("rank " .. best.rank .. " (id " .. best.id .. ")", "aaffaa"))
-                return tostring(best.id)
-            else
-                table.insert(resolveNotes, Faceroll.textColor(pattern, "ffffaa")
-                    .. " " .. Faceroll.textColor("not in spellbook", "ff5555"))
-                resolveFailed = true
-                return "@@" .. pattern .. "@@"
-            end
-        end)
-        body = string.gsub(body, "@([^@]+)@", function(pattern)
-            local candidates = splitCandidates(pattern)
-            local matched, best = findBestMatch(candidates)
-            if matched then
-                local rankText = best.rank > 0
-                    and "known (rank " .. best.rank .. ")"
-                    or "known"
-                table.insert(resolveNotes, Faceroll.textColor(matched, "ffffaa")
-                    .. " " .. Faceroll.textColor(rankText, "aaffaa"))
-                return matched
-            else
-                table.insert(resolveNotes, Faceroll.textColor(pattern, "ffffaa")
-                    .. " " .. Faceroll.textColor("not in spellbook", "ff5555"))
-                resolveFailed = true
-                return "@" .. pattern .. "@"
-            end
-        end)
-
-        if resolveFailed then
-            print(tag .. nameText .. " " .. Faceroll.textColor("Skipped (unlearned spell)", "777777"))
-            for _, note in ipairs(resolveNotes) do
-                print(tag .. "  " .. note)
-            end
-        else
-            local index = GetMacroIndexByName(macroName)
-            if index and index > 0 then
-                local _, existingIcon, existingBody = GetMacroInfo(index)
-                if trim(existingBody) == body then
-                    print(tag .. nameText .. " " .. Faceroll.textColor("OK", "777777"))
-                else
-                    EditMacro(index, macroName, existingIcon, body)
-                    print(tag .. nameText .. " " .. Faceroll.textColor("Updated", "ffffaa"))
-                end
-            else
-                local _, numCharacter = GetNumMacros()
-                if numCharacter >= 18 then
-                    print(tag .. nameText .. " " .. Faceroll.textColor("FAILED - no character macro slots", "ff5555"))
-                else
-                    CreateMacro(macroName, AUTO_ICON, body, 1)
-                    print(tag .. nameText .. " " .. Faceroll.textColor("Created", "aaffaa"))
-                end
-            end
-            for _, note in ipairs(resolveNotes) do
-                print(tag .. "  " .. note)
-            end
-        end
-    end
+    syncMacros(false)
 end
 
 -----------------------------------------------------------------------------------------
@@ -1937,61 +1994,7 @@ end
 
 SLASH_FRB1 = '/frb'
 SlashCmdList["FRB"] = function()
-    local spec = Faceroll.activeSpec()
-    if spec == nil then
-        print(Faceroll.textColor("[frb] ", "ff5555") .. "No active spec.")
-        return
-    end
-    if spec.actions == nil then
-        print(Faceroll.textColor("[frb] ", "ff5555") .. "Active spec has no actions defined.")
-        return
-    end
-
-    local keyToSlot = buildKeyToSlotMap(spec)
-    local tag = Faceroll.textColor("[frb] ", "333333")
-    local placed = 0
-
-    for actionIndex, entry in ipairs(spec.actions) do
-        if type(entry) == "table" then
-            local action = entry[1]
-            local macroName = entry.macro
-            local spellName = entry.spell
-
-            local key = spec.keys[action]
-            if key == nil then
-                print(tag .. Faceroll.textColor(action, "aaffff") .. " " .. Faceroll.textColor("no keybind", "ff5555"))
-            else
-                local slot = keyToSlot[key]
-                if slot == nil then
-                    print(tag .. Faceroll.textColor(action, "aaffff") .. " key " .. Faceroll.textColor(key, "ffffaa") .. " " .. Faceroll.textColor("not bound to any bar slot", "ff5555"))
-                elseif macroName then
-                    local fullName = macroName .. " FR"
-                    local macroIndex = GetMacroIndexByName(fullName)
-                    if macroIndex and macroIndex > 0 then
-                        PickupMacro(macroIndex)
-                        PlaceAction(slot)
-                        ClearCursor()
-                        placed = placed + 1
-                        print(tag .. Faceroll.textColor(action, "aaffff") .. " " .. Faceroll.textColor(fullName, "ffffaa") .. " -> slot " .. slot .. " " .. Faceroll.textColor("OK", "aaffaa"))
-                    else
-                        print(tag .. Faceroll.textColor(action, "aaffff") .. " " .. Faceroll.textColor("macro not found: " .. fullName .. " (run /frm first)", "ff5555"))
-                    end
-                elseif spellName then
-                    if GetSpellInfo(spellName) then
-                        PickupSpell(spellName)
-                        PlaceAction(slot)
-                        ClearCursor()
-                        placed = placed + 1
-                        print(tag .. Faceroll.textColor(action, "aaffff") .. " " .. Faceroll.textColor(spellName, "ffffaa") .. " -> slot " .. slot .. " " .. Faceroll.textColor("OK", "aaffaa"))
-                    else
-                        print(tag .. Faceroll.textColor(action, "aaffff") .. " " .. Faceroll.textColor(spellName .. " (not learned yet)", "777777"))
-                    end
-                end
-            end
-        end
-    end
-
-    print(tag .. "Placed " .. placed .. " action(s).")
+    syncActionBars(false)
 end
 
 SLASH_FRBC1 = '/frbc'

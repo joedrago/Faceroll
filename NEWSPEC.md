@@ -384,6 +384,7 @@ These fields are always available in `state` without any overlay entries:
 | `state.mana` | float | Normalized mana (1.0 = full) |
 | `state.rage` | number | Raw rage (0-100) |
 | `state.energy` | number | Raw energy (0-100) |
+| `state.runicpower` | number | Raw runic power (0-130) |
 | `state.combopoints` | number | Combo points (0-5) |
 
 ---

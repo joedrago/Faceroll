@@ -59,9 +59,6 @@ spec.calcAction = function(mode, state)
     if not state.b_lightningshield and Faceroll.isActionAvailable("lightningshield") then
         return "lightningshield"
 
-    elseif state.mana < 0.9 and not state.combat and not state.b_drink and Faceroll.isActionAvailable("drink") then
-        return "drink"
-
     elseif state.targetingenemy then
         if state.s_earthshock then
             return "earthshock"
@@ -70,5 +67,9 @@ spec.calcAction = function(mode, state)
             return "lightningbolt"
 
         end
+
+    -- Drink when low mana
+    elseif state.mana < 0.9 and not state.combat and not state.b_drink and Faceroll.isActionAvailable("drink") then
+        return "drink"
     end
 end

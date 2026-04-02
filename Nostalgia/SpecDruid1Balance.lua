@@ -29,6 +29,7 @@ spec.macros = {
 
 ["Prowl"] = [[
 #showtooltip
+/cancelform [noform:3]
 /cast [noform:3] !@Cat Form@
 /cast [form:3] @Prowl@
 ]],

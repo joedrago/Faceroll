@@ -2,8 +2,8 @@
 -- Nostalgia Marksmanship Hunter (2)
 --
 -- Readiness: manually controlled
+-- Rapid Fire: manually controlled
 -- Pet management (Call Pet, Mend Pet, etc.): manual
--- Close-range AOE: excluded (ranged class, melee not desirable)
 
 if Faceroll == nil then
     _, Faceroll = ...
@@ -56,6 +56,7 @@ spec.overlay = Faceroll.createOverlay({
     { "s_chimera",       "Chimera Shot" },
     { "s_aimed",         "Aimed Shot" },
     { "s_arcaneshot",    "Arcane Shot" },
+    { "s_multishot",     "Multi-Shot" },
     { "s_killshot",      "Kill Shot" },
     { "s_silencing",     "Silencing Shot" },
 
@@ -82,6 +83,7 @@ spec.actions = {
     { "chimera",       spell = "Chimera Shot" },
     { "aimed",         macro = "Aimed" },
     { "arcaneshot",    spell = "Arcane Shot" },
+    { "multishot",     spell = "Multi-Shot" },
     { "steadyshot",    spell = "Steady Shot" },
     { "killshot",      spell = "Kill Shot" },
     { "silencing",     spell = "Silencing Shot" },
@@ -98,38 +100,42 @@ spec.calcAction = function(mode, state)
 
     elseif state.targetingenemy then
         -- Silencing Shot interrupt
-        if not aoe and state.targetcasting and state.s_silencing then
+        if state.targetcasting and state.s_silencing then
             return "silencing"
 
-        -- Hunter's Mark on target
-        elseif not state.d_huntersmark and Faceroll.isActionAvailable("huntersmark") then
+        -- Hunter's Mark (ST only)
+        elseif not aoe and not state.d_huntersmark and Faceroll.isActionAvailable("huntersmark") then
             return "huntersmark"
 
         -- Kill Shot execute (< 20% HP)
         elseif state.targethp > 0 and state.targethp < 0.2 and state.s_killshot then
             return "killshot"
 
-        -- Volley in AOE (channeled, ground-targeted)
+        -- Serpent Sting maintenance (ST only, Chimera Shot refreshes it)
+        elseif not aoe and not state.d_serpentsting and Faceroll.isActionAvailable("serpentsting") then
+            return "serpentsting"
+
+        -- Chimera Shot on CD (ST only, refreshes Serpent Sting)
+        elseif not aoe and state.s_chimera then
+            return "chimera"
+
+        -- Multi-Shot on CD (AOE only)
+        elseif aoe and state.s_multishot then
+            return "multishot"
+
+        -- Aimed Shot on CD (ST only)
+        elseif not aoe and state.s_aimed then
+            return "aimed"
+
+        -- Volley (AOE filler)
         elseif aoe then
             return "volley"
 
-        -- Serpent Sting maintenance
-        elseif not state.d_serpentsting and Faceroll.isActionAvailable("serpentsting") then
-            return "serpentsting"
-
-        -- Chimera Shot on cooldown (also refreshes Serpent Sting)
-        elseif state.s_chimera then
-            return "chimera"
-
-        -- Aimed Shot
-        elseif state.s_aimed then
-            return "aimed"
-
-        -- Arcane Shot
+        -- Arcane Shot (ST, leveling filler before Chimera Shot)
         elseif state.s_arcaneshot then
             return "arcaneshot"
 
-        -- Steady Shot filler
+        -- Steady Shot (ST filler)
         elseif Faceroll.isActionAvailable("steadyshot") then
             return "steadyshot"
 

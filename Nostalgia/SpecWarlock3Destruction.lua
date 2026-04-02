@@ -78,10 +78,6 @@ spec.calcAction = function(mode, state)
     elseif state.mana < 0.3 and state.hp > 0.5 and Faceroll.isActionAvailable("lifetap") then
         return "lifetap"
 
-    -- Drink when low mana out of combat
-    elseif state.mana < 0.9 and not state.combat and not state.b_drink and Faceroll.isActionAvailable("drink") then
-        return "drink"
-
     elseif state.targetingenemy then
         -- AOE: Rain of Fire
         if aoe and Faceroll.isActionAvailable("rainoffire") then
@@ -107,5 +103,9 @@ spec.calcAction = function(mode, state)
         else
             return "incinerate"
         end
+
+    -- Drink when low mana
+    elseif state.mana < 0.9 and not state.combat and not state.b_drink and Faceroll.isActionAvailable("drink") then
+        return "drink"
     end
 end

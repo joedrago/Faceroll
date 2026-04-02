@@ -81,9 +81,6 @@ spec.calcAction = function(mode, state)
     elseif not state.combat and not state.group and state.hp < 0.6 and not Faceroll.isActionAvailable("riptide") and not state.healdeadzone then
         return "healself"
 
-    elseif state.mana < 0.9 and not state.combat and not state.b_drink and Faceroll.isActionAvailable("drink") then
-        return "drink"
-
     elseif state.targetingenemy then
         if not aoe and state.targetcasting and state.s_windshear then
             return "windshear"
@@ -95,6 +92,10 @@ spec.calcAction = function(mode, state)
             return "lightningbolt"
 
         end
+
+    -- Drink when low mana
+    elseif state.mana < 0.9 and not state.combat and not state.b_drink and Faceroll.isActionAvailable("drink") then
+        return "drink"
 
     elseif not state.combat and state.group then
         return nil

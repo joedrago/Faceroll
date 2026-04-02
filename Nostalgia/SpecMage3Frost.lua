@@ -14,6 +14,11 @@ local spec = Faceroll.createSpec("FROST", "44ddff", "MAGE-3")
 
 spec.macros = {
 
+["Armor"] = [[
+#showtooltip
+/cast @Mage Armor|Ice Armor|Frost Armor@
+]],
+
 ["Blizzard"] = [[
 #showtooltip Blizzard
 /stopmacro [channeling]
@@ -28,7 +33,9 @@ spec.macros = {
 
 spec.overlay = Faceroll.createOverlay({
     "- Buffs -",
-    { "b_armor",          "Ice Armor" },
+    { "b_armor",          "Mage Armor" },
+    { "b_icearmor",       "Ice Armor" },
+    { "b_frostarmor",     "Frost Armor" },
     { "b_ai",             "Arcane Intellect" },
     { "b_drink",          "Drink" },
     { "b_brainfreeze",    "Brain Freeze" },
@@ -52,7 +59,7 @@ spec.actions = {
     { "deepfreeze",    spell = "Deep Freeze" },
     { "icelance",      spell = "Ice Lance" },
     { "blizzard",      macro = "Blizzard" },
-    { "armor",         spell = "Ice Armor" },
+    { "armor",         macro = "Armor" },
     { "ai",            spell = "Arcane Intellect" },
     "drink",
 }
@@ -61,17 +68,13 @@ spec.calcAction = function(mode, state)
     local st = (mode == Faceroll.MODE_ST)
     local aoe = (mode == Faceroll.MODE_AOE)
 
-    -- Keep Ice Armor up
-    if not state.b_armor and Faceroll.isActionAvailable("armor") then
+    -- Keep Mage Armor up (falls back to Ice Armor before Mage Armor is trained)
+    if not state.b_armor and not state.b_icearmor and not state.b_frostarmor and Faceroll.isActionAvailable("armor") then
         return "armor"
 
     -- Keep Arcane Intellect up
     elseif not state.b_ai and Faceroll.isActionAvailable("ai") then
         return "ai"
-
-    -- Drink when low mana
-    elseif state.mana < 0.9 and not state.combat and not state.b_drink and Faceroll.isActionAvailable("drink") then
-        return "drink"
 
     elseif state.targetingenemy then
         -- AOE: Blizzard
@@ -94,5 +97,10 @@ spec.calcAction = function(mode, state)
         else
             return "frostbolt"
         end
+
+    -- Drink when low mana
+    elseif state.mana < 0.9 and not state.combat and not state.b_drink and Faceroll.isActionAvailable("drink") then
+        return "drink"
+
     end
 end

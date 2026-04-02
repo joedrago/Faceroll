@@ -46,10 +46,6 @@ spec.calcAction = function(mode, state)
     if not state.b_demonarmor and Faceroll.isActionAvailable("demonarmor") then
         return "demonarmor"
 
-    -- Drink when low mana
-    elseif state.mana < 0.9 and not state.combat and not state.b_drink and Faceroll.isActionAvailable("drink") then
-        return "drink"
-
     elseif state.targetingenemy then
         -- Apply Corruption if missing
         if not state.d_corruption and Faceroll.isActionAvailable("corruption") then
@@ -59,5 +55,9 @@ spec.calcAction = function(mode, state)
         else
             return "shadowbolt"
         end
+
+    -- Drink when low mana
+    elseif state.mana < 0.9 and not state.combat and not state.b_drink and Faceroll.isActionAvailable("drink") then
+        return "drink"
     end
 end

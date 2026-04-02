@@ -71,6 +71,7 @@ spec.overlay = Faceroll.createOverlay({
     { "s_execute",     "Execute" },
     { "s_slam",        "Slam" },
     { "s_charge",      "Charge" },
+    { "s_victoryrush", "Victory Rush" },
 
     "- Custom -",
     "targethp",
@@ -98,6 +99,7 @@ spec.actions = {
     { "heroic",        macro = "Heroic" },
     { "cleave",        macro = "Cleave" },
     { "charge",        spell = "Charge" },
+    { "victoryrush",   spell = "Victory Rush" },
 }
 
 spec.calcAction = function(mode, state)
@@ -105,13 +107,17 @@ spec.calcAction = function(mode, state)
     local aoe = (mode == Faceroll.MODE_AOE)
 
     -- Keep Battle Shout up
-    if not state.b_battleshout and Faceroll.isActionAvailable("battleshout") then
+    if state.rage >= 10 and not state.b_battleshout and Faceroll.isActionAvailable("battleshout") then
         return "battleshout"
 
     elseif state.targetingenemy then
         -- Charge into melee range
         if state.s_charge and not state.melee then
             return "charge"
+
+        -- Victory Rush (free damage + heal, use before it expires)
+        elseif state.melee and state.s_victoryrush then
+            return "victoryrush"
 
         -- Maintain Rend
         elseif state.melee and not state.d_rend and Faceroll.isActionAvailable("rend") then
@@ -133,8 +139,8 @@ spec.calcAction = function(mode, state)
         elseif aoe and Faceroll.isActionAvailable("cleave") then
             return "cleave"
 
-        -- Heroic Strike as rage dump
-        elseif state.rage > 50 and Faceroll.isActionAvailable("heroic") then
+        -- Heroic Strike: rage dump at 50+ normally, or use freely if MS isn't learned yet
+        elseif Faceroll.isActionAvailable("heroic") and (state.rage > 50 or not Faceroll.isActionAvailable("ms")) then
             return "heroic"
 
         -- Slam as filler

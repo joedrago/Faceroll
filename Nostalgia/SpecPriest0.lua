@@ -58,10 +58,6 @@ spec.calcAction = function(mode, state)
     elseif not state.combat and not state.group and state.hp < 0.6 and not state.b_renew and Faceroll.isActionAvailable("renew") then
         return "renew"
 
-    -- Drink when low mana
-    elseif state.mana < 0.9 and not state.combat and not state.b_drink and Faceroll.isActionAvailable("drink") then
-        return "drink"
-
     elseif state.targetingenemy then
         -- Apply Shadow Word: Pain if missing
         if not state.d_pain and Faceroll.isActionAvailable("pain") then
@@ -71,5 +67,9 @@ spec.calcAction = function(mode, state)
         else
             return "smite"
         end
+
+    -- Drink when low mana
+    elseif state.mana < 0.9 and not state.combat and not state.b_drink and Faceroll.isActionAvailable("drink") then
+        return "drink"
     end
 end

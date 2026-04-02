@@ -48,11 +48,11 @@ spec.calcAction = function(mode, state)
     elseif not state.b_ai and Faceroll.isActionAvailable("ai") then
         return "ai"
 
+    elseif state.targetingenemy then
+        return "fireball"
+
     -- Drink when low mana
     elseif state.mana < 0.9 and not state.combat and not state.b_drink and Faceroll.isActionAvailable("drink") then
         return "drink"
-
-    elseif state.targetingenemy then
-        return "fireball"
     end
 end

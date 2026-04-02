@@ -9,6 +9,10 @@ Bridge.lua
 Faceroll.lua
 
 # -- Nostalgia WoW Specs --
+Nostalgia\SpecDeathKnight0.lua
+Nostalgia\SpecDeathKnight1Blood.lua
+Nostalgia\SpecDeathKnight2Frost.lua
+Nostalgia\SpecDeathKnight3Unholy.lua
 Nostalgia\SpecDruid0.lua
 Nostalgia\SpecDruid1Balance.lua
 Nostalgia\SpecDruid2Feral.lua

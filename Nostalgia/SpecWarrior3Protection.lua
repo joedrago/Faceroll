@@ -46,6 +46,7 @@ spec.overlay = Faceroll.createOverlay({
     { "s_charge",    "Charge" },
     { "s_clap",      "Thunder Clap" },
     { "s_revenge",   "Revenge" },
+    { "s_victoryrush", "Victory Rush" },
 })
 
 spec.calcState = function(state)
@@ -64,6 +65,7 @@ spec.actions = {
     { "clap",          spell = "Thunder Clap" },
     { "demoshout",     spell = "Demoralizing Shout" },
     { "revenge",       spell = "Revenge" },
+    { "victoryrush",   spell = "Victory Rush" },
     { "cleave",        macro = "Cleave" },
 }
 
@@ -72,12 +74,15 @@ spec.calcAction = function(mode, state)
     local aoe = (mode == Faceroll.MODE_AOE)
 
     -- Keep Battle Shout up
-    if not state.b_battleshout and Faceroll.isActionAvailable("battleshout") then
+    if state.rage >= 10 and not state.b_battleshout and Faceroll.isActionAvailable("battleshout") then
         return "battleshout"
 
     elseif state.targetingenemy then
         if state.s_charge and not state.melee then
             return "charge"
+
+        elseif state.melee and state.s_victoryrush then
+            return "victoryrush"
 
         elseif state.rage >= 20 and state.melee and state.s_clap then
             return "clap"

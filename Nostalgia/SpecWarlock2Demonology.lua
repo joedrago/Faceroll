@@ -87,10 +87,6 @@ spec.calcAction = function(mode, state)
     elseif state.mana < 0.3 and state.hp > 0.5 and Faceroll.isActionAvailable("lifetap") then
         return "lifetap"
 
-    -- Drink when low mana out of combat
-    elseif state.mana < 0.9 and not state.combat and not state.b_drink and Faceroll.isActionAvailable("drink") then
-        return "drink"
-
     elseif state.targetingenemy then
         -- AOE: Seed of Corruption
         if aoe and Faceroll.isActionAvailable("seed") then
@@ -120,5 +116,9 @@ spec.calcAction = function(mode, state)
         else
             return "shadowbolt"
         end
+
+    -- Drink when low mana
+    elseif state.mana < 0.9 and not state.combat and not state.b_drink and Faceroll.isActionAvailable("drink") then
+        return "drink"
     end
 end

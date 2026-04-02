@@ -74,10 +74,6 @@ spec.calcAction = function(mode, state)
     elseif not state.b_ai and Faceroll.isActionAvailable("ai") then
         return "ai"
 
-    -- Drink when low mana
-    elseif state.mana < 0.9 and not state.combat and not state.b_drink and Faceroll.isActionAvailable("drink") then
-        return "drink"
-
     elseif state.targetingenemy then
         -- Hot Streak proc: instant Pyroblast
         if state.b_hotstreak and state.s_pyroblast then
@@ -103,5 +99,9 @@ spec.calcAction = function(mode, state)
         else
             return "fireball"
         end
+
+    -- Drink when low mana
+    elseif state.mana < 0.9 and not state.combat and not state.b_drink and Faceroll.isActionAvailable("drink") then
+        return "drink"
     end
 end

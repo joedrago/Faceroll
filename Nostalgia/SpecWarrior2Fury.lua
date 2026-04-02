@@ -61,6 +61,7 @@ spec.overlay = Faceroll.createOverlay({
     { "s_whirlwind",   "Whirlwind" },
     { "s_execute",     "Execute" },
     { "s_charge",      "Charge" },
+    { "s_victoryrush", "Victory Rush" },
 
     "- Custom -",
     "targethp",
@@ -87,6 +88,7 @@ spec.actions = {
     { "heroic",        macro = "Heroic" },
     { "cleave",        macro = "Cleave" },
     { "charge",        spell = "Charge" },
+    { "victoryrush",   spell = "Victory Rush" },
 }
 
 spec.calcAction = function(mode, state)
@@ -94,13 +96,17 @@ spec.calcAction = function(mode, state)
     local aoe = (mode == Faceroll.MODE_AOE)
 
     -- Keep Battle Shout up
-    if not state.b_battleshout and Faceroll.isActionAvailable("battleshout") then
+    if state.rage >= 10 and not state.b_battleshout and Faceroll.isActionAvailable("battleshout") then
         return "battleshout"
 
     elseif state.targetingenemy then
         -- Charge into melee range
         if state.s_charge and not state.melee then
             return "charge"
+
+        -- Victory Rush (free damage + heal, use before it expires)
+        elseif state.melee and state.s_victoryrush then
+            return "victoryrush"
 
         -- Execute at low HP (highest priority in execute range)
         elseif state.targethp > 0 and state.targethp < 0.20 and state.s_execute then
@@ -122,8 +128,8 @@ spec.calcAction = function(mode, state)
         elseif aoe and Faceroll.isActionAvailable("cleave") then
             return "cleave"
 
-        -- Heroic Strike as rage dump
-        elseif state.rage > 50 and Faceroll.isActionAvailable("heroic") then
+        -- Heroic Strike: rage dump at 50+ normally, or use freely if BT isn't learned yet
+        elseif Faceroll.isActionAvailable("heroic") and (state.rage > 50 or not Faceroll.isActionAvailable("bt")) then
             return "heroic"
 
         -- Auto-attack filler
