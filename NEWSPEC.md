@@ -813,13 +813,13 @@ When a spell or ability is intentionally left out of the rotation (because the u
 Place these comments in the most relevant section — near the macros if the spell has no macro, or near the calcAction logic where it would otherwise appear:
 
 ```lua
--- Starfall: user prefers manual control, not automated
--- Force of Nature: user prefers manual control, not automated
--- Faerie Fire: user opted out of automatic application
--- Self-healing: user opted out of out-of-combat healing
+-- Starfall: manually controlled
+-- Force of Nature (Treants): manually controlled
+-- Faerie Fire: not automated
+-- Self-healing: not automated
 ```
 
-The goal is that someone reading the spec file can tell the difference between "this was forgotten" and "this was considered and intentionally omitted."
+Write comments as terse, first-person statements of intent — as if the spec owner wrote them. Say `-- Starfall: manually controlled`, not `-- Starfall: user prefers manual control, not automated`. This applies to all comments in a spec file, not just omissions.
 
 ### What to Identify About Each Spell
 
