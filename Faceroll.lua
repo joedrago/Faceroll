@@ -1406,9 +1406,14 @@ local function dumpKeybinds(arg)
         end
 
         local avail = Faceroll.isActionAvailable(action)
-        local availText = avail
-            and Faceroll.textColor("available", "aaffaa")
-            or Faceroll.textColor("unavailable", "ff5555")
+        local availText
+        if avail then
+            availText = Faceroll.textColor("available", "aaffaa")
+        elseif type(entry) == "string" then
+            availText = Faceroll.textColor("unavailable ", "ff5555") .. Faceroll.textColor("(", "777777") .. Faceroll.textColor("MANUAL", "ffaa55") .. Faceroll.textColor(")", "777777")
+        else
+            availText = Faceroll.textColor("unavailable", "ff5555")
+        end
 
         local debugText = ""
         if debug then
