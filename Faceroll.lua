@@ -1596,6 +1596,49 @@ end
 
 eventFrame = CreateFrame("Frame")
 local initialized = false
+local spellsChangedTimer = nil
+
+local function setupWouldChange()
+    local spec = Faceroll.activeSpec()
+    if spec == nil or spec.actions == nil then
+        return false
+    end
+
+    local keyToSlot = buildKeyToSlotMap(spec)
+
+    for _, entry in ipairs(spec.actions) do
+        if type(entry) == "table" then
+            local action = entry[1]
+            local macroName = entry.macro
+            local spellName = entry.spell
+            local key = spec.keys[action]
+            if key then
+                local slot = keyToSlot[key]
+                if slot then
+                    local actionType, actionId, subType, actionSpellId = GetActionInfo(slot)
+                    if macroName then
+                        local fullName = macroName .. " FR"
+                        local macroIndex = GetMacroIndexByName(fullName)
+                        if macroIndex and macroIndex > 0 then
+                            if actionType ~= "macro" or actionId ~= macroIndex then
+                                return true
+                            end
+                        end
+                    elseif spellName then
+                        if GetSpellInfo(spellName) then
+                            local currentName = actionSpellId and GetSpellInfo(actionSpellId) or nil
+                            if currentName ~= spellName then
+                                return true
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end
+
+    return false
+end
 local function onEvent(self, event, arg1, arg2, ...)
     Faceroll.targetChanged = false
     if not initialized and ((event == "ADDON_LOADED" and arg1 == "Faceroll") or (event == "PLAYER_LOGIN")) then
@@ -1643,6 +1686,16 @@ local function onEvent(self, event, arg1, arg2, ...)
         updateBits("PLAYER_STOPPED_MOVING")
     elseif event == "UNIT_AURA" then
         updateBits("UNIT_AURA")
+    elseif event == "SPELLS_CHANGED" then
+        if spellsChangedTimer then
+            spellsChangedTimer:Cancel()
+        end
+        spellsChangedTimer = C_Timer.NewTimer(2, function()
+            spellsChangedTimer = nil
+            if setupWouldChange() then
+                SlashCmdList["FRSETUP"]()
+            end
+        end)
     elseif event == "COMBAT_LOG_EVENT_UNFILTERED" then
         if Faceroll.classic or Faceroll.ascension then
             -- Classic seems to get fewer other events, just blast here
@@ -1695,6 +1748,7 @@ eventFrame:RegisterEvent("PLAYER_REGEN_DISABLED")
 eventFrame:RegisterEvent("PLAYER_REGEN_ENABLED")
 eventFrame:RegisterEvent("PLAYER_STARTED_MOVING")
 eventFrame:RegisterEvent("PLAYER_STOPPED_MOVING")
+eventFrame:RegisterEvent("SPELLS_CHANGED")
 eventFrame:SetScript("OnEvent", onEvent)
 if Faceroll.classic or Faceroll.ascension then
     eventFrame:RegisterEvent("UNIT_POWER_UPDATE")
