@@ -368,6 +368,8 @@ end
 
 If the overlay shorthands cover everything you need, this function can just `return state`.
 
+**Important:** Any custom state you set in `calcState` must also have a corresponding entry in the overlay (as a plain string, no prefix). This ensures it shows up in the debug overlay (`/frd`) so you can see its value. If `calcState` sets `state.moving`, the overlay should include `"moving"`.
+
 ### Common Custom State Patterns
 
 **Debuff stacks** (e.g., Arcane Blast stacks):
