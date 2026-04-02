@@ -113,7 +113,27 @@ The `@Frostbolt@` gate means this macro won't be created if Frostbolt isn't know
 
 ### Channel Guard
 
-For spells you don't want to interrupt a channel for:
+When a spec uses a channeled spell (Blizzard, Hurricane, Arcane Missiles, etc.) alongside other spells in the same mode, any non-channeled spell that Faceroll might recommend during the channel needs a `[nochanneling]` guard in its macro. Without it, Faceroll will interrupt the channel the moment it decides another spell is higher priority.
+
+**The rule:** if spell A is channeled and spell B can be recommended in the same mode (ST or AOE), spell B's macro should use `[nochanneling]`. This way, pressing B's keybind while A is channeling does nothing — the channel finishes naturally.
+
+**Example — Frost Mage AOE:** Blizzard is channeled. Deep Freeze might also be recommended during AOE (e.g., to lock down a target). Without a guard, pressing Deep Freeze mid-Blizzard cancels the channel:
+
+```lua
+-- BAD: will interrupt Blizzard if Deep Freeze is recommended during AOE
+["DeepFreeze"] = [[
+#showtooltip
+/cast @Deep Freeze@
+]],
+
+-- GOOD: won't fire while Blizzard is channeling
+["DeepFreeze"] = [[
+#showtooltip
+/cast [nochanneling] @Deep Freeze@
+]],
+```
+
+**Example — Arcane Mage:** Arcane Missiles is channeled. Arcane Blast is the filler and can be recommended at any time:
 
 ```lua
 ["Blast"] = [[
@@ -121,6 +141,8 @@ For spells you don't want to interrupt a channel for:
 /cast [nochanneling] @Arcane Blast@
 ]],
 ```
+
+**When NOT to use it:** Don't add `[nochanneling]` to spells that are never recommended in the same mode as the channel, or to the channeled spell's own macro (channeled spells already have their own guards — see "Ground-Targeted Spells" for the `/stopmacro [channeling]` pattern). Also don't add it to spells that *should* interrupt the channel (e.g., a high-priority interrupt like Counterspell should cancel Blizzard to lock down a dangerous cast).
 
 ### On-Next-Hit Melee Abilities
 
@@ -197,6 +219,63 @@ For toggling spec options (see Section 8):
 ```
 
 Convention: prefix option toggle macros with `O`.
+
+### Utility Macros
+
+Many specs benefit from common utility macros that aren't part of the rotation but help with movement, form management, or quality-of-life. These don't need actions or calcAction logic — they're placed on the bar manually by the player via `/frsetup` or keybinding.
+
+When researching a spec, look for utility patterns that guides commonly recommend. **Offer these to the user** rather than adding them silently — some players already have their own utility macros and don't want duplicates.
+
+**Common patterns:**
+
+**Dismount / Cancel Form** — drop out of a mount or shapeshift to act as a caster:
+
+```lua
+["Human"] = [[
+/dismount
+/cancelform
+]],
+```
+
+**Stealth / Prowl with form swap** — enter Cat Form if needed, then stealth:
+
+```lua
+["Prowl"] = [[
+#showtooltip
+/cast [noform:3] !@Cat Form@
+/cast [form:3] @Prowl@
+]],
+```
+
+**Movement speed with form swap** — enter the right form first, then use the speed ability:
+
+```lua
+["Dash"] = [[
+#showtooltip Dash
+/cast [noform:3] !@Cat Form@
+/cast [form:3] @Dash@
+]],
+```
+
+**Mount-or-form travel** — use a travel form when a mount isn't appropriate:
+
+```lua
+["Travel"] = [[
+#showtooltip
+/cast !@Travel Form@
+]],
+```
+
+**One-button stance swap** — cycle between stances or enter a specific one:
+
+```lua
+["DefStance"] = [[
+#showtooltip
+/cast @Defensive Stance@
+]],
+```
+
+The key principle: utility macros use the same `@Spell@` gating as rotation macros, so they won't be created if the character doesn't know the spell yet. They don't need actions or overlay entries — they just need to exist in `spec.macros` so `/frsetup` creates them.
 
 ---
 
@@ -725,6 +804,7 @@ From each guide, identify:
 8. **Big cooldowns (1 minute+)** — abilities like Starfall, Force of Nature (Treants), Metamorphosis, etc. These are often things the player prefers to press manually at the right moment. **Ask the user** how they want each big cooldown handled: fully automatic in the priority list, manual (left out of calcAction entirely), or gated behind a `/fro` burst option toggle. Don't assume — different players have strong preferences here.
 9. **Single-target party debuffs** — abilities like Faerie Fire, Sunder Armor, or Curse of Elements that benefit the group but cost a GCD. **Ask the user** whether they want these applied automatically in single-target, AOE, both, or neither. These are often worth maintaining in groups but wasteful solo on fast-dying mobs.
 10. **Out-of-combat self-healing** — if the spec has healing spells, **ask the user** whether they want automatic self-healing outside of combat when solo. If yes, offer a choice: a deadzone'd cast-time heal (e.g., Healing Touch, Holy Light) for bigger heals, or an instant-cast HoT (e.g., Rejuvenation, Riptide) for convenience — if the spec offers both options.
+11. **Utility macros** — look for common quality-of-life macros that guides recommend for the spec: form/stance swapping before casting, dismount macros, stealth-with-form-swap, travel form, etc. **Offer these to the user** — they're convenient but some players already have their own. These don't need actions or calcAction logic; they just live in `spec.macros` so `/frsetup` creates them. See "Utility Macros" in Section 4.
 
 ### Documenting Omissions
 
@@ -750,7 +830,7 @@ For every spell in the rotation, determine:
 - **Melee or ranged?** Melee abilities might need `state.melee` checks.
 - **On-next-hit?** Abilities like Maul and Heroic Strike need the `!` macro syntax.
 - **Ground-targeted?** Blizzard, Rain of Fire, etc. need `.cast @@ID@@` macros.
-- **Channeled?** Channels need `[nochanneling]` guards in macros.
+- **Channeled?** If a spell is channeled, every other spell that can be recommended in the same mode needs a `[nochanneling]` guard in its macro to avoid interrupting the channel (see "Channel Guard" in Section 4). Exception: spells that *should* interrupt the channel (like a high-priority interrupt).
 - **Close-range AOE in a ranged spec?** Some ranged specs have melee-range AOE abilities (e.g., Typhoon for Balance Druid, Blast Wave for Fire Mage). For primarily ranged specs, **ask the user** whether they want close-range AOE included in the rotation, and if so, whether it should be gated behind `state.melee`. Don't assume a ranged spec wants to run into melee for AOE.
 
 ### Translating Priority to Code
