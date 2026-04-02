@@ -238,6 +238,8 @@ spec.overlay = Faceroll.createOverlay({
 
 These are checked **automatically before your calcState runs**. You don't need to query them manually.
 
+**`f_` vs `b_` for forms:** The `f_` prefix checks by form index number, but form indices can shift when talents add new forms (e.g., Tree of Life moves Moonkin Form from index 5 to 6). If the form index is unstable, track the form as a buff with `b_` instead (e.g., `{ "b_moonkin", "Moonkin Form" }`). This is more robust — the buff name never changes regardless of form index.
+
 ### Headers
 
 Strings starting with `"-"` are treated as section headers. They show up in the debug overlay for organization but are ignored everywhere else. Use them liberally — they make the overlay much easier to scan:
@@ -249,6 +251,10 @@ Strings starting with `"-"` are treated as section headers. They show up in the 
 "- Cooldowns -",
 "- Procs -",
 ```
+
+### Only Track What You Use
+
+Every overlay entry runs a check every frame. Only add entries for state you actually reference in `calcState` or `calcAction`. If a spell isn't part of the rotation, don't add an `s_` entry for it. If a DoT isn't checked in the priority list, don't add a `d_` entry. The overlay should be a mirror of what the logic needs — nothing more.
 
 ### Auto-Populated Base State
 
@@ -391,7 +397,9 @@ Arguments:
 3. Short name — 3-6 character abbreviation for the grid UI
 4. Color — hex color for the grid cell
 
-**When to use:** Shadow Priest (SWP, DP, VT), Affliction Warlock (Corruption, UA, CoA), Balance Druid (Moonfire, Insect Swarm), or any spec that applies DoTs to multiple targets. The grid shows remaining duration on each mob so the player knows which target needs a refresh.
+**When to use:** Only for specs whose AOE strategy revolves around spreading and maintaining DoTs on multiple targets — where the player needs to tab-target and refresh DoTs individually. Classic examples: Shadow Priest (SWP, DP, VT), Affliction Warlock (Corruption, UA, CoA). The grid shows remaining duration on each mob so the player knows which target needs a refresh.
+
+**When NOT to use:** If the spec's AOE rotation is primarily direct-damage spells (Hurricane, Blizzard, Starfall, Rain of Fire), the enemy grid adds clutter without value. For example, Balance Druid applies Moonfire/Insect Swarm in ST, but its AOE is Hurricane/Starfall spam — no need to track DoTs across multiple targets.
 
 Place these calls right after `createSpec`, before the macros section.
 
@@ -499,7 +507,7 @@ spec.calcAction = function(mode, state)
 end
 ```
 
-Always start with the `local st` and `local aoe` lines. Even if you only use one, it signals intent and keeps the pattern consistent.
+Always start with `local aoe = (mode == Faceroll.MODE_AOE)`. Add `local st` too if the rotation uses it, but it's fine to omit `st` if you only branch on `aoe`.
 
 ### 10a. The Preamble — Self-Prep When Not Targeting
 
@@ -701,6 +709,7 @@ From each guide, identify:
 5. **Proc reactions** — abilities that light up when a proc occurs (Missile Barrage → Arcane Missiles, Art of War → Exorcism). Track the proc as a `b_` buff.
 6. **Cooldown usage** — offensive cooldowns and when to pop them. Track with `s_`.
 7. **DoTs to maintain** — which debuffs to keep on the target. Track with `d_`.
+8. **Big cooldowns (1 minute+)** — abilities like Starfall, Force of Nature (Treants), Metamorphosis, etc. These are often things the player prefers to press manually at the right moment. **Ask the user** how they want each big cooldown handled: fully automatic in the priority list, manual (left out of calcAction entirely), or gated behind a `/fro` burst option toggle. Don't assume — different players have strong preferences here.
 
 ### What to Identify About Each Spell
 
@@ -712,6 +721,7 @@ For every spell in the rotation, determine:
 - **On-next-hit?** Abilities like Maul and Heroic Strike need the `!` macro syntax.
 - **Ground-targeted?** Blizzard, Rain of Fire, etc. need `.cast @@ID@@` macros.
 - **Channeled?** Channels need `[nochanneling]` guards in macros.
+- **Close-range AOE in a ranged spec?** Some ranged specs have melee-range AOE abilities (e.g., Typhoon for Balance Druid, Blast Wave for Fire Mage). For primarily ranged specs, **ask the user** whether they want close-range AOE included in the rotation, and if so, whether it should be gated behind `state.melee`. Don't assume a ranged spec wants to run into melee for AOE.
 
 ### Translating Priority to Code
 
