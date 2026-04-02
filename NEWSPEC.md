@@ -469,7 +469,7 @@ spec.actions = {
 
 ### Key Mapping
 
-Actions are bound to Faceroll's keybind slots in order. The 1st action maps to `Faceroll.keys[1]`, the 2nd to `Faceroll.keys[2]`, etc. **Put your most-frequently-pressed action first** — this is the slot that will be mashed most.
+Actions are bound to Faceroll's keybind slots in order. The 1st action maps to `Faceroll.keys[1]`, the 2nd to `Faceroll.keys[2]`, etc. A loose convention is to put the most-frequently-pressed action first, but this is an organizational suggestion, not a requirement. A spec that orders actions differently is not wrong.
 
 ### Hints
 
@@ -479,10 +479,14 @@ Actions are bound to Faceroll's keybind slots in order. The 1st action maps to `
 
 ### Ordering Strategy
 
-1. **Filler/builder** first (Sinister Strike, Shadow Bolt, Frostbolt) — pressed most
-2. **Spenders and maintenance** next (Eviscerate, Slice and Dice)
-3. **Cooldowns and situational** later (interrupts, defensive, AOE)
+A reasonable default ordering:
+
+1. **Filler/builder** (Sinister Strike, Shadow Bolt, Frostbolt)
+2. **Spenders and maintenance** (Eviscerate, Slice and Dice)
+3. **Cooldowns and situational** (interrupts, defensive, AOE)
 4. **Non-bar actions** last (drink, stop)
+
+This is a guideline, not a rule. Specs may deviate for readability or personal preference.
 
 ---
 
@@ -527,14 +531,23 @@ if not state.b_lightningshield then
     return "lightningshield"
 ```
 
-**Out-of-combat self-healing** (solo only):
+**Out-of-combat self-healing** (solo only, if user opted in — see Section 11 item 10):
+
+Cast-time heal with deadzone:
 
 ```lua
 elseif not state.combat and not state.group and state.hp < 0.6 and not state.healdeadzone then
     return "healself"
 ```
 
-Note the `not state.group` — if you're in a group, let the healer handle it. The deadzone check prevents spam-casting heals.
+Or instant-cast HoT (if the spec has one and the user prefers it):
+
+```lua
+elseif not state.combat and not state.group and state.hp < 0.6 and not state.b_rejuv then
+    return "healself"
+```
+
+Note the `not state.group` — if you're in a group, let the healer handle it. The deadzone check (cast-time version) or buff check (HoT version) prevents spam. If the user opted out of self-healing, add a comment documenting that decision (see Section 11, "Documenting Omissions").
 
 **Drinking:**
 
@@ -710,6 +723,23 @@ From each guide, identify:
 6. **Cooldown usage** — offensive cooldowns and when to pop them. Track with `s_`.
 7. **DoTs to maintain** — which debuffs to keep on the target. Track with `d_`.
 8. **Big cooldowns (1 minute+)** — abilities like Starfall, Force of Nature (Treants), Metamorphosis, etc. These are often things the player prefers to press manually at the right moment. **Ask the user** how they want each big cooldown handled: fully automatic in the priority list, manual (left out of calcAction entirely), or gated behind a `/fro` burst option toggle. Don't assume — different players have strong preferences here.
+9. **Single-target party debuffs** — abilities like Faerie Fire, Sunder Armor, or Curse of Elements that benefit the group but cost a GCD. **Ask the user** whether they want these applied automatically in single-target, AOE, both, or neither. These are often worth maintaining in groups but wasteful solo on fast-dying mobs.
+10. **Out-of-combat self-healing** — if the spec has healing spells, **ask the user** whether they want automatic self-healing outside of combat when solo. If yes, offer a choice: a deadzone'd cast-time heal (e.g., Healing Touch, Holy Light) for bigger heals, or an instant-cast HoT (e.g., Rejuvenation, Riptide) for convenience — if the spec offers both options.
+
+### Documenting Omissions
+
+When a spell or ability is intentionally left out of the rotation (because the user chose manual control, or it was considered and rejected), **add a comment in the spec file** explaining the decision. This prevents future audits from flagging known omissions as bugs.
+
+Place these comments in the most relevant section — near the macros if the spell has no macro, or near the calcAction logic where it would otherwise appear:
+
+```lua
+-- Starfall: user prefers manual control, not automated
+-- Force of Nature: user prefers manual control, not automated
+-- Faerie Fire: user opted out of automatic application
+-- Self-healing: user opted out of out-of-combat healing
+```
+
+The goal is that someone reading the spec file can tell the difference between "this was forgotten" and "this was considered and intentionally omitted."
 
 ### What to Identify About Each Spell
 
