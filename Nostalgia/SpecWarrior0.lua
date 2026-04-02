@@ -16,13 +16,22 @@ spec.macros = {
 /startAttack
 ]],
 
+["Heroic"] = [[
+/cast !@Heroic Strike@
+/startAttack
+]],
+
 }
 
 -----------------------------------------------------------------------------------------
 -- States
 
 spec.overlay = Faceroll.createOverlay({
-    -- { "s_spellname", "Spell Name" },
+    "- Buffs -",
+    { "b_battleshout", "Battle Shout" },
+
+    "- Spells -",
+    { "s_heroic",      "Heroic Strike" },
 })
 
 spec.calcState = function(state)
@@ -33,14 +42,24 @@ end
 -- Actions
 
 spec.actions = {
-    { "attack", macro = "Attack" },
+    { "attack",        macro = "Attack" },
+    { "heroic",        macro = "Heroic" },
+    { "battleshout",   spell = "Battle Shout" },
 }
 
 spec.calcAction = function(mode, state)
-    local st = (mode == Faceroll.MODE_ST)
+    -- local st = (mode == Faceroll.MODE_ST)
     local aoe = (mode == Faceroll.MODE_AOE)
 
-    if state.targetingenemy then
-        return "attack"
+    -- Keep Battle Shout up
+    if not state.b_battleshout and Faceroll.isActionAvailable("battleshout") then
+        return "battleshout"
+
+    elseif state.targetingenemy then
+        if state.rage >= 15 and state.s_heroic then
+            return "heroic"
+        else
+            return "attack"
+        end
     end
 end

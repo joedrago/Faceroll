@@ -22,7 +22,6 @@ spec.macros = {
 -- States
 
 spec.overlay = Faceroll.createOverlay({
-    -- { "s_spellname", "Spell Name" },
 })
 
 spec.calcState = function(state)
@@ -34,13 +33,20 @@ end
 
 spec.actions = {
     { "sinisterstrike", spell = "Sinister Strike" },
+    { "eviscerate",     spell = "Eviscerate" },
 }
 
 spec.calcAction = function(mode, state)
-    local st = (mode == Faceroll.MODE_ST)
-    local aoe = (mode == Faceroll.MODE_AOE)
+    -- local st = (mode == Faceroll.MODE_ST)
+    -- local aoe = (mode == Faceroll.MODE_AOE)
 
     if state.targetingenemy then
-        return "sinisterstrike"
+        if state.combopoints >= 5 and Faceroll.isActionAvailable("eviscerate") then
+            return "eviscerate"
+
+        else
+            return "sinisterstrike"
+        end
+
     end
 end

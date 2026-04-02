@@ -17,7 +17,10 @@ spec.macros = {
 -- States
 
 spec.overlay = Faceroll.createOverlay({
-    -- { "s_spellname", "Spell Name" },
+    "- Buffs -",
+    { "b_armor",  "Frost Armor" },
+    { "b_ai",     "Arcane Intellect" },
+    { "b_drink",  "Drink" },
 })
 
 spec.calcState = function(state)
@@ -28,14 +31,28 @@ end
 -- Actions
 
 spec.actions = {
-    { "fireball", spell = "Fireball" },
+    { "fireball",   spell = "Fireball" },
+    { "armor",      spell = "Frost Armor" },
+    { "ai",         spell = "Arcane Intellect" },
+    "drink",
 }
 
 spec.calcAction = function(mode, state)
-    local st = (mode == Faceroll.MODE_ST)
     local aoe = (mode == Faceroll.MODE_AOE)
 
-    if state.targetingenemy then
+    -- Keep Frost Armor up
+    if not state.b_armor and Faceroll.isActionAvailable("armor") then
+        return "armor"
+
+    -- Keep Arcane Intellect up
+    elseif not state.b_ai and Faceroll.isActionAvailable("ai") then
+        return "ai"
+
+    -- Drink when low mana
+    elseif state.mana < 0.9 and not state.combat and not state.b_drink and Faceroll.isActionAvailable("drink") then
+        return "drink"
+
+    elseif state.targetingenemy then
         return "fireball"
     end
 end

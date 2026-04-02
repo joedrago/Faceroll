@@ -13,7 +13,7 @@ local spec = Faceroll.createSpec("ROGUE", "fff469", "ROGUE-2")
 spec.macros = {
 
 ["SS"] = [[
-/cast Sinister Strike
+/cast @Sinister Strike@
 /startAttack
 ]],
 }
@@ -64,7 +64,7 @@ spec.calcAction = function(mode, state)
         elseif not aoe and state.b_stealth and Faceroll.isActionAvailable("garrote") then
             return "garrote"
 
-        elseif not aoe and not state.d_rupture and state.combopoints >= 5 and Faceroll.isActionAvailable("Rupture") then
+        elseif not aoe and not state.d_rupture and state.combopoints >= 5 and Faceroll.isActionAvailable("rupture") then
             return "rupture"
 
         elseif not aoe and state.targetcasting and state.s_kick then

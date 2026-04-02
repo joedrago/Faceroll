@@ -1,5 +1,8 @@
 -----------------------------------------------------------------------------------------
 -- Nostalgia Protection Warrior (3)
+--
+-- Shield Wall, Last Stand: manually controlled
+-- Bloodrage: manually controlled (rage timing is situational)
 
 if Faceroll == nil then
     _, Faceroll = ...
@@ -22,6 +25,10 @@ spec.macros = {
 /startAttack
 ]],
 
+["Attack"] = [[
+/startAttack
+]],
+
 }
 
 -----------------------------------------------------------------------------------------
@@ -29,7 +36,7 @@ spec.macros = {
 
 spec.overlay = Faceroll.createOverlay({
     "- Buffs -",
-    "battleshout",
+    { "b_battleshout", "Battle Shout" },
 
     "- Debuffs -",
     { "d_rend",      "Rend" },
@@ -39,7 +46,6 @@ spec.overlay = Faceroll.createOverlay({
     { "s_charge",    "Charge" },
     { "s_clap",      "Thunder Clap" },
     { "s_revenge",   "Revenge" },
-    { "s_bloodrage", "Bloodrage" },
 })
 
 spec.calcState = function(state)
@@ -50,24 +56,26 @@ end
 -- Actions
 
 spec.actions = {
-    { "strike",     macro = "Heroic" },
-    { "charge",     spell = "Charge" },
-    { "rend",       spell = "Rend" },
-    { "clap",       spell = "Thunder Clap" },
-    { "bloodrage",  spell = "Bloodrage" },
-    { "demoshout",  spell = "Demoralizing Shout" },
-    { "revenge",    spell = "Revenge" },
-    { "cleave",     macro = "Cleave" },
+    { "strike",        macro = "Heroic" },
+    { "attack",        macro = "Attack" },
+    { "charge",        spell = "Charge" },
+    { "battleshout",   spell = "Battle Shout" },
+    { "rend",          spell = "Rend" },
+    { "clap",          spell = "Thunder Clap" },
+    { "demoshout",     spell = "Demoralizing Shout" },
+    { "revenge",       spell = "Revenge" },
+    { "cleave",        macro = "Cleave" },
 }
 
 spec.calcAction = function(mode, state)
     -- local st = (mode == Faceroll.MODE_ST)
     local aoe = (mode == Faceroll.MODE_AOE)
 
-    if state.targetingenemy then
-        -- if state.bloodrage then
-        --     return "bloodrage"
+    -- Keep Battle Shout up
+    if not state.b_battleshout and Faceroll.isActionAvailable("battleshout") then
+        return "battleshout"
 
+    elseif state.targetingenemy then
         if state.s_charge and not state.melee then
             return "charge"
 
@@ -80,8 +88,8 @@ spec.calcAction = function(mode, state)
         elseif state.melee and state.s_revenge then
             return "revenge"
 
-        -- elseif state.rage >= 10 and not state.d_rend then
-        --     return "rend"
+        elseif state.rage >= 10 and state.melee and not state.d_rend then
+            return "rend"
 
         elseif aoe and Faceroll.isActionAvailable("cleave") then
             return "cleave"

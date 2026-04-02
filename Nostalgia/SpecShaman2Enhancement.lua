@@ -40,9 +40,11 @@ spec.macros = {
 local healDeadzone = Faceroll.deadzoneCreate("Healing Wave", 1.5, 0.5)
 
 spec.overlay = Faceroll.createOverlay({
+    "- Buffs -",
     { "b_lightningshield", "Lightning Shield" },
     { "b_manaspring",  "Mana Spring" },
 
+    "- Spells -",
     { "s_earthshock",  "Earth Shock" },
     { "s_windshear",   "Wind Shear" },
     { "s_stormstrike", "Stormstrike" },
@@ -50,6 +52,7 @@ spec.overlay = Faceroll.createOverlay({
     { "s_lavalash",    "Lava Lash" },
     { "s_rage",        "Shamanistic Rage" },
 
+    "- Custom -",
     "totems_st",
     "totems_aoe",
     "healdeadzone",

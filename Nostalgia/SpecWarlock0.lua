@@ -17,7 +17,12 @@ spec.macros = {
 -- States
 
 spec.overlay = Faceroll.createOverlay({
-    -- { "s_spellname", "Spell Name" },
+    "- Buffs -",
+    { "b_demonarmor", "Demon Armor" },
+    { "b_drink",      "Drink" },
+
+    "- Debuffs -",
+    { "d_corruption", "Corruption" },
 })
 
 spec.calcState = function(state)
@@ -28,14 +33,31 @@ end
 -- Actions
 
 spec.actions = {
-    { "shadowbolt", spell = "Shadow Bolt" },
+    { "shadowbolt",   spell = "Shadow Bolt" },
+    { "corruption",   spell = "Corruption" },
+    { "demonarmor",   spell = "Demon Armor" },
+    "drink",
 }
 
 spec.calcAction = function(mode, state)
-    local st = (mode == Faceroll.MODE_ST)
     local aoe = (mode == Faceroll.MODE_AOE)
 
-    if state.targetingenemy then
-        return "shadowbolt"
+    -- Keep Demon Armor up
+    if not state.b_demonarmor and Faceroll.isActionAvailable("demonarmor") then
+        return "demonarmor"
+
+    -- Drink when low mana
+    elseif state.mana < 0.9 and not state.combat and not state.b_drink and Faceroll.isActionAvailable("drink") then
+        return "drink"
+
+    elseif state.targetingenemy then
+        -- Apply Corruption if missing
+        if not state.d_corruption and Faceroll.isActionAvailable("corruption") then
+            return "corruption"
+
+        -- Shadow Bolt filler
+        else
+            return "shadowbolt"
+        end
     end
 end

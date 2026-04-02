@@ -1,5 +1,8 @@
 -----------------------------------------------------------------------------------------
 -- Nostalgia Destruction Warlock (3)
+--
+-- Shadowfury: manually controlled
+-- Self-healing (Drain Life / Health Funnel): skipped, channeled spells add complexity
 
 if Faceroll == nil then
     _, Faceroll = ...
@@ -11,13 +14,37 @@ local spec = Faceroll.createSpec("DEST", "cc4422", "WARLOCK-3")
 -- Macros (/frm)
 
 spec.macros = {
+
+["FelArmor"] = [[
+#showtooltip
+/cast @Fel Armor|Demon Armor@
+]],
+
+["RainOfFire"] = [[
+#showtooltip Rain of Fire
+/stopmacro [channeling]
+/stopmacro [noexist]
+/say .cast @@Rain of Fire@@
+]],
+
 }
 
 -----------------------------------------------------------------------------------------
 -- States
 
 spec.overlay = Faceroll.createOverlay({
-    -- { "s_spellname", "Spell Name" },
+    "- Buffs -",
+    { "b_felarmor",     "Fel Armor" },
+    { "b_demonarmor",   "Demon Armor" },
+    { "b_drink",        "Drink" },
+
+    "- Debuffs -",
+    { "d_immolate",     "Immolate" },
+    { "d_coe",          "Curse of the Elements" },
+
+    "- Spells -",
+    { "s_conflagrate",  "Conflagrate" },
+    { "s_chaosbolt",    "Chaos Bolt" },
 })
 
 spec.calcState = function(state)
@@ -28,14 +55,57 @@ end
 -- Actions
 
 spec.actions = {
-    { "shadowbolt", spell = "Shadow Bolt" },
+    { "incinerate",    spell = "Incinerate" },
+    { "immolate",      spell = "Immolate" },
+    { "conflagrate",   spell = "Conflagrate" },
+    { "chaosbolt",     spell = "Chaos Bolt" },
+    { "coe",           spell = "Curse of the Elements" },
+    { "rainoffire",    macro = "RainOfFire" },
+    { "lifetap",       spell = "Life Tap" },
+    { "felarmor",      macro = "FelArmor" },
+    "drink",
 }
 
 spec.calcAction = function(mode, state)
     local st = (mode == Faceroll.MODE_ST)
     local aoe = (mode == Faceroll.MODE_AOE)
 
-    if state.targetingenemy then
-        return "shadowbolt"
+    -- Keep Fel Armor (or Demon Armor) up
+    if not state.b_felarmor and not state.b_demonarmor and Faceroll.isActionAvailable("felarmor") then
+        return "felarmor"
+
+    -- Life Tap when low mana and healthy enough
+    elseif state.mana < 0.3 and state.hp > 0.5 and Faceroll.isActionAvailable("lifetap") then
+        return "lifetap"
+
+    -- Drink when low mana out of combat
+    elseif state.mana < 0.9 and not state.combat and not state.b_drink and Faceroll.isActionAvailable("drink") then
+        return "drink"
+
+    elseif state.targetingenemy then
+        -- AOE: Rain of Fire
+        if aoe and Faceroll.isActionAvailable("rainoffire") then
+            return "rainoffire"
+
+        -- Curse of Elements in groups if missing
+        elseif state.group and not state.d_coe and Faceroll.isActionAvailable("coe") then
+            return "coe"
+
+        -- Immolate if missing
+        elseif not state.d_immolate and Faceroll.isActionAvailable("immolate") then
+            return "immolate"
+
+        -- Conflagrate on cooldown
+        elseif state.s_conflagrate then
+            return "conflagrate"
+
+        -- Chaos Bolt on cooldown
+        elseif state.s_chaosbolt then
+            return "chaosbolt"
+
+        -- Incinerate filler
+        else
+            return "incinerate"
+        end
     end
 end
