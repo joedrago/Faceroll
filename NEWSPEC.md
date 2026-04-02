@@ -1070,7 +1070,7 @@ Read these for real-world patterns at different complexity levels:
 - `-- Macros (/frm)`, `-- States`, `-- Actions` as section labels
 - Consistent `elseif` indentation — each condition at the same level
 - One blank line between the macro closing `]]` and the next macro's `["Name"]`
-- Prefer `[@player]` over `[target=player]` in macros — shorter and equivalent in 3.3.5a
+- Use `[target=player]` for self-cast macros, not `[@player]` — the `@` conflicts with Faceroll's `@Spell@` gate parsing
 
 ### Naming
 

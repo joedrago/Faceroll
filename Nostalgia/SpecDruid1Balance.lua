@@ -47,7 +47,7 @@ spec.macros = {
 
 ["Rejuv"] = [[
 #showtooltip
-/cast [@player] @Rejuvenation@
+/cast [target=player] @Rejuvenation@
 ]],
 
 }
