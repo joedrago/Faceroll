@@ -1,5 +1,9 @@
 -----------------------------------------------------------------------------------------
 -- Nostalgia Balance Druid (1)
+--
+-- Starfall: manually controlled
+-- Force of Nature (Treants): manually controlled
+-- Typhoon: manually controlled (push/interrupt, unglyphed knockback annoys tanks)
 
 if Faceroll == nil then
     _, Faceroll = ...
@@ -41,6 +45,11 @@ spec.macros = {
 /say .cast @@Hurricane@@
 ]],
 
+["Rejuv"] = [[
+#showtooltip
+/cast [@player] @Rejuvenation@
+]],
+
 }
 
 -----------------------------------------------------------------------------------------
@@ -56,12 +65,18 @@ spec.overlay = Faceroll.createOverlay({
     "- Debuffs -",
     { "d_moonfire", "Moonfire" },
     { "d_swarm",    "Insect Swarm" },
+    { "d_ff",       "Faerie Fire" },
 
     "- Buffs -",
-    { "b_lunar",    "Eclipse (Lunar)" },
+    { "b_lunar",    "Eclipse (Lunar)" },    -- Solar not tracked: Wrath is already the default filler
+    { "b_rejuv",    "Rejuvenation" },
+
+    "- Custom -",
+    "moving",
 })
 
 spec.calcState = function(state)
+    state.moving = Faceroll.moving
     return state
 end
 
@@ -75,6 +90,8 @@ spec.actions = {
     { "starfire",       spell = "Starfire" },
     { "hurricane",      macro = "Hurricane" },
     { "swarm",          spell = "Insect Swarm" },
+    { "ff",             spell = "Faerie Fire" },
+    { "rejuv",          macro = "Rejuv" },
     "drink",
 }
 
@@ -84,17 +101,24 @@ spec.calcAction = function(mode, state)
     if not state.b_moonkin and Faceroll.isActionAvailable("moonkin") then
         return "moonkin"
 
-    elseif state.targetingenemy then
-        if aoe and Faceroll.isActionAvailable("hurricane") then
-            return "hurricane"
+    elseif not state.combat and not state.group and state.hp < 0.6 and not state.b_rejuv and Faceroll.isActionAvailable("rejuv") then
+        return "rejuv"
 
-        elseif not state.d_moonfire and (state.group or state.combat) and Faceroll.isActionAvailable("moonfire") then
+    elseif state.targetingenemy then
+        if aoe then
+            return "hurricane"
+        end
+
+        -- ST priority
+        if state.group and not state.d_ff and Faceroll.isActionAvailable("ff") then
+            return "ff"
+        elseif state.group and not state.d_swarm and Faceroll.isActionAvailable("swarm") then
+            return "swarm"
+        elseif not state.d_moonfire and (state.group or state.combat) then
             return "moonfire"
-        -- elseif not state.d_swarm and (state.group or state.combat) and Faceroll.isActionAvailable("swarm") then
-        --     return "swarm"
         elseif state.b_lunar and Faceroll.isActionAvailable("starfire") then
             return "starfire"
-        elseif state.moving and Faceroll.isActionAvailable("moonfire") then
+        elseif state.moving then
             return "moonfire"
         else
             return "wrath"
