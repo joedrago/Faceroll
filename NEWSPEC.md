@@ -277,6 +277,38 @@ When researching a spec, look for utility patterns that guides commonly recommen
 
 The key principle: utility macros use the same `@Spell@` gating as rotation macros, so they won't be created if the character doesn't know the spell yet. They don't need actions or overlay entries — they just need to exist in `spec.macros` so `/frsetup` creates them.
 
+### Macro Reuse Across Specs
+
+WoW has a hard limit on character-specific macro slots. Every macro defined in `spec.macros` is stored as `"Name FR"` in the character's macro list — and these add up fast when a class has four spec files (spec 0 + three talent specs). If two specs define a macro with the same name but different bodies, `/frsetup` will overwrite the macro each time you switch specs, but the slot is still consumed.
+
+**The fix:** when multiple specs of the same class need the same spell, use the **same macro name and the same macro body** across all of them. Macros that are identical by name and body share a single character macro slot regardless of how many spec files reference them.
+
+**Example:** every Druid spec that uses Rejuvenation for self-healing should define it identically:
+
+```lua
+["Rejuv"] = [[
+#showtooltip
+/cast [target=player] @Rejuvenation@
+]],
+```
+
+Before writing a new macro, check the other spec files for the same class. If an existing macro does what you need, copy its name and body exactly. This applies to utility macros too — `"Human"`, `"Dash"`, `"Prowl"`, etc. should be identical across all specs that include them.
+
+### Avoiding Macros for Solo Self-Casts
+
+Self-cast spells that are only used outside of a group (self-buffs, solo self-healing) don't need a `[target=player]` macro. Since Faceroll is active, the player won't be targeting a friendly unit — they'll either have no target or an enemy target. With no friendly target selected, self-castable spells like Mark of the Wild, Thorns, and Rejuvenation default to the caster automatically.
+
+Use `spell =` in the action instead of creating a macro. This saves a character macro slot per spell:
+
+```lua
+-- No macro needed — just use spell hint directly
+{ "motw",    spell = "Mark of the Wild" },
+{ "thorns",  spell = "Thorns" },
+{ "rejuv",   spell = "Rejuvenation" },
+```
+
+**Exception:** if a self-cast spell is also used in group content (where the player might target a friendly), it still needs a `[target=player]` macro to guarantee it lands on self.
+
 ---
 
 ## 5. Overlay & Automatic State Tracking
@@ -614,21 +646,23 @@ if not state.b_lightningshield then
 
 **Out-of-combat self-healing** (solo only, if user opted in — see Section 11 item 10):
 
-Cast-time heal with deadzone:
+Pick **one** healing method — don't stack both a HoT and a cast-time heal. The goal is light sustain between pulls, not burning through mana to top off faster. If the spec has an instant HoT (Rejuvenation, Riptide), prefer that — it's mana-efficient and doesn't delay movement. Otherwise use a cast-time heal with a deadzone.
+
+Instant-cast HoT (preferred when available):
+
+```lua
+elseif not state.combat and not state.group and state.hp < 0.6 and not state.b_rejuv then
+    return "rejuv"
+```
+
+Cast-time heal with deadzone (fallback for specs without a HoT):
 
 ```lua
 elseif not state.combat and not state.group and state.hp < 0.6 and not state.healdeadzone then
     return "healself"
 ```
 
-Or instant-cast HoT (if the spec has one and the user prefers it):
-
-```lua
-elseif not state.combat and not state.group and state.hp < 0.6 and not state.b_rejuv then
-    return "healself"
-```
-
-Note the `not state.group` — if you're in a group, let the healer handle it. The deadzone check (cast-time version) or buff check (HoT version) prevents spam. If the user opted out of self-healing, add a comment documenting that decision (see Section 11, "Documenting Omissions").
+Note the `not state.group` — if you're in a group, let the healer handle it. The buff check (HoT) or deadzone check (cast-time) prevents spam. If the user opted out of self-healing, add a comment documenting that decision (see Section 11, "Documenting Omissions").
 
 **Drinking:**
 
