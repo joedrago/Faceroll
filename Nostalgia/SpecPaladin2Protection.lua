@@ -10,6 +10,10 @@ end
 
 local spec = Faceroll.createSpec("PPROT", "aabbdd", "PALADIN-2")
 
+spec.buffs = {
+    { "Blessing of Sanctuary", "Blessing of Kings" },
+}
+
 -----------------------------------------------------------------------------------------
 -- Macros (/frm)
 

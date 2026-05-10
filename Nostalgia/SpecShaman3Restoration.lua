@@ -7,6 +7,10 @@ end
 
 local spec = Faceroll.createSpec("RSHM", "44cc88", "SHAMAN-3")
 
+spec.buffs = {
+    "Water Shield",
+}
+
 -- Nature's Swiftness: manually controlled
 -- Mana Tide Totem: manually controlled
 -- Thunderstorm: excluded (close-range AOE in ranged spec)

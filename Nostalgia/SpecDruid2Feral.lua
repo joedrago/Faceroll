@@ -7,6 +7,11 @@ end
 
 local spec = Faceroll.createSpec("FERAL", "00aa00", "DRUID-2")
 
+spec.buffs = {
+    "Mark of the Wild",
+    "Thorns",
+}
+
 -----------------------------------------------------------------------------------------
 -- Enemy Grid
 

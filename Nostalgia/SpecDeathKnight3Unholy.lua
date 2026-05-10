@@ -12,6 +12,10 @@ end
 
 local spec = Faceroll.createSpec("UNH", "88cc33", "DEATHKNIGHT-3")
 
+spec.buffs = {
+    "Horn of Winter",
+}
+
 -----------------------------------------------------------------------------------------
 -- Macros (/frm)
 

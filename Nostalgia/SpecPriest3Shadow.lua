@@ -7,6 +7,11 @@ end
 
 local spec = Faceroll.createSpec("SPVE", "dd88dd", "PRIEST-3")
 
+spec.buffs = {
+    "Power Word: Fortitude",
+    "Inner Fire",
+}
+
 Faceroll.enemyGridTrack(spec, "Shadow Word: Pain", "SWP", "621518")
 Faceroll.enemyGridTrack(spec, "Devouring Plague", "DP", "621562")
 

@@ -10,6 +10,10 @@ end
 
 local spec = Faceroll.createSpec("WAR", "ff6666", "WARRIOR-3")
 
+spec.buffs = {
+    "Battle Shout",
+}
+
 -----------------------------------------------------------------------------------------
 -- Macros (/frm)
 

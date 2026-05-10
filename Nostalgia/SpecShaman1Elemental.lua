@@ -7,6 +7,10 @@ end
 
 local spec = Faceroll.createSpec("ELE", "44aaff", "SHAMAN-1")
 
+spec.buffs = {
+    "Lightning Shield",
+}
+
 -- Elemental Mastery: manually controlled
 -- Thunderstorm: excluded (close-range AOE in ranged spec)
 

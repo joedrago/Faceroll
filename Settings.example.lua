@@ -79,6 +79,14 @@ Faceroll.bitsPanelAnchor = "TOPRIGHT"
 Faceroll.bitsPanelX = -165
 Faceroll.bitsPanelY = -5
 
+-- Missing-buff reminder stripe (square icons stacked upward from the anchor).
+-- Populated by spec.buffs in each spec file.
+Faceroll.buffsFrameAnchor   = "BOTTOMRIGHT"
+Faceroll.buffsFrameX        = -350
+Faceroll.buffsFrameY        = 250
+Faceroll.buffsFrameIconSize = 64
+Faceroll.buffsFrameSpacing  = 4
+
 -----------------------------------------------------------------------------------------
 -- Enable debug output / dashboards
 

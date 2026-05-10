@@ -570,6 +570,43 @@ spec.options = {
 
 ---
 
+## 8.5. Missing-Buff Reminder Stripe (`spec.buffs`)
+
+`spec.buffs` is an **optional** list of self-buffs you want a visual reminder for. Each entry produces one icon on the right edge of the screen *only when the buff is missing*. When you have the buff, the icon disappears and the rest of the stack reflows downward. This is purely visual — `spec.buffs` does not drive `calcAction` or auto-cast anything.
+
+### Schema
+
+```lua
+spec.buffs = {
+    "Mark of the Wild",                              -- bare string: single spell
+    "Thorns",
+    { "Mage Armor", "Ice Armor", "Frost Armor" },    -- cascade: first known wins
+}
+```
+
+- **Bare string**: track one buff. The buff name is assumed equal to the spell name.
+- **List of strings**: a cascade. At runtime, the first spell in the list that the player has actually trained becomes the "winner"; that spell's name is what gets buff-checked, and that spell's icon is what gets drawn. If none are trained, the entry is dormant and reserves no slot.
+- **Order of the outer list = stripe order, bottom-up.** The first entry sits at the bottom; subsequent entries stack above it.
+
+### How it behaves
+
+- If the cascade winner's buff is active → no icon (the slot disappears, others reflow down).
+- If the cascade winner's buff is missing → icon shown.
+- If no cascade candidate is trained → entry contributes nothing, ever.
+
+### When to use a cascade vs a bare string
+
+Use a cascade when one buff supersedes another at higher levels but they're mutually exclusive — armors (`Frost Armor` → `Ice Armor` → `Mage Armor`), seals, fel/demon armor, and similar progression chains. The cascade lets you write the priority once and have it Just Work from level 10 to 80.
+
+For buffs without a progression chain (Mark of the Wild, Thorns, Arcane Intellect, Power Word: Fortitude, Inner Fire), a bare string is fine.
+
+### Limits
+
+- The buff name must equal the spell name. This holds for the vast majority of self-buffs in WotLK, but not all (e.g., Hunter aspects sometimes shift naming). If you hit a counterexample, leave a comment and we'll extend the schema.
+- Placement is configured globally in `Settings.lua` (`Faceroll.buffsFrame*`), not per-spec.
+
+---
+
 ## 9. Actions
 
 ```lua

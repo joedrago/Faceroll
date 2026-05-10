@@ -10,6 +10,11 @@ end
 
 local spec = Faceroll.createSpec("DISC", "ddcc55", "PRIEST-1")
 
+spec.buffs = {
+    "Power Word: Fortitude",
+    "Inner Fire",
+}
+
 -----------------------------------------------------------------------------------------
 -- Macros (/frm)
 --

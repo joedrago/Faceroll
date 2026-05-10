@@ -10,6 +10,10 @@ end
 
 local spec = Faceroll.createSpec("HUNT", "abd473", "HUNTER-CLASSIC")
 
+spec.buffs = {
+    "Aspect of the Hawk",
+}
+
 -----------------------------------------------------------------------------------------
 -- Macros (/frm)
 

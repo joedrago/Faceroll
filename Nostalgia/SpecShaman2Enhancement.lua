@@ -7,6 +7,10 @@ end
 
 local spec = Faceroll.createSpec("SHAM", "333399", "SHAMAN-2")
 
+spec.buffs = {
+    "Lightning Shield",
+}
+
 -----------------------------------------------------------------------------------------
 -- Enemy Grid
 

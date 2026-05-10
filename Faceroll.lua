@@ -727,6 +727,86 @@ Faceroll.enemyGridUpdate = function()
 end
 
 -----------------------------------------------------------------------------------------
+-- Missing-buff reminder stripe
+--
+-- spec.buffs is an optional list of "tracks". Each track is either a bare spell name
+-- or a list of spell names (a cascade — first one the player has learned wins).
+-- For each track whose winner is learned but whose buff is missing, an icon is shown
+-- on the right edge, stacking upward from the configured anchor. Active buffs leave
+-- the stack and the remaining icons reflow downward.
+
+Faceroll.buffsFrames = {}
+
+local function buffsResolveTrack(entry)
+    local candidates = (type(entry) == "string") and { entry } or entry
+    for _, candidate in ipairs(candidates) do
+        if Faceroll.isSpellLearned(candidate) then
+            return candidate
+        end
+    end
+    return nil
+end
+
+local function buffsGetIconFrame(index)
+    local frame = Faceroll.buffsFrames[index]
+    if frame ~= nil then
+        return frame
+    end
+
+    local size = Faceroll.buffsFrameIconSize or 64
+    local spacing = Faceroll.buffsFrameSpacing or 4
+    local anchor = Faceroll.buffsFrameAnchor or "BOTTOMRIGHT"
+    local x = Faceroll.buffsFrameX or 0
+    local y = Faceroll.buffsFrameY or 0
+
+    frame = CreateFrame("Frame", nil, UIParent)
+    frame:SetWidth(size)
+    frame:SetHeight(size)
+    frame:SetFrameStrata("MEDIUM")
+    frame:SetPoint(anchor, UIParent, anchor, x, y + (index - 1) * (size + spacing))
+
+    frame.texture = frame:CreateTexture(nil, "ARTWORK")
+    frame.texture:SetAllPoints(frame)
+
+    frame:Hide()
+    Faceroll.buffsFrames[index] = frame
+    return frame
+end
+
+Faceroll.buffsInit = function()
+    -- Frames are created lazily on demand in buffsUpdate. Nothing to do up front.
+end
+
+Faceroll.buffsUpdate = function()
+    local spec = Faceroll.activeSpec()
+    if spec == nil or spec.buffs == nil then
+        for _, frame in pairs(Faceroll.buffsFrames) do
+            frame:Hide()
+        end
+        return
+    end
+
+    local missing = {}
+    for _, entry in ipairs(spec.buffs) do
+        local winner = buffsResolveTrack(entry)
+        if winner ~= nil and not Faceroll.isBuffActive(winner) then
+            table.insert(missing, winner)
+        end
+    end
+
+    for i, spellName in ipairs(missing) do
+        local frame = buffsGetIconFrame(i)
+        frame.texture:SetTexture(GetSpellTexture(spellName))
+        frame:Show()
+    end
+    for i, frame in pairs(Faceroll.buffsFrames) do
+        if i > #missing then
+            frame:Hide()
+        end
+    end
+end
+
+-----------------------------------------------------------------------------------------
 -- Shims for builtin functions that maybe don't exist in some versions
 
 local builtinGSC = nil
@@ -890,6 +970,25 @@ Faceroll.isSpellQueued = function(spellName) -- "on next melee" stuff like Heroi
         return true
     end
     return false
+end
+
+local _isSpellLearnedGSBI = GetSpellBookItemName or GetSpellName
+
+Faceroll.isSpellLearned = function(spellName)
+    if _isSpellLearnedGSBI == nil then
+        return false
+    end
+    local i = 1
+    while true do
+        local bookName = _isSpellLearnedGSBI(i, BOOKTYPE_SPELL)
+        if bookName == nil then
+            return false
+        end
+        if bookName == spellName then
+            return true
+        end
+        i = i + 1
+    end
 end
 
 Faceroll.isSpellAvailable = function(spellName, ignoreUsable)
@@ -1238,6 +1337,7 @@ local function updateBits(who)
     end
 
     Faceroll.enemyGridUpdate()
+    Faceroll.buffsUpdate()
 
     Faceroll.updateBitsCounter = Faceroll.updateBitsCounter + 1
 end
@@ -1523,6 +1623,7 @@ end
 local function onLoaded()
     Faceroll.debugInit()
     Faceroll.enemyGridInit()
+    Faceroll.buffsInit()
 
     enabledFrameCreate()
     enabledFrameUpdate()

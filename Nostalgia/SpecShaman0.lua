@@ -7,6 +7,10 @@ end
 
 local spec = Faceroll.createSpec("SHMN", "0070de", "SHAMAN-CLASSIC")
 
+spec.buffs = {
+    "Lightning Shield",
+}
+
 -----------------------------------------------------------------------------------------
 -- Macros (/frm)
 

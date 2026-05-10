@@ -10,6 +10,10 @@ end
 
 local spec = Faceroll.createSpec("DEST", "cc4422", "WARLOCK-3")
 
+spec.buffs = {
+    { "Fel Armor", "Demon Armor", "Demon Skin" },
+}
+
 spec.keepRanks = { "Drain Soul" }
 
 -----------------------------------------------------------------------------------------

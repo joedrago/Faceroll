@@ -7,6 +7,11 @@ end
 
 local spec = Faceroll.createSpec("ARC", "a674db", "MAGE-1")
 
+spec.buffs = {
+    { "Mage Armor", "Ice Armor", "Frost Armor" },
+    "Arcane Intellect",
+}
+
 
 -----------------------------------------------------------------------------------------
 -- Macros (/frm)
