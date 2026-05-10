@@ -70,6 +70,10 @@ spec.calcAction = function(mode, state)
         if state.s_holyfire then
             return "holyfire"
 
+        -- When solo and not in combat, lead with a cast before dots
+        elseif not state.combat and not state.group then
+            return "smite"
+
         -- Shadow Word: Pain if missing
         elseif not state.d_pain then
             return "pain"

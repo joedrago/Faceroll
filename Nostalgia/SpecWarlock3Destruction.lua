@@ -20,6 +20,11 @@ spec.macros = {
 /cast @Fel Armor|Demon Armor@
 ]],
 
+["Nuke"] = [[
+#showtooltip
+/cast @Incinerate|Shadow Bolt@
+]],
+
 ["RainOfFire"] = [[
 #showtooltip Rain of Fire
 /stopmacro [channeling]
@@ -55,7 +60,7 @@ end
 -- Actions
 
 spec.actions = {
-    { "incinerate",    spell = "Incinerate" },
+    { "nuke",          macro = "Nuke" },
     { "immolate",      spell = "Immolate" },
     { "conflagrate",   spell = "Conflagrate" },
     { "chaosbolt",     spell = "Chaos Bolt" },
@@ -87,6 +92,10 @@ spec.calcAction = function(mode, state)
         elseif state.group and not state.d_coe and Faceroll.isActionAvailable("coe") then
             return "coe"
 
+        -- When solo and not in combat, lead with a cast before dots
+        elseif not state.combat and not state.group then
+            return "nuke"
+
         -- Immolate if missing
         elseif not state.d_immolate and Faceroll.isActionAvailable("immolate") then
             return "immolate"
@@ -99,9 +108,9 @@ spec.calcAction = function(mode, state)
         elseif state.s_chaosbolt then
             return "chaosbolt"
 
-        -- Incinerate filler
+        -- Incinerate / Shadow Bolt filler
         else
-            return "incinerate"
+            return "nuke"
         end
 
     -- Drink when low mana

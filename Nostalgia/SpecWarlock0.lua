@@ -47,6 +47,11 @@ spec.calcAction = function(mode, state)
         return "demonarmor"
 
     elseif state.targetingenemy then
+        -- When solo and not in combat, lead with Shadow Bolt before dots
+        if not state.combat and not state.group then
+            return "shadowbolt"
+        end
+
         -- Apply Corruption if missing
         if not state.d_corruption and Faceroll.isActionAvailable("corruption") then
             return "corruption"

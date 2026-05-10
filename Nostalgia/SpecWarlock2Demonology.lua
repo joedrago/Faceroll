@@ -96,6 +96,10 @@ spec.calcAction = function(mode, state)
         elseif state.group and not state.d_coe and Faceroll.isActionAvailable("coe") then
             return "coe"
 
+        -- When solo and not in combat, lead with Shadow Bolt before dots
+        elseif not state.combat and not state.group then
+            return "shadowbolt"
+
         -- Curse of Agony if no CoE needed
         elseif not state.group and not state.d_coa and Faceroll.isActionAvailable("coa") then
             return "coa"

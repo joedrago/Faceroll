@@ -60,6 +60,10 @@ spec.calcAction = function(mode, state)
         if aoe then
             return "mindsear"
 
+        -- When solo and not in combat, lead with Mind Blast before dots
+        elseif not state.combat and not state.group and state.s_mindblast then
+            return "mindblast"
+
         elseif not state.d_pain then
             return "pain"
 

@@ -59,6 +59,11 @@ spec.calcAction = function(mode, state)
         return "renew"
 
     elseif state.targetingenemy then
+        -- When solo and not in combat, lead with Smite before dots
+        if not state.combat and not state.group then
+            return "smite"
+        end
+
         -- Apply Shadow Word: Pain if missing
         if not state.d_pain and Faceroll.isActionAvailable("pain") then
             return "pain"
