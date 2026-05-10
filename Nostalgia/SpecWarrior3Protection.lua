@@ -53,10 +53,6 @@ spec.overlay = Faceroll.createOverlay({
     { "s_victoryrush", "Victory Rush" },
 })
 
-spec.calcState = function(state)
-    return state
-end
-
 -----------------------------------------------------------------------------------------
 -- Actions
 

@@ -35,10 +35,6 @@ spec.overlay = Faceroll.createOverlay({
     { "s_moonfire",  "Moonfire" },
 })
 
-spec.calcState = function(state)
-    return state
-end
-
 -----------------------------------------------------------------------------------------
 -- Actions
 

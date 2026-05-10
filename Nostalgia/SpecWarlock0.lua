@@ -31,10 +31,6 @@ spec.overlay = Faceroll.createOverlay({
     { "d_corruption", "Corruption" },
 })
 
-spec.calcState = function(state)
-    return state
-end
-
 -----------------------------------------------------------------------------------------
 -- Actions
 

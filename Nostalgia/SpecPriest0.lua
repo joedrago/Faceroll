@@ -32,10 +32,6 @@ spec.overlay = Faceroll.createOverlay({
     { "d_pain",       "Shadow Word: Pain" },
 })
 
-spec.calcState = function(state)
-    return state
-end
-
 -----------------------------------------------------------------------------------------
 -- Actions
 

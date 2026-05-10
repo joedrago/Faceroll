@@ -391,15 +391,7 @@ These fields are always available in `state` without any overlay entries:
 
 ## 6. calcState — Custom State
 
-`calcState` runs after all automatic state population. Use it for anything the shorthand prefixes can't handle.
-
-```lua
-spec.calcState = function(state)
-    return state
-end
-```
-
-If the overlay shorthands cover everything you need, this function can just `return state`.
+`calcState` is **optional**. It runs after all automatic state population, and only if you need to compute something the shorthand prefixes (`b_`, `d_`, `s_`, `f_`) and action-property hooks (`deadzone`) can't already handle. If the overlay shorthands cover everything you need, omit `spec.calcState` entirely.
 
 **Important:** Any custom state you set in `calcState` must also have a corresponding entry in the overlay (as a plain string, no prefix). This ensures it shows up in the debug overlay (`/frd`) so you can see its value. If `calcState` sets `state.moving`, the overlay should include `"moving"`.
 

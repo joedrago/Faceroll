@@ -48,10 +48,6 @@ spec.overlay = Faceroll.createOverlay({
     { "s_pyroblast",   "Pyroblast" },
 })
 
-spec.calcState = function(state)
-    return state
-end
-
 -----------------------------------------------------------------------------------------
 -- Actions
 

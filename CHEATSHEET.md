@@ -183,9 +183,7 @@ spec.overlay = Faceroll.createOverlay({
     { "d_roar",       "Demoralizing Roar" },
 })
 
-spec.calcState = function(state)
-    return state
-end
+-- (spec.calcState is optional — only define it if you need custom state.)
 
 -----------------------------------------------------------------------------------------
 -- Actions

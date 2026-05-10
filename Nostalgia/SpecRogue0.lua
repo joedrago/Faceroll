@@ -24,10 +24,6 @@ spec.macros = {
 spec.overlay = Faceroll.createOverlay({
 })
 
-spec.calcState = function(state)
-    return state
-end
-
 -----------------------------------------------------------------------------------------
 -- Actions
 

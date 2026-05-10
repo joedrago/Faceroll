@@ -28,10 +28,6 @@ spec.overlay = Faceroll.createOverlay({
     { "b_drink",  "Drink" },
 })
 
-spec.calcState = function(state)
-    return state
-end
-
 -----------------------------------------------------------------------------------------
 -- Actions
 

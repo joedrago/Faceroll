@@ -43,10 +43,6 @@ spec.overlay = Faceroll.createOverlay({
     { "s_earthshock",  "Earth Shock" },
 })
 
-spec.calcState = function(state)
-    return state
-end
-
 -----------------------------------------------------------------------------------------
 -- Actions
 

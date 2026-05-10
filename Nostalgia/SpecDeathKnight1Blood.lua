@@ -63,10 +63,6 @@ spec.overlay = Faceroll.createOverlay({
     { "s_deathgrip",     "Death Grip" },
 })
 
-spec.calcState = function(state)
-    return state
-end
-
 -----------------------------------------------------------------------------------------
 -- Actions
 

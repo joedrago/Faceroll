@@ -38,10 +38,6 @@ spec.overlay = Faceroll.createOverlay({
     { "s_raptor",        "Raptor Strike" },
 })
 
-spec.calcState = function(state)
-    return state
-end
-
 -----------------------------------------------------------------------------------------
 -- Actions
 
