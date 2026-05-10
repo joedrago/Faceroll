@@ -24,18 +24,7 @@ spec.overlay = Faceroll.createOverlay({
 
     "- Spells -",
     { "s_mindblast",      "Mind Blast" },
-    "vtdeadzone",
 })
-
-local vtDeadzone = Faceroll.deadzoneCreate("Vampiric Touch", 1.5, 0.5)
-
-spec.calcState = function(state)
-    if Faceroll.deadzoneUpdate(vtDeadzone) then
-        state.vtdeadzone = true
-    end
-
-    return state
-end
 
 -----------------------------------------------------------------------------------------
 -- Actions
@@ -47,7 +36,7 @@ spec.actions = {
     { "mindblast",       spell = "Mind Blast", },
     { "mindflay",        spell = "Mind Flay", },
     { "mindsear",        spell = "Mind Sear", },
-    { "vampirictouch",   spell = "Vampiric Touch", },
+    { "vampirictouch",   spell = "Vampiric Touch", deadzone = true },
 }
 
 spec.calcAction = function(mode, state)
@@ -67,7 +56,7 @@ spec.calcAction = function(mode, state)
         elseif not state.d_pain then
             return "pain"
 
-        elseif not state.d_vampirictouch and not state.vtdeadzone then
+        elseif not state.d_vampirictouch and not state.z_vampirictouch then
             return "vampirictouch"
 
         elseif not aoe and not state.d_devouringplague then

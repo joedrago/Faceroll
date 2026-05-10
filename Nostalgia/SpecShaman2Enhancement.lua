@@ -37,8 +37,6 @@ spec.macros = {
 -----------------------------------------------------------------------------------------
 -- States
 
-local healDeadzone = Faceroll.deadzoneCreate("Healing Wave", 1.5, 0.5)
-
 spec.overlay = Faceroll.createOverlay({
     "- Buffs -",
     { "b_lightningshield", "Lightning Shield" },
@@ -55,7 +53,6 @@ spec.overlay = Faceroll.createOverlay({
     "- Custom -",
     "totems_st",
     "totems_aoe",
-    "healdeadzone",
     "targethp",
 })
 
@@ -66,7 +63,6 @@ spec.calcState = function(state)
     if Faceroll.isTotemActive("Magma Totem") then
         state.totems_aoe = true
     end
-    state.healdeadzone = Faceroll.deadzoneUpdate(healDeadzone)
 
     state.targethp = 0
     if state.targetingenemy then
@@ -91,7 +87,7 @@ spec.actions = {
     { "recall",          spell = "Totemic Recall" },
     { "totems_st",       spell = "Call of the Spirits" },
     { "totems_aoe",      spell = "Call of the Ancestors" },
-    { "healself",        spell = "Healing Wave" },
+    { "healself",        spell = "Healing Wave", deadzone = true },
     { "rage",            spell = "Shamanistic Rage" },
     { "stop",            macro = "Stop" },
 }
@@ -107,7 +103,7 @@ spec.calcAction = function(mode, state)
     if not state.b_lightningshield then
         return "lightningshield"
 
-    elseif not state.combat and not state.group and state.hp < 0.6 and not state.healdeadzone then
+    elseif not state.combat and not state.group and state.hp < 0.6 and not state.z_healself then
         return "healself"
 
     elseif state.targetingenemy then

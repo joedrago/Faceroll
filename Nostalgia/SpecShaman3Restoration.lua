@@ -34,8 +34,6 @@ spec.macros = {
 -----------------------------------------------------------------------------------------
 -- States
 
-local healDeadzone = Faceroll.deadzoneCreate("Healing Wave", 1.5, 0.5)
-
 spec.overlay = Faceroll.createOverlay({
     "- Buffs -",
     { "b_watershield", "Water Shield" },
@@ -46,15 +44,7 @@ spec.overlay = Faceroll.createOverlay({
 
     "- Spells -",
     { "s_windshear",   "Wind Shear" },
-
-    "- Custom -",
-    "healdeadzone",
 })
-
-spec.calcState = function(state)
-    state.healdeadzone = Faceroll.deadzoneUpdate(healDeadzone)
-    return state
-end
 
 -----------------------------------------------------------------------------------------
 -- Actions
@@ -65,7 +55,7 @@ spec.actions = {
     { "riptide",        macro = "Riptide" },
     { "flameshock",     spell = "Flame Shock" },
     { "windshear",      spell = "Wind Shear" },
-    { "healself",       spell = "Healing Wave" },
+    { "healself",       spell = "Healing Wave", deadzone = true },
     "drink",
 }
 
@@ -78,7 +68,7 @@ spec.calcAction = function(mode, state)
     elseif not state.combat and not state.group and state.hp < 0.6 and not state.b_riptide and Faceroll.isActionAvailable("riptide") then
         return "riptide"
 
-    elseif not state.combat and not state.group and state.hp < 0.6 and not Faceroll.isActionAvailable("riptide") and not state.healdeadzone then
+    elseif not state.combat and not state.group and state.hp < 0.6 and not Faceroll.isActionAvailable("riptide") and not state.z_healself then
         return "healself"
 
     elseif state.targetingenemy then

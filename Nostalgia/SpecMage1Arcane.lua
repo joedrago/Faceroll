@@ -57,10 +57,7 @@ spec.overlay = Faceroll.createOverlay({
     "casting",
     { "s_evocation",      "Evocation" },
     { "s_pom",            "Presence of Mind" },
-    "amdeadzone",
 })
-
-local amDeadzone = Faceroll.deadzoneCreate("Arcane Missiles", 0.3, 2)
 
 spec.calcState = function(state)
     local castingSpell, _, _, _, castingSpellEndTime = UnitCastingInfo("player")
@@ -79,10 +76,6 @@ spec.calcState = function(state)
         state.abstacks = abDebuff.stacks
     end
 
-    if Faceroll.deadzoneUpdate(amDeadzone) then
-        state.amdeadzone = true
-    end
-
     return state
 end
 
@@ -91,7 +84,7 @@ end
 
 spec.actions = {
     { "arcaneblast",      macro = "Blast" },
-    { "arcanemissiles",   macro = "Missiles" },
+    { "arcanemissiles",   macro = "Missiles", deadzone = { 0.3, 2, spell = "Arcane Missiles" } },
     { "evocation",        macro = "Evocation" },
     { "pom",              spell = "Presence of Mind" },
     { "blizzard",         macro = "Blizzard" },
@@ -111,10 +104,10 @@ spec.calcAction = function(mode, state)
             elseif state.mana <= 0.3 and state.s_evocation then
                 return "evocation"
 
-            elseif not state.s_evocation and not state.amdeadzone and state.b_missilebarrage then
+            elseif not state.s_evocation and not state.z_arcanemissiles and state.b_missilebarrage then
                 return "arcanemissiles"
 
-            elseif not state.amdeadzone and ((state.abstacks == 4) or ((state.abstacks == 3) and state.casting == "Arcane Blast")) and Faceroll.isActionAvailable("arcanemissiles") then
+            elseif not state.z_arcanemissiles and ((state.abstacks == 4) or ((state.abstacks == 3) and state.casting == "Arcane Blast")) and Faceroll.isActionAvailable("arcanemissiles") then
                 return "arcanemissiles"
 
             else

@@ -42,12 +42,7 @@ spec.macros = {
 -----------------------------------------------------------------------------------------
 -- States
 
-local healDeadzone = Faceroll.deadzoneCreate("Holy Light", 1.5, 0.5)
-
 spec.overlay = Faceroll.createOverlay({
-    "- State -",
-    "healdeadzone",
-
     "- Buffs -",
     { "b_seal",          "Seal of Vengeance" },
     { "b_holyshield",    "Holy Shield" },
@@ -61,15 +56,6 @@ spec.overlay = Faceroll.createOverlay({
     { "s_holyshield",     "Holy Shield" },
 })
 
-spec.calcState = function(state)
-    Faceroll.deadzoneUpdate(healDeadzone)
-    if Faceroll.deadzoneActive(healDeadzone) then
-        state.healdeadzone = true
-    end
-
-    return state
-end
-
 -----------------------------------------------------------------------------------------
 -- Actions
 
@@ -81,7 +67,7 @@ spec.actions = {
     { "consecration",    macro = "Consecration" },
     { "avengersshield",  spell = "Avenger's Shield" },
     { "holyshield",      spell = "Holy Shield" },
-    { "healself",        spell = "Holy Light" },
+    { "healself",        spell = "Holy Light", deadzone = true },
     { "seal",            spell = "Seal of Vengeance" },
 }
 
@@ -97,7 +83,7 @@ spec.calcAction = function(mode, state)
         return "holyshield"
 
     -- Self-heal when solo and low HP
-    elseif not state.combat and not state.group and state.hp < 0.75 and not state.healdeadzone then
+    elseif not state.combat and not state.group and state.hp < 0.75 and not state.z_healself then
         return "healself"
 
     elseif state.targetingenemy then

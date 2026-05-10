@@ -469,30 +469,32 @@ A deadzone prevents your spec from re-queuing a spell while it's still being cas
 
 **When to use:** Any casted spell (non-instant) where re-casting prematurely wastes a GCD. Common examples: Healing Wave, Vampiric Touch, any channeled spell where you track the DoT separately.
 
-**Setup:**
+**Setup:** Just hang `deadzone = true` on the action entry. Faceroll auto-creates the tracker, runs it each frame, and populates `state.z_<actionName>` (and appends it to the overlay under a `- Deadzones -` separator).
 
 ```lua
--- Outside calcState (file scope):
-local vtDeadzone = Faceroll.deadzoneCreate("Vampiric Touch", 1.5, 0.5)
--- args: spell name, cast-time-remaining threshold, deadzone duration after cast
+spec.actions = {
+    { "vampirictouch", spell = "Vampiric Touch", deadzone = true },
+}
 
--- Inside calcState:
-spec.calcState = function(state)
-    if Faceroll.deadzoneUpdate(vtDeadzone) then
-        state.vtdeadzone = true
-    end
-    return state
-end
-
--- Inside calcAction:
--- "not state.vtdeadzone" before recommending vampiric touch
+-- In calcAction:
+elseif not state.d_vampirictouch and not state.z_vampirictouch then
+    return "vampirictouch"
 ```
 
-`deadzoneCreate(spellName, castTimeRemaining, duration)`:
-- `castTimeRemaining` — when the remaining cast time drops below this threshold, the deadzone activates
-- `duration` — how long the deadzone stays active after the cast
+`deadzone = true` defaults to a 1.5s cast-time-remaining threshold and a 0.5s post-cast duration — the right values for almost every spell. The deadzone uses `entry.spell` for the spell-name lookup.
 
-`deadzoneUpdate(deadzone)` — call every frame in calcState. Returns `true` if the deadzone is currently active.
+**Overrides** (positional table form):
+
+```lua
+-- Override threshold/duration:
+deadzone = { 0.3, 2 }
+
+-- Override threshold/duration AND specify a spell name (needed when the action uses `macro = "..."`
+-- and the actual cast spell isn't named in the entry):
+deadzone = { 0.3, 2, spell = "Arcane Missiles" }
+```
+
+**Low-level API** (use only if you need to drive a deadzone manually from `calcState`, e.g. branching on its active state mid-frame): `Faceroll.deadzoneCreate(spellName, castTimeRemaining, duration)`, `Faceroll.deadzoneUpdate(dz)` (call every frame; returns true if active), `Faceroll.deadzoneActive(dz)` (peek without updating). The `deadzone =` action property uses these under the hood.
 
 ---
 
@@ -957,13 +959,7 @@ spec.macros = {
 -- The overlay both configures the debug display AND auto-populates state.
 -- Headers organize the overlay visually.
 
--- Deadzone prevents recommending Holy Light while already casting it
-local healDeadzone = Faceroll.deadzoneCreate("Holy Light", 1.5, 0.5)
-
 spec.overlay = Faceroll.createOverlay({
-    "- State -",
-    "healdeadzone",                                 -- manual: set in calcState
-
     "- Buffs -",
     { "b_seal",          "Seal of Command" },       -- auto: is Seal of Command active?
 
@@ -978,16 +974,9 @@ spec.overlay = Faceroll.createOverlay({
     { "s_exorcism",       "Exorcism" },              -- auto: is Exorcism off cooldown?
     { "s_hofreckoning",   "Hand of Reckoning" },     -- auto: is taunt off cooldown?
 })
+-- The deadzone on "healself" below auto-appends "- Deadzones -" / "z_healself" to this overlay.
 
-spec.calcState = function(state)
-    -- Update the heal deadzone — returns true if we're in a deadzone
-    Faceroll.deadzoneUpdate(healDeadzone)
-    if Faceroll.deadzoneActive(healDeadzone) then
-        state.healdeadzone = true
-    end
-
-    return state
-end
+-- (No spec.calcState needed — the heal deadzone is declared on the action itself.)
 
 -----------------------------------------------------------------------------------------
 -- Actions
@@ -1003,7 +992,7 @@ spec.actions = {
     { "exorcism",       spell = "Exorcism" },
     { "consecration",   macro = "Consecration" },
     { "hofreckoning",   spell = "Hand of Reckoning" },
-    { "healself",       spell = "Holy Light" },
+    { "healself",       spell = "Holy Light", deadzone = true },  -- exposes state.z_healself
 }
 
 spec.calcAction = function(mode, state)
@@ -1021,7 +1010,7 @@ spec.calcAction = function(mode, state)
     end
 
     -- Self-heal when solo and low HP
-    if not state.combat and not state.group and state.hp < 0.75 and not state.healdeadzone then
+    if not state.combat and not state.group and state.hp < 0.75 and not state.z_healself then
         return "healself"
 
     ---------------------------------------------------------------
@@ -1181,6 +1170,8 @@ spec.overlay = Faceroll.createOverlay({
 | `Faceroll.inShapeshiftForm(name)` | bool | In named shapeshift form |
 
 ### Deadzone
+
+Prefer the `deadzone = true` action property — see Section 6 ("Deadzones"). The low-level API below is only needed when you want to drive a deadzone manually from `calcState`.
 
 | Function | Returns | Description |
 |----------|---------|-------------|

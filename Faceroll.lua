@@ -161,6 +161,34 @@ Faceroll.createState = function(spec, specKey)
                 end
             end
         end
+
+        -- Auto-state from action deadzone declarations.
+        -- `deadzone = true` uses defaults; `{th, dur}` overrides; `spell="..."` overrides the spell name.
+        if spec.actions then
+            for _, entry in ipairs(spec.actions) do
+                if type(entry) == "table" and entry.deadzone then
+                    local dz = entry._dz
+                    if dz == nil then
+                        local d = entry.deadzone
+                        local spellName, castThreshold, duration
+                        if d == true then
+                            spellName = entry.spell
+                            castThreshold = 1.5
+                            duration = 0.5
+                        else
+                            spellName = d.spell or entry.spell
+                            castThreshold = d[1] or 1.5
+                            duration = d[2] or 0.5
+                        end
+                        dz = Faceroll.deadzoneCreate(spellName, castThreshold, duration)
+                        entry._dz = dz
+                    end
+                    if Faceroll.deadzoneUpdate(dz) then
+                        state["z_" .. entry[1]] = true
+                    end
+                end
+            end
+        end
     end
 
     return state
@@ -281,6 +309,22 @@ Faceroll.startup = function()
                 end
             end
 
+        end
+    end
+
+    -- Auto-append deadzone state names to each spec's overlay, prefixed by a separator
+    for _, spec in ipairs(Faceroll.availableSpecs) do
+        if spec.actions and spec.overlay then
+            local appended = false
+            for _, entry in ipairs(spec.actions) do
+                if type(entry) == "table" and entry.deadzone then
+                    if not appended then
+                        table.insert(spec.overlay, "- Deadzones -")
+                        appended = true
+                    end
+                    table.insert(spec.overlay, "z_" .. entry[1])
+                end
+            end
         end
     end
 
@@ -1173,9 +1217,12 @@ local function updateBits(who)
     end
 
     local spec, specKey = Faceroll.activeSpec()
-    if spec and spec.calcState then
+    if spec and spec.calcAction then
         Faceroll.clearDebugLines()
-        local state = spec.calcState(Faceroll.createState(spec, specKey))
+        local state = Faceroll.createState(spec, specKey)
+        if spec.calcState then
+            state = spec.calcState(state)
+        end
 
         local bridgeState = {}
         bridgeState.key0 = actionKey(spec, Faceroll.MODE_ST, state)

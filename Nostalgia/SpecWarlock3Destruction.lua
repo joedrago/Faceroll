@@ -52,24 +52,14 @@ spec.overlay = Faceroll.createOverlay({
     "- Spells -",
     { "s_conflagrate",  "Conflagrate" },
     { "s_chaosbolt",    "Chaos Bolt" },
-    "immolatedeadzone",
 })
-
-local immolateDeadzone = Faceroll.deadzoneCreate("Immolate", 1.5, 0.5)
-
-spec.calcState = function(state)
-    if Faceroll.deadzoneUpdate(immolateDeadzone) then
-        state.immolatedeadzone = true
-    end
-    return state
-end
 
 -----------------------------------------------------------------------------------------
 -- Actions
 
 spec.actions = {
     { "nuke",          macro = "Nuke" },
-    { "immolate",      spell = "Immolate" },
+    { "immolate",      spell = "Immolate", deadzone = true },
     { "conflagrate",   spell = "Conflagrate" },
     { "chaosbolt",     spell = "Chaos Bolt" },
     { "coe",           spell = "Curse of the Elements" },
@@ -105,7 +95,7 @@ spec.calcAction = function(mode, state)
             return "nuke"
 
         -- Immolate if missing
-        elseif not state.d_immolate and not state.immolatedeadzone and Faceroll.isActionAvailable("immolate") then
+        elseif not state.d_immolate and not state.z_immolate and Faceroll.isActionAvailable("immolate") then
             return "immolate"
 
         -- Conflagrate on cooldown
