@@ -70,6 +70,7 @@ Faceroll.createSpec = function(name, color, specKey)
         ["enemyGrid"]=nil,
         ["keys"]={},
         ["index"]=nil,
+        ["keepRanks"]=nil,
     }
     table.insert(Faceroll.availableSpecs, spec)
     return spec
@@ -1547,12 +1548,20 @@ end
 local function upgradeRanks()
     local bestRanks, idRanks = scanSpellbook()
 
+    local keepRanks = {}
+    local spec = Faceroll.activeSpec()
+    if spec ~= nil and spec.keepRanks ~= nil then
+        for _, spellName in ipairs(spec.keepRanks) do
+            keepRanks[spellName] = true
+        end
+    end
+
     local upgradedCount = 0
     for i = 1,120 do
         local actionType, _, subType, id = GetActionInfo(i)
         if id ~= nil then
             local infoName = GetSpellInfo(id)
-            if infoName ~= nil then
+            if infoName ~= nil and not keepRanks[infoName] then
                 -- print("Action Bar " .. i .. " is " .. infoName .. "(id " .. id .. ")")
                 local rank = idRanks[id]
                 if rank ~= nil then

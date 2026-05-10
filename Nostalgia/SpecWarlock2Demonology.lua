@@ -10,6 +10,8 @@ end
 
 local spec = Faceroll.createSpec("DEMO", "9482c9", "WARLOCK-2")
 
+spec.keepRanks = { "Drain Soul" }
+
 -----------------------------------------------------------------------------------------
 -- Macros (/frm)
 

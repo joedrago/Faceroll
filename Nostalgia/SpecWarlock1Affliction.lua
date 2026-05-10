@@ -10,6 +10,8 @@ end
 
 local spec = Faceroll.createSpec("AFF", "8844aa", "WARLOCK-1")
 
+spec.keepRanks = { "Drain Soul" }
+
 Faceroll.enemyGridTrack(spec, "Corruption", "COR", "8844aa")
 Faceroll.enemyGridTrack(spec, "Unstable Affliction", "UA", "aa44cc")
 Faceroll.enemyGridTrack(spec, "Curse of Agony", "CoA", "cc6688")
