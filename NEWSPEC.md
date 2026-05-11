@@ -572,12 +572,14 @@ spec.options = {
 spec.buffs = {
     "Mark of the Wild",                              -- bare string: single spell
     "Thorns",
+    "Arcane Intellect|Arcane Brilliance",            -- synonyms: either active counts
     { "Mage Armor", "Ice Armor", "Frost Armor" },    -- cascade: first known wins
 }
 ```
 
 - **Bare string**: track one buff. The buff name is assumed equal to the spell name.
 - **List of strings**: a cascade. At runtime, the first spell in the list that the player has actually trained becomes the "winner"; that spell's name is what gets buff-checked, and that spell's icon is what gets drawn. If none are trained, the entry is dormant and reserves no slot.
+- **Pipe-separated synonyms (`"A|B"`)**: any candidate string (bare or inside a cascade) can list synonymous buffs separated by `|`. The track is "learned" if any synonym is learned, and "active" if any synonym is active. The icon uses the first synonym in the list.
 - **Order of the outer list = stripe order, bottom-up.** The first entry sits at the bottom; subsequent entries stack above it.
 
 ### How it behaves
@@ -591,6 +593,8 @@ spec.buffs = {
 Use a cascade when one buff supersedes another at higher levels but they're mutually exclusive — armors (`Frost Armor` → `Ice Armor` → `Mage Armor`), seals, fel/demon armor, and similar progression chains. The cascade lets you write the priority once and have it Just Work from level 10 to 80.
 
 For buffs without a progression chain (Mark of the Wild, Thorns, Arcane Intellect, Power Word: Fortitude, Inner Fire), a bare string is fine.
+
+Use the `|` synonym syntax when two buffs are interchangeable — typically a self-cast version and its group-buff counterpart (`Arcane Intellect|Arcane Brilliance`, `Power Word: Fortitude|Prayer of Fortitude`, `Mark of the Wild|Gift of the Wild`). Either form active means you don't need to recast.
 
 ### Limits
 

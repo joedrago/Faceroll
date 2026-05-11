@@ -10,7 +10,7 @@ end
 local spec = Faceroll.createSpec("PALA", "f58cba", "PALADIN-CLASSIC")
 
 spec.buffs = {
-    "Blessing of Might",
+    "Blessing of Might|Greater Blessing of Might",
 }
 
 -----------------------------------------------------------------------------------------

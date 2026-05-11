@@ -11,7 +11,7 @@ local spec = Faceroll.createSpec("FROST", "44ddff", "MAGE-3")
 
 spec.buffs = {
     { "Mage Armor", "Ice Armor", "Frost Armor" },
-    "Arcane Intellect",
+    "Arcane Intellect|Arcane Brilliance",
 }
 
 -----------------------------------------------------------------------------------------

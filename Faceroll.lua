@@ -731,17 +731,31 @@ end
 --
 -- spec.buffs is an optional list of "tracks". Each track is either a bare spell name
 -- or a list of spell names (a cascade — first one the player has learned wins).
+-- Any candidate string may use "A|B" to declare synonyms — buffs that count as the
+-- same thing (e.g. "Arcane Intellect|Arcane Brilliance"). The first synonym supplies
+-- the icon; any of them being active satisfies the track.
 -- For each track whose winner is learned but whose buff is missing, an icon is shown
 -- on the right edge, stacking upward from the configured anchor. Active buffs leave
 -- the stack and the remaining icons reflow downward.
 
 Faceroll.buffsFrames = {}
 
+local function buffsSplitSynonyms(candidate)
+    local synonyms = {}
+    for name in string.gmatch(candidate, "[^|]+") do
+        table.insert(synonyms, name)
+    end
+    return synonyms
+end
+
 local function buffsResolveTrack(entry)
     local candidates = (type(entry) == "string") and { entry } or entry
     for _, candidate in ipairs(candidates) do
-        if Faceroll.isSpellLearned(candidate) then
-            return candidate
+        local synonyms = buffsSplitSynonyms(candidate)
+        for _, name in ipairs(synonyms) do
+            if Faceroll.isSpellLearned(name) then
+                return synonyms
+            end
         end
     end
     return nil
@@ -788,9 +802,18 @@ Faceroll.buffsUpdate = function()
 
     local missing = {}
     for _, entry in ipairs(spec.buffs) do
-        local winner = buffsResolveTrack(entry)
-        if winner ~= nil and not Faceroll.isBuffActive(winner) then
-            table.insert(missing, winner)
+        local synonyms = buffsResolveTrack(entry)
+        if synonyms ~= nil then
+            local active = false
+            for _, name in ipairs(synonyms) do
+                if Faceroll.isBuffActive(name) then
+                    active = true
+                    break
+                end
+            end
+            if not active then
+                table.insert(missing, synonyms[1])
+            end
         end
     end
 

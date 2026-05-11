@@ -8,7 +8,7 @@ end
 local spec = Faceroll.createSpec("DRUID", "ff7d0a", "DRUID-CLASSIC")
 
 spec.buffs = {
-    "Mark of the Wild",
+    "Mark of the Wild|Gift of the Wild",
     "Thorns",
 }
 

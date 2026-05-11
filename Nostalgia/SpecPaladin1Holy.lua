@@ -11,7 +11,7 @@ end
 local spec = Faceroll.createSpec("HPAL", "ffcc00", "PALADIN-1")
 
 spec.buffs = {
-    "Blessing of Wisdom",
+    "Blessing of Wisdom|Greater Blessing of Wisdom",
 }
 
 -----------------------------------------------------------------------------------------

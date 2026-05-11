@@ -12,7 +12,7 @@ end
 local spec = Faceroll.createSpec("BAL", "aa6600", "DRUID-1")
 
 spec.buffs = {
-    "Mark of the Wild",
+    "Mark of the Wild|Gift of the Wild",
     "Thorns",
 }
 

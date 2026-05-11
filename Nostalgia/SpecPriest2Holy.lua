@@ -11,7 +11,7 @@ end
 local spec = Faceroll.createSpec("HPRI", "ffeedd", "PRIEST-2")
 
 spec.buffs = {
-    "Power Word: Fortitude",
+    "Power Word: Fortitude|Prayer of Fortitude",
     "Inner Fire",
 }
 
